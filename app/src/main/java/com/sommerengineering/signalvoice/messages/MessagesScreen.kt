@@ -183,7 +183,8 @@ fun MessagesScreen(
                                 MessageItem(
                                     viewModel = viewModel,
                                     message = message,
-                                    isShowDivider = index != messages.lastIndex
+                                    isShowDivider = index != messages.lastIndex,
+                                    isEven = index % 2 == 0
                                 )
                             }
                         }
@@ -207,7 +208,8 @@ fun MessagesScreen(
                                         MessageItem(
                                             viewModel = viewModel,
                                             message = message,
-                                            isShowDivider = !(groupIndex == groups.lastIndex && index == messages.lastIndex)
+                                            isShowDivider = !(groupIndex == groups.lastIndex && index == messages.lastIndex),
+                                            isEven = index % 2 == 0
                                         )
                                     }
                                 }

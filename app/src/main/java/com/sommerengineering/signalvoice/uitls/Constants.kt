@@ -158,3 +158,7 @@ const val gitHubProviderId = "github.com"
 const val defaultVoice = "en-gb-x-gbd-local"  // british, male
 const val speedChangeUtterance = "Speed, "
 const val pitchChangeUtterance = "Pitch, "
+
+// lock badge
+val lockBadgeSize = 12.dp
+val lockBadgePadding = 2.dp

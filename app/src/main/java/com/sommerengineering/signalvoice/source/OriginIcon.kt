@@ -6,11 +6,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,9 +20,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sommerengineering.signalvoice.R
+import com.sommerengineering.signalvoice.premium.LockBadge
 import com.sommerengineering.signalvoice.theme.fontFamily
 import com.sommerengineering.signalvoice.uitls.assetIconSize
+import com.sommerengineering.signalvoice.uitls.lockBadgePadding
+import com.sommerengineering.signalvoice.uitls.lockBadgeSize
 import com.sommerengineering.signalvoice.uitls.settingsIconSize
 
 @Composable
@@ -92,8 +92,18 @@ fun OriginIcon(
         }
 
         if (isLocked) {
+
+            // accommodate inherent vector padding from emoji conversion
+            val offset = lockBadgeSize * 0.14f + lockBadgePadding
+
             LockBadge(
-                modifier = Modifier.align(Alignment.BottomEnd)
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .size(lockBadgeSize)
+                    .offset(
+                        x = offset,
+                        y = lockBadgePadding
+                    )
             )
         }
     }
@@ -125,42 +135,7 @@ fun TextIcon(
     )
 }
 
-@Composable
-fun LockBadge(modifier: Modifier = Modifier) {
 
-    val badgeSize = 12.dp
-    val badgePadding = 2.dp
-
-    // accommodate inherent vector padding from emoji conversion
-    val offset = badgeSize * 0.14f + badgePadding
-
-    Box(
-        modifier = modifier
-            .size(badgeSize)
-            .offset(x = offset, y = badgePadding)
-    ) {
-
-        // halo
-        Box(
-            Modifier
-                .matchParentSize()
-                .background(
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
-                    shape = CircleShape
-                )
-        )
-
-        // lock
-        Icon(
-            painter = painterResource(R.drawable.lock),
-            contentDescription = null,
-            modifier = Modifier
-                .matchParentSize()
-                .padding(badgePadding),
-            tint = Color.White.copy(alpha = 0.8f)
-        )
-    }
-}
 
 
 

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -42,6 +43,7 @@ import com.sommerengineering.signalvoice.source.znAsset
 import com.sommerengineering.signalvoice.uitls.customDescription
 import com.sommerengineering.signalvoice.uitls.customDividerTitle
 import com.sommerengineering.signalvoice.uitls.customTitle
+import com.sommerengineering.signalvoice.uitls.descriptionAlpha
 import com.sommerengineering.signalvoice.uitls.edgePadding
 import com.sommerengineering.signalvoice.uitls.generalDividerTitle
 import com.sommerengineering.signalvoice.uitls.guestCustomDescription
@@ -346,8 +348,9 @@ fun SettingsDrawer(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(start = edgePadding, end = edgePadding, bottom = edgePadding),
-                    text = BuildConfig.VERSION_NAME,
+                    text = "v" + BuildConfig.VERSION_NAME,
                     textAlign = TextAlign.End,
+                    color = LocalContentColor.current.copy(descriptionAlpha),
                     style = MaterialTheme.typography.bodySmall
                 )
             }

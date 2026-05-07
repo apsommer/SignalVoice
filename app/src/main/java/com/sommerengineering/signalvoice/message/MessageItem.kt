@@ -2,12 +2,14 @@ package com.sommerengineering.signalvoice.message
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.dp
 import com.sommerengineering.signalvoice.MainViewModel
 import com.sommerengineering.signalvoice.messages.FeedMode
 import com.sommerengineering.signalvoice.source.Message
@@ -20,7 +22,8 @@ import kotlinx.coroutines.delay
 fun MessageItem(
     viewModel: MainViewModel,
     message: Message,
-    isShowDivider: Boolean
+    isShowDivider: Boolean,
+    isEven: Boolean
 ) {
 
     // extract message attributes
@@ -51,7 +54,9 @@ fun MessageItem(
         when {
             isExpanded -> MaterialTheme.colorScheme.surfaceContainerHighest
             isLongPress -> MaterialTheme.colorScheme.secondaryContainer
-            else -> MaterialTheme.colorScheme.surfaceContainer
+            else ->
+                if (isEven) MaterialTheme.colorScheme.surface
+                else MaterialTheme.colorScheme.surfaceColorAtElevation(0.4.dp)
         }
     )
 
@@ -89,7 +94,6 @@ fun MessageItem(
         backgroundColor = backgroundColor,
         onClick = onClick,
         onLongPress = onLongPress,
-        style = style,
         origin = origin,
         isExpanded = isExpanded,
         isLocked = isLocked,

@@ -13,19 +13,33 @@ import com.sommerengineering.signalvoice.uitls.TimestampFormatter
 
 @Composable
 fun ExpandedMessageItem(
-    displayText: String,
+    messageText: MessageText,
     beautifulTimestamp: String,
     timestamp: String,
+    isLocked: Boolean,
     modifier: Modifier = Modifier
 ) {
 
+    // separate message parts
+    val assetAnnotated = messageText.assetAnnotated
+    val bodyAnnotated = messageText.bodyAnnotated
+
     Column(modifier) {
 
-        // message
+        // asset name (feed mode linear)
+        if (assetAnnotated != null) {
+            AssetText(
+                annotatedText = assetAnnotated,
+                isLocked = isLocked
+            )
+        }
+
         Text(
-            text = buildStyledMessage(displayText),
-            style = MaterialTheme.typography.bodyMedium
+            text = bodyAnnotated,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f)
         )
+
         Spacer(Modifier.height(4.dp))
 
         // compact timestamp
@@ -34,6 +48,7 @@ fun ExpandedMessageItem(
             style = timestampTextStyle,
             color = MaterialTheme.colorScheme.onSurface.copy(0.6f)
         )
+
         Spacer(Modifier.height(4.dp))
 
         // full timestamp

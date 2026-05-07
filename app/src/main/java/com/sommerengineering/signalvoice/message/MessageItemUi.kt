@@ -35,7 +35,6 @@ fun MessageItemUi(
     backgroundColor: Color,
     onClick: () -> Unit,
     onLongPress: () -> Unit,
-    style: MessageItemStyle,
     origin: MessageOrigin,
     isExpanded: Boolean,
     isLocked: Boolean,
@@ -43,6 +42,13 @@ fun MessageItemUi(
     isInteractive: Boolean = true, // false for onboarding only
     isShowDivider: Boolean
 ) {
+
+    // build styled message
+    val style = origin.style
+    val styledMessageText = buildMessageText(
+        displayText = displayText,
+        style = style
+    )
 
     // supress ripple in onboarding presentation
     val clickableModifier =
@@ -79,19 +85,21 @@ fun MessageItemUi(
                 if (!isExpanded) {
 
                     CollapsedMessageItem(
-                        displayText = displayText,
+                        messageText = styledMessageText,
                         beautifulTimestamp = beautifulTimestamp,
+                        isLocked = isLocked,
                         modifier = modifier
                     )
                 }
 
-                // expanded, parity with expanded LinearMessageItem
+                // expanded
                 else {
 
                     ExpandedMessageItem(
-                        displayText = displayText,
+                        messageText = styledMessageText,
                         beautifulTimestamp = beautifulTimestamp,
                         timestamp = timestamp,
+                        isLocked = isLocked,
                         modifier = modifier
                     )
 

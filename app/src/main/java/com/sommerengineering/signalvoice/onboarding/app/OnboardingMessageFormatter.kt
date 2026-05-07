@@ -3,7 +3,6 @@ package com.sommerengineering.signalvoice.onboarding.app
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import com.sommerengineering.signalvoice.message.MessageItemUi
-import com.sommerengineering.signalvoice.message.resolveMessageStyle
 import com.sommerengineering.signalvoice.source.Message
 import com.sommerengineering.signalvoice.source.resolveMessageOrigin
 import com.sommerengineering.signalvoice.uitls.TimestampFormatter
@@ -71,7 +70,6 @@ fun OnboardingMessageUi(
     val timestamp = message.timestamp
     val beautifulTimestamp = TimestampFormatter.beautifyCompact(message.timestamp)
     val origin = resolveMessageOrigin(message)
-    val style = resolveMessageStyle(origin)
 
     MessageItemUi(
         displayText = text,
@@ -80,7 +78,6 @@ fun OnboardingMessageUi(
         backgroundColor = MaterialTheme.colorScheme.surfaceContainer,
         onClick = { },
         onLongPress = { },
-        style = style,
         origin = origin,
         isExpanded = isExpanded,
         isShowDivider = false,

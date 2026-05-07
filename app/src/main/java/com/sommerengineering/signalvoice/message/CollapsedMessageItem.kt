@@ -13,19 +13,32 @@ import com.sommerengineering.signalvoice.uitls.rowHorizontalPadding
 
 @Composable
 fun CollapsedMessageItem(
-    displayText: String,
+    messageText: MessageText,
     beautifulTimestamp: String,
+    isLocked: Boolean,
     modifier: Modifier = Modifier
 ) {
+
+    // separate message parts
+    val assetAnnotated = messageText.assetAnnotated
+    val bodyAnnotated = messageText.bodyAnnotated
 
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
 
+        // asset name (feed mode linear)
+        if (assetAnnotated != null) {
+            AssetText(
+                annotatedText = assetAnnotated,
+                isLocked = isLocked
+            )
+        }
+
         // message
         Text(
-            text = buildStyledMessage(displayText),
+            text = bodyAnnotated,
             style = MaterialTheme.typography.bodyMedium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
