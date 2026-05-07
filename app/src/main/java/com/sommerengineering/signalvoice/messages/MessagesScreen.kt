@@ -195,6 +195,7 @@ fun MessagesScreen(
                                 val isExpanded = expandedGroups[origin] == true
                                 item(origin.key) {
                                     GroupHeaderItem(
+                                        viewModel = viewModel,
                                         origin = origin,
                                         messageCount = messages.size,
                                         isExpanded = isExpanded,

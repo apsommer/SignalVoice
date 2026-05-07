@@ -32,7 +32,6 @@ fun MessageItem(
 
     // style from origin
     val origin = resolveMessageOrigin(message)
-    val style = resolveMessageStyle(origin)
 
     // premium locked state
     val isLocked = viewModel.isLocked(message)

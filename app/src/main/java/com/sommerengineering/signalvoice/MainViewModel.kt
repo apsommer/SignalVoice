@@ -55,13 +55,17 @@ class MainViewModel @Inject constructor(
     var session by mutableStateOf<Session>(Session.Guest)
         private set
 
-    // premium (locked)
+    // premium (locked) todo collapse this overload
     fun isLocked(message: Message): Boolean {
         val origin = resolveMessageOrigin(message)
+        return isLocked(origin)
+    }
+
+    fun isLocked(origin: MessageOrigin): Boolean {
         if (origin !is MessageOrigin.BroadcastStream) return false
         return isLocked(origin.asset)
     }
-    
+
     fun isLocked(asset: Asset): Boolean {
         val isPremiumAsset = asset.isPremium
         val isPremiumUser = (session as? Session.Authenticated)?.isPremium == true

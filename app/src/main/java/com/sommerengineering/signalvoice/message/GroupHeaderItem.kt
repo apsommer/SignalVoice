@@ -25,20 +25,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import com.sommerengineering.signalvoice.MainViewModel
 import com.sommerengineering.signalvoice.R
 import com.sommerengineering.signalvoice.source.MessageOrigin
 import com.sommerengineering.signalvoice.uitls.dividerThickness
 import com.sommerengineering.signalvoice.uitls.rowAccentWidth
+import com.sommerengineering.signalvoice.uitls.rowHeight
 import com.sommerengineering.signalvoice.uitls.rowHorizontalPadding
 import com.sommerengineering.signalvoice.uitls.rowIconPadding
 import com.sommerengineering.signalvoice.uitls.rowVerticalPadding
-import com.sommerengineering.signalvoice.uitls.rowHeight
 
 @Composable
 fun GroupHeaderItem(
+    viewModel: MainViewModel,
     origin: MessageOrigin,
     messageCount: Int,
     isExpanded: Boolean,
@@ -50,6 +55,9 @@ fun GroupHeaderItem(
     val displayName = origin.displayName
     val description = origin.description
     val style = origin.style
+
+    // premium locked state
+    val isLocked = viewModel.isLocked(origin)
 
     Column {
 
@@ -76,20 +84,28 @@ fun GroupHeaderItem(
                 )
                 Spacer(Modifier.width(rowIconPadding))
 
-                // display name and description
                 Column(
                     modifier = Modifier
                         .weight(1f)
                         .padding(vertical = rowVerticalPadding),
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text(
-                        text = displayName,
-                        style = MaterialTheme.typography.bodyMedium,
+
+                    // display name
+                    val assetSpan = SpanStyle(
                         fontWeight = FontWeight.Bold,
                         color = style.text
                     )
+                    AssetText(
+                        annotatedText = buildAnnotatedString {
+                            withStyle(assetSpan) { append(displayName) }
+                        },
+                        isLocked = isLocked
+                    )
+
                     Spacer(Modifier.height(4.dp))
+
+                    // description
                     Text(
                         text = description,
                         style = MaterialTheme.typography.bodySmall,
