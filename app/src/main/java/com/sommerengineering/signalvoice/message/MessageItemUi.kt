@@ -112,17 +112,6 @@ fun MessageItemUi(
                     )
                 }
             }
-
-            // scrim over premium content
-            if (isLocked) {
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .background(
-                            style.primary.copy(alpha = 0.05f)
-                        )
-                )
-            }
         }
 
         // divider between rows
