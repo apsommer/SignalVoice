@@ -20,8 +20,8 @@ fun CollapsedMessageItem(
 ) {
 
     // separate message parts
-    val assetAnnotated = messageText.assetAnnotated
-    val bodyAnnotated = messageText.bodyAnnotated
+    val assetAnnotated = messageText.asset
+    val signalAnnotated = messageText.signal
 
     Row(
         modifier = modifier,
@@ -38,7 +38,7 @@ fun CollapsedMessageItem(
 
         // message
         Text(
-            text = bodyAnnotated,
+            text = signalAnnotated,
             style = MaterialTheme.typography.bodyMedium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,

@@ -20,8 +20,9 @@ import com.sommerengineering.signalvoice.source.assetDisplayNames
 import com.sommerengineering.signalvoice.uitls.lockBadgeSize
 
 data class MessageText(
-    val assetAnnotated: AnnotatedString?,
-    val bodyAnnotated: AnnotatedString
+    val asset: AnnotatedString?,
+    val signal: AnnotatedString,
+    val magnitude: AnnotatedString
 )
 
 @Composable
@@ -30,17 +31,66 @@ fun buildMessageText(
     style: MessageItemStyle
 ): MessageText {
 
-    // (Asset) • Event • Variable message that may include numbers • Variable message that may include numbers
+    // (Asset) • Signal primary • Signal secondary (optional) • Magnitude
 
     // split message into parts
     val parts = displayText.split("•").map { it.trim() }
 
     // determine if asset is shown
     val isShowAsset = parts.first() in assetDisplayNames
-    val assetPart = if (isShowAsset) parts.first() else null
-    val bodyParts = if (isShowAsset) parts.drop(1) else parts
 
-    // annotate asset name if present
+    // separate asset + remaining parts
+    val assetPart = if (isShowAsset) parts.first() else null
+    val signalParts =
+        if (isShowAsset) parts.drop(1)
+        else parts
+
+    // todo temp fallback (test data)
+    // .............................................................................................
+
+    if (signalParts.size < 2) {
+
+        val signalAnnotated = buildAnnotatedString {
+            withStyle(
+                SpanStyle(
+                    color = MaterialTheme.colorScheme.error,
+                    fontWeight = FontWeight.Medium
+                )
+            ) {
+                append(displayText)
+            }
+        }
+
+        val magnitudeAnnotated = buildAnnotatedString {
+            withStyle(
+                SpanStyle(
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 15.sp,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.95f)
+                )
+            ) {
+                append("123") // fallback magnitude
+            }
+        }
+
+        return MessageText(
+            asset = null, // UI handles asset prepend
+            signal = signalAnnotated,
+            magnitude = magnitudeAnnotated
+        )
+    }
+
+    // .............................................................................................
+    // todo end temp fallback (test data)
+
+    val primaryPart = signalParts[0]
+    val magnitudePart = signalParts.last()
+
+    val secondaryPart =
+        if (signalParts.size > 2) signalParts[1]
+        else null
+
+    // annotate asset
     val assetAnnotated = assetPart?.let {
         buildAnnotatedString {
             withStyle(
@@ -49,59 +99,62 @@ fun buildMessageText(
                     color = style.primary.copy(alpha = 0.85f)
                 )
             ) {
-                append(parts.first())
+                append(it)
             }
         }
     }
 
-    // annotate rest of message
-    val bodyAnnotated = buildAnnotatedString {
+    // annotate primary + secondary (signal)
+    val signalAnnotated = buildAnnotatedString {
 
-        bodyParts.forEachIndexed { index, part ->
+        // primary
+        withStyle(
+            SpanStyle(
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            )
+        ) {
+            append(primaryPart)
+        }
 
-            val isEvent = index == 0
+        // secondary (optional)
+        secondaryPart?.let {
 
-            // separator between each part
-            if (index > 0) {
-                withStyle(
-                    SpanStyle(
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
-                    )
-                ) {
-                    append(" • ")
-                }
+            withStyle(
+                SpanStyle(
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.20f)
+                )
+            ) {
+                append(" • ")
             }
 
-            val spanStyle = when {
-
-                // primary event
-                isEvent -> SpanStyle(
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            withStyle(
+                SpanStyle(
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
                 )
-
-                // numbers included
-                part.any { it.isDigit() } -> SpanStyle(
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 15.sp,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.95f)
-                )
-
-                // secondary text
-                else -> SpanStyle(
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                )
+            ) {
+                append(it)
             }
+        }
+    }
 
-            withStyle(spanStyle) {
-                append(part)
-            }
+    // annotate magnitude (always present)
+    val magnitudeAnnotated = buildAnnotatedString {
+        withStyle(
+            SpanStyle(
+                fontWeight = FontWeight.Medium,
+                fontSize = 17.sp,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 1f)
+            )
+        ) {
+            append(magnitudePart)
         }
     }
 
     return MessageText(
-        assetAnnotated = assetAnnotated,
-        bodyAnnotated = bodyAnnotated
+        asset = assetAnnotated,
+        signal = signalAnnotated,
+        magnitude = magnitudeAnnotated
     )
 }
 

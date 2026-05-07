@@ -21,8 +21,9 @@ fun ExpandedMessageItem(
 ) {
 
     // separate message parts
-    val assetAnnotated = messageText.assetAnnotated
-    val bodyAnnotated = messageText.bodyAnnotated
+    val assetAnnotated = messageText.asset
+    val signalAnnotated = messageText.signal
+    val magnitudeAnnotated = messageText.magnitude
 
     Column(modifier) {
 
@@ -32,15 +33,24 @@ fun ExpandedMessageItem(
                 annotatedText = assetAnnotated,
                 isLocked = isLocked
             )
+            Spacer(modifier = Modifier.height(2.dp))
         }
 
+        // signal
         Text(
-            text = bodyAnnotated,
+            text = signalAnnotated,
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.weight(1f)
         )
 
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(8.dp))
+
+        // magnitude
+        Text(
+            text = magnitudeAnnotated,
+            style = MaterialTheme.typography.bodyMedium,
+        )
+
+        Spacer(Modifier.height(12.dp))
 
         // compact timestamp
         Text(
@@ -49,7 +59,7 @@ fun ExpandedMessageItem(
             color = MaterialTheme.colorScheme.onSurface.copy(0.6f)
         )
 
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(2.dp))
 
         // full timestamp
         Text(
