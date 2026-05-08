@@ -1,5 +1,7 @@
 package com.sommerengineering.signalvoice.messages
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -19,12 +22,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -53,63 +58,77 @@ fun MessagesTopBar(
     val (cutoutStart, cutoutEnd) = getCutoutPadding(isFullScreen)
     val logoIcon = if (isFullScreen) R.drawable.appbar_compact else R.drawable.appbar
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                start = basePadding + cutoutStart,
-                end = basePadding + cutoutEnd,
-                top = basePadding,
-                bottom = basePadding
-            ),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    // listening bar
+    val listeningBarHeight = 2.dp
 
-        // logo, with scrim overlay
-        Box(Modifier.weight(1f)) {
-            Image(
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .padding(4.dp)
-                    .height(22.dp),
-                painter = painterResource(logoIcon),
-                contentDescription = null
+    Box {
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = basePadding + cutoutStart,
+                    end = basePadding + cutoutEnd,
+                    top = basePadding,
+                    bottom = basePadding + listeningBarHeight
+                ),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            // logo, with scrim overlay
+            Box(Modifier.weight(1f)) {
+                Image(
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(4.dp)
+                        .height(22.dp),
+                    painter = painterResource(logoIcon),
+                    contentDescription = null
+                )
+                Box(
+                    Modifier
+                        .matchParentSize()
+                        .background(MaterialTheme.colorScheme.background.copy(logoAlpha))
+                )
+            }
+
+            // feed mode
+            AppBarIcon(
+                iconRes =
+                    if (feedMode == FeedMode.Linear) R.drawable.group
+                    else R.drawable.ungroup,
+                iconTint = MaterialTheme.colorScheme.onSurface,
+                backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.03f),
+                borderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                onClick = onToggleFeedMode
             )
-            Box(
-                Modifier
-                    .matchParentSize()
-                    .background(MaterialTheme.colorScheme.background.copy(logoAlpha))
+
+            Spacer(Modifier.width(6.dp))
+
+            // listening
+            AppBarIcon(
+                iconRes =
+                    if (isListening) R.drawable.listening_on
+                    else R.drawable.listening_off,
+                iconTint =
+                    if (isListening) appGreen()
+                    else MaterialTheme.colorScheme.onSurface.copy(0.6f),
+                backgroundColor =
+                    if (isListening) appGreen().copy(alpha = 0.15f)
+                    else appGreen().copy(alpha = 0.04f),
+                borderColor =
+                    if (isListening) appGreen().copy(alpha = 0.4f)
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.10f),
+                onClick = onToggleListening
             )
         }
 
-        // feed mode
-        AppBarIcon(
-            iconRes =
-                if (feedMode == FeedMode.Linear) R.drawable.group
-                else R.drawable.ungroup,
-            iconTint = MaterialTheme.colorScheme.onSurface,
-            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.03f),
-            borderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
-            onClick = onToggleFeedMode
-        )
-
-        Spacer(Modifier.width(6.dp))
-
-        // listening
-        AppBarIcon(
-            iconRes =
-                if (isListening) R.drawable.listening_on
-                else R.drawable.listening_off,
-            iconTint =
-                if (isListening) appGreen()
-                else MaterialTheme.colorScheme.onSurface.copy(0.6f),
-            backgroundColor =
-                if (isListening) appGreen().copy(alpha = 0.15f)
-                else appGreen().copy(alpha = 0.04f),
-            borderColor =
-                if (isListening) appGreen().copy(alpha = 0.4f)
-                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.10f),
-            onClick = onToggleListening
+        ListeningBar(
+            isListening = isListening,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .height(listeningBarHeight)
+                .fillMaxWidth()
         )
     }
 }
@@ -169,4 +188,41 @@ fun getCutoutPadding(isFullScreen: Boolean): Pair<Dp, Dp> {
     val right = (rightPx / density.density).dp
 
     return left to right
+}
+
+@Composable
+fun ListeningBar(
+    isListening: Boolean,
+    modifier: Modifier = Modifier
+) {
+
+    val color =
+        if (isListening) appGreen()
+        else MaterialTheme.colorScheme.onSurface
+
+    val progress = remember { Animatable(0f) }
+
+    LaunchedEffect(isListening) {
+        progress.snapTo(0f)
+        progress.animateTo(1f, tween(500))
+    }
+
+    Box(modifier) {
+
+        if (progress.value > 0f) {
+            Box(
+                Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(progress.value)
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                color.copy(alpha = 0f),
+                                color.copy(alpha = 0.4f)
+                            )
+                        )
+                    )
+            )
+        }
+    }
 }

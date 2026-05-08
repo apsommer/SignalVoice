@@ -15,7 +15,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -362,7 +361,7 @@ fun SettingsDrawer(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(appBarHeight)
-                    .background(MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)),
+                    .background(MaterialTheme.colorScheme.surface)
             )
         }
     }
