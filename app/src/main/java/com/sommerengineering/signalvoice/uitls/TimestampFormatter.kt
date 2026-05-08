@@ -1,6 +1,5 @@
 package com.sommerengineering.signalvoice.uitls
 
-import android.text.format.DateUtils
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -28,17 +27,15 @@ object TimestampFormatter {
 
         val hours = diff / hour
         val minutes = (diff / minute) % 60
-        val isToday = DateUtils.isToday(time)
 
         return when {
             minute > diff -> "just now"
-            isToday -> {
+            hours < 12 ->
                 when {
                     hours == 0L -> "${minutes}m"
-                    hours < 6 && minutes > 0 -> "${hours}h ${minutes}m"
+                    minutes > 0 -> "${hours}h ${minutes}m"
                     else -> "${hours}h"
                 }
-            }
 
             else -> weekdayFormat().format(zonedInstant(time))
         }
