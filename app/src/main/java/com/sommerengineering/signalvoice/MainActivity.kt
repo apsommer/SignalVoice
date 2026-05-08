@@ -21,6 +21,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.lifecycleScope
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.appupdate.AppUpdateOptions
 import com.google.android.play.core.install.model.AppUpdateType
@@ -35,28 +36,28 @@ import com.sommerengineering.signalvoice.uitls.channelName
 import com.sommerengineering.signalvoice.uitls.logException
 import com.sommerengineering.signalvoice.uitls.logMessage
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     @Inject
-    @ApplicationScope
-    lateinit var appScope: CoroutineScope
+    lateinit var updateRepository: UpdateRepository
     private val viewModel: MainViewModel by viewModels()
 
+    // system launchers
     val requestNotificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
             viewModel.onNotificationPermissionResult(it)
         }
-
     val updateLauncher =
-        registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
-            if (result.resultCode != RESULT_OK) {
-                logMessage("Update flow failed with code: ${result.resultCode}")
+        registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) {
+            if (it.resultCode != RESULT_OK) {
+                logMessage("Required update flow failed with code: ${it.resultCode}")
+                finish()
             }
-            // system handles update and restart
         }
 
     private fun initNotificationChannel() {
@@ -83,27 +84,7 @@ class MainActivity : ComponentActivity() {
         manager.createNotificationChannel(channel)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-
-        installSplashScreen()
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-
-        initNotificationChannel()
-        checkForcedUpdate()
-
-        // launch compose tree
-        setContent {
-
-            // toggle full screen
-            val isFullScreen = viewModel.isFullScreen
-            LaunchedEffect(isFullScreen) { applyFullScreen(isFullScreen) }
-
-            App(viewModel)
-        }
-    }
-
-    fun areNotificationsEnabled(): Boolean {
+    private fun areNotificationsEnabled(): Boolean {
 
         // query system for notification and channel
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
@@ -113,15 +94,7 @@ class MainActivity : ComponentActivity() {
         return areNotificationsEnabled
     }
 
-    override fun onWindowFocusChanged(hasFocus: Boolean) {
-        super.onWindowFocusChanged(hasFocus)
-        if (!hasFocus) return
-        viewModel.updateNotificationsEnabled(areNotificationsEnabled())
-    }
-    
-    private fun applyFullScreen(
-        isFullScreen: Boolean
-    ) {
+    private fun applyFullScreen(isFullScreen: Boolean) {
 
         val controller = WindowCompat.getInsetsController(window, window.decorView)
 
@@ -135,37 +108,99 @@ class MainActivity : ComponentActivity() {
         controller.show(WindowInsetsCompat.Type.systemBars())
     }
 
-    fun checkForcedUpdate() {
+    private fun checkUpdates() {
 
-        val updateManager = AppUpdateManagerFactory.create(this)
+        lifecycleScope.launch {
 
-        // request update from play store
-        updateManager.appUpdateInfo
-            .addOnSuccessListener { updateInfo ->
+            // fetch update requirement from play store
+            try {
+                updateRepository.refresh()
+            } catch (e: Exception) {
+                logException(e)
+                return@launch
+            }
 
-                // check that update is available, and forced
-                if (updateInfo.updateAvailability() != UpdateAvailability.UPDATE_AVAILABLE
-                    || 4 >= updateInfo.updatePriority()
-                ) {
-                    return@addOnSuccessListener
-                }
-
-                // todo sign out?
-
-                // launch system update flow ui
-                updateManager.startUpdateFlowForResult(
-                    updateInfo,
-                    updateLauncher,
-                    AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build()
+            // determine if update is required based on current version
+            val updateRequirement =
+                updateRepository.getUpdateRequirement(
+                    currentVersionCode = BuildConfig.VERSION_CODE
                 )
+
+            when (updateRequirement) {
+
+                UpdateRequirement.REQUIRED -> launchRequiredUpdateFlow()
+                UpdateRequirement.OPTIONAL -> launchOptionalUpdateFlow()
+                UpdateRequirement.NONE -> logMessage("App is current, no update required.")
             }
+        }
+    }
 
-            .addOnFailureListener { exception ->
+    private suspend fun launchRequiredUpdateFlow() {
 
-                // skip exception log for debug build
-                if (exception.message?.contains("The app is not owned") == true) return@addOnFailureListener
+        val playUpdateManager = AppUpdateManagerFactory.create(this)
+
+        val updateInfo =
+            try {
+                playUpdateManager.appUpdateInfo.await()
+            } catch (exception: Exception) {
                 logException(exception)
+                finish()
+                return
             }
+
+        val isUpdateAvailable =
+            updateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+
+        // user backgrounds the app during update flow
+        val isUpdateInProgress =
+            updateInfo.updateAvailability() ==
+                    UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS
+
+        if (!isUpdateAvailable && !isUpdateInProgress) {
+            logMessage("App version unsupported but no Play update available.")
+            finish()
+            return
+        }
+
+        // return result to activity
+        playUpdateManager.startUpdateFlowForResult(
+            updateInfo,
+            updateLauncher,
+            AppUpdateOptions
+                .newBuilder(AppUpdateType.IMMEDIATE)
+                .build()
+        )
+
+    }
+
+    private fun launchOptionalUpdateFlow() {
+        // todo launch flow to encourage user to update app, but allow them to continue without updating
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (!hasFocus) return
+        viewModel.updateNotificationsEnabled(areNotificationsEnabled())
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+
+        installSplashScreen()
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+
+        initNotificationChannel()
+        checkUpdates()
+
+        // launch compose tree
+        setContent {
+
+            // toggle full screen
+            val isFullScreen = viewModel.isFullScreen
+            LaunchedEffect(isFullScreen) { applyFullScreen(isFullScreen) }
+
+            App(viewModel)
+        }
     }
 }
 
