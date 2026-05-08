@@ -49,9 +49,7 @@ class UpdateRepository @Inject constructor() {
 
         // prevent aggressive caching
         val settings = remoteConfigSettings {
-            minimumFetchIntervalInSeconds =
-                if (BuildConfig.DEBUG) 0L
-                else 3600L
+            minimumFetchIntervalInSeconds = 0L
         }
 
         remoteConfig.setConfigSettingsAsync(settings)

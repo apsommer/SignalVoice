@@ -47,11 +47,11 @@ class MainActivity : ComponentActivity() {
     lateinit var updateRepository: UpdateRepository
     private val viewModel: MainViewModel by viewModels()
 
-    // system launchers
     val requestNotificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
             viewModel.onNotificationPermissionResult(it)
         }
+
     val updateLauncher =
         registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) {
             if (it.resultCode != RESULT_OK) {
@@ -170,7 +170,6 @@ class MainActivity : ComponentActivity() {
                 .newBuilder(AppUpdateType.IMMEDIATE)
                 .build()
         )
-
     }
 
     private fun launchOptionalUpdateFlow() {
