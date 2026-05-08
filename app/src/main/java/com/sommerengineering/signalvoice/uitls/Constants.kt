@@ -7,12 +7,14 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
-import com.sommerengineering.signalvoice.BuildConfig
 import com.sommerengineering.signalvoice.R
 
 // logs
 const val TAG = "~~~"
-fun logMessage(msg: String?) = Log.v(TAG, "$msg")
+fun logMessage(msg: String?) {
+    Log.v(TAG, "$msg")
+}
+
 fun logException(e: Exception) {
     Log.e(TAG, "handleException: ${e.message}", e)
     Firebase.crashlytics.recordException(e)
@@ -68,12 +70,6 @@ const val SetupOnboardingRoute = "SetupOnboarding"
 const val SetupOnboardingCopyWebhookRoute = "SetupOnboardingCopyWebhook"
 const val SetupOnboardingPasteWebhookRoute = "SetupOnboardingPasteWebhook"
 const val SetupOnboardingSignalArmedRoute = "SetupOnboardingSignalArmed"
-
-// billing
-const val productId = "subscription" // match play store config
-const val freeTrial = "free-trial" // match play store config
-const val subscriptionUrl = "https://play.google.com/store/account/subscriptions?sku=" +
-        productId + "&package=" + BuildConfig.APPLICATION_ID
 
 // settings
 const val voiceDividerTitle = "VOICE"
