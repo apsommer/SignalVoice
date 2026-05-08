@@ -134,6 +134,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.config)
 
     ksp(libs.hilt.compiler)
     ksp(libs.kotlin.metadata)
