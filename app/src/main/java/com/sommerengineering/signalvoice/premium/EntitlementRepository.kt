@@ -3,13 +3,13 @@ package com.sommerengineering.signalvoice.premium
 import com.sommerengineering.signalvoice.PREMIUM
 import com.sommerengineering.signalvoice.PreferenceStore
 import com.sommerengineering.signalvoice.UID
-import kotlinx.coroutines.delay
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class EntitlementRepository @Inject constructor(
-    private val prefs: PreferenceStore
+    private val prefs: PreferenceStore,
+    private val billingManager: BillingManager
 ) {
 
     suspend fun loadPremium(
@@ -39,12 +39,6 @@ class EntitlementRepository @Inject constructor(
         prefs.write(PREMIUM, isPremium)
     }
 
-    suspend fun fetchEntitlement(
-        uid: String
-    ): Boolean {
-
-        // todo simulate network delay
-        delay(1000)
-        return false
-    }
+    suspend fun fetchEntitlement(uid: String) =
+        billingManager.isPremium()
 }
