@@ -204,6 +204,7 @@ class MainActivity : ComponentActivity() {
 
         initNotificationChannel()
         checkUpdates()
+        listenForPaywall()
 
         // launch compose tree
         setContent {

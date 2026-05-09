@@ -56,6 +56,7 @@ fun OriginIcon(
     Box(
         modifier = Modifier
             .size(size)
+            .clip(CircleShape)
             .then(clickableModifier)
     ) {
         Box(
