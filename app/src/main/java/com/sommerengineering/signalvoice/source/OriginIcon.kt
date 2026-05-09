@@ -54,15 +54,13 @@ fun OriginIcon(
         else Modifier
 
     Box(
-        modifier = Modifier
-            .size(size)
-            .clip(CircleShape)
-            .then(clickableModifier)
+        modifier = Modifier.size(size)
     ) {
         Box(
             modifier = Modifier
                 .matchParentSize()
                 .clip(CircleShape)
+                .then(clickableModifier)
                 .background(textIconBackground)
                 .border(
                     width = 1.dp,
