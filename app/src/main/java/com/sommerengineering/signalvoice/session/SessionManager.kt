@@ -3,7 +3,7 @@ package com.sommerengineering.signalvoice
 import com.google.firebase.auth.FirebaseAuth
 import com.sommerengineering.signalvoice.Session.Authenticated
 import com.sommerengineering.signalvoice.Session.Guest
-import com.sommerengineering.signalvoice.premium.EntitlementRepository
+import com.sommerengineering.signalvoice.premium.BillingManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +15,8 @@ import javax.inject.Singleton
 @Singleton
 class SessionManager @Inject constructor(
     @ApplicationScope private val appScope: CoroutineScope,
-    private val repo: EntitlementRepository
+    private val prefs: PreferenceStore,
+    private val billingManager: BillingManager
 ) {
 
     private val auth = FirebaseAuth.getInstance()
@@ -33,6 +34,17 @@ class SessionManager @Inject constructor(
 
         // handle auth state changes
         auth.addAuthStateListener { onAuth() }
+
+        // listen for purchase event
+        appScope.launch {
+            billingManager.purchaseEvents.collect {
+                val uid = uid ?: return@collect
+                updateSession(
+                    uid = uid,
+                    isPremium = true
+                )
+            }
+        }
     }
 
     val uid: String?
@@ -72,15 +84,12 @@ class SessionManager @Inject constructor(
         entitlementJob = appScope.launch {
 
             // load entitlement from cache
-            var isPremium = repo.loadPremium(uid)
+            var isPremium = loadPremium(uid)
             updateSession(uid, isPremium)
 
             // fetch entitlement from network
-            isPremium = repo.fetchEntitlement(uid)
+            isPremium = billingManager.isPremium()
             updateSession(uid, isPremium)
-
-            // persist entitlement
-            repo.updatePremium(uid, isPremium)
         }
     }
 
@@ -98,6 +107,38 @@ class SessionManager @Inject constructor(
         _session.value = current.copy(
             isPremium = isPremium
         )
+
+        // persist entitlement
+        appScope.launch {
+            updatePremium(uid, isPremium)
+        }
+    }
+
+    private suspend fun loadPremium(
+        uid: String
+    ): Boolean {
+
+        // retrieve cache
+        val storedUid = prefs.read(UID)
+        val storedPremium = prefs.read(PREMIUM) ?: false
+
+        return storedUid == uid && storedPremium
+    }
+
+    private suspend fun updatePremium(
+        uid: String,
+        isPremium: Boolean
+    ) {
+
+        // retrieve cache
+        val storedUid = prefs.read(UID)
+        val storedPremium = prefs.read(PREMIUM) ?: false
+
+        // prevent unnecessary writes
+        if (uid == storedUid && isPremium == storedPremium) return
+
+        prefs.write(UID, uid)
+        prefs.write(PREMIUM, isPremium)
     }
 }
 
