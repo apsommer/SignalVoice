@@ -1,14 +1,20 @@
 package com.sommerengineering.signalvoice.premium
 
 import android.content.Context
+import com.android.billingclient.api.AcknowledgePurchaseParams
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClient.ProductType
 import com.android.billingclient.api.BillingClientStateListener
+import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.BillingResult
 import com.android.billingclient.api.PendingPurchasesParams
 import com.android.billingclient.api.Purchase
+import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
+import com.android.billingclient.api.queryProductDetails
+import com.sommerengineering.signalvoice.MainActivity
 import com.sommerengineering.signalvoice.uitls.logMessage
+import com.sommerengineering.signalvoice.uitls.productId
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.suspendCancellableCoroutine
 import javax.inject.Inject
@@ -20,8 +26,6 @@ class BillingManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
 
-    private val productId = "premium"
-
     private val client =
         BillingClient.newBuilder(context)
             .enablePendingPurchases(
@@ -30,7 +34,7 @@ class BillingManager @Inject constructor(
                     .enableOneTimeProducts()
                     .build()
             )
-            .setListener { _, _ -> } // required, not used
+            .setListener { result, purchases -> handlePurchase(result, purchases) }
             .build()
 
     suspend fun connect() {
@@ -86,6 +90,122 @@ class BillingManager @Inject constructor(
 
                 continuation.resume(isPremium)
             }
+        }
+    }
+
+    suspend fun launchBillingFlow(activity: MainActivity) {
+
+        connect()
+
+        // fetch configured product
+        val result = client.queryProductDetails(
+            QueryProductDetailsParams
+                .newBuilder()
+                .setProductList(
+                    listOf(
+                        QueryProductDetailsParams.Product
+                            .newBuilder()
+                            .setProductId(productId)
+                            .setProductType(ProductType.SUBS)
+                            .build()
+                    )
+                )
+                .build()
+        )
+
+        val isSuccess = result.billingResult.responseCode == BillingClient.BillingResponseCode.OK
+        if (!isSuccess) {
+            logMessage("Failed to query product details with code: ${result.billingResult.responseCode}")
+            return
+        }
+
+        // extract product
+        val product = result.productDetailsList?.firstOrNull()
+        if (product == null) {
+            logMessage("Product details not found for product id: $productId")
+            return
+        }
+
+        // extract subscription offer
+        val offer = product.subscriptionOfferDetails?.firstOrNull()
+        if (offer == null) {
+            logMessage("No subscription offers found for product id: $productId")
+            return
+        }
+
+        // launch billing flow
+        client.launchBillingFlow(
+            activity,
+            BillingFlowParams
+                .newBuilder()
+                .setProductDetailsParamsList(
+                    listOf(
+                        BillingFlowParams.ProductDetailsParams
+                            .newBuilder()
+                            .setProductDetails(product)
+                            .setOfferToken(offer.offerToken)
+                            .build()
+                    )
+                )
+                .build()
+        )
+    }
+
+    private fun handlePurchase(
+        result: BillingResult,
+        purchases: List<Purchase>?
+    ) {
+
+        // user canceled flow
+        val isCanceled = result.responseCode == BillingClient.BillingResponseCode.USER_CANCELED
+        if (isCanceled) {
+            logMessage("User canceled billing flow")
+            return
+        }
+
+        // validate purchase result
+        val isSuccess = result.responseCode == BillingClient.BillingResponseCode.OK
+        if (!isSuccess) {
+            logMessage("Purchase failed with code: ${result.responseCode}")
+            return
+        }
+
+        // extract purchase
+        val purchase = purchases?.firstOrNull()
+        if (purchase == null) {
+            logMessage("Purchase successful but no purchase data found")
+            return
+        }
+
+        // validate purchase
+        val isValid = purchase.products.contains(productId)
+        val isPurchased = purchase.purchaseState == Purchase.PurchaseState.PURCHASED
+        if (!isValid || !isPurchased) {
+            logMessage("Purchase invalid")
+            return
+        }
+
+        // already acknowledged
+        if (purchase.isAcknowledged) {
+            logMessage("Purchase already acknowledged")
+            return
+        }
+
+        // acknowledge purchase
+        client.acknowledgePurchase(
+            AcknowledgePurchaseParams
+                .newBuilder()
+                .setPurchaseToken(purchase.purchaseToken)
+                .build()
+        ) { result ->
+
+            val isSuccess = result.responseCode == BillingClient.BillingResponseCode.OK
+            if (!isSuccess) {
+                logMessage("Failed to acknowledge purchase with code: ${result.responseCode}")
+                return@acknowledgePurchase
+            }
+
+            logMessage("Purchase acknowledged successfully")
         }
     }
 }

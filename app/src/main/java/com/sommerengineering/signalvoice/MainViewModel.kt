@@ -26,7 +26,6 @@ import com.sommerengineering.signalvoice.source.Message
 import com.sommerengineering.signalvoice.source.MessageOrigin
 import com.sommerengineering.signalvoice.source.resolveMessageOrigin
 import com.sommerengineering.signalvoice.uitls.RomanNumerals
-import com.sommerengineering.signalvoice.uitls.logMessage
 import com.sommerengineering.signalvoice.uitls.screenFullDescription
 import com.sommerengineering.signalvoice.uitls.screenWindowedDescription
 import com.sommerengineering.signalvoice.uitls.webhookBaseUrl
@@ -72,8 +71,13 @@ class MainViewModel @Inject constructor(
         return isPremiumAsset && !isPremiumUser
     }
 
+    private val _shouldLaunchPaywall = MutableSharedFlow<Unit>()
+    val shouldLaunchPaywall = _shouldLaunchPaywall.asSharedFlow()
+
     fun launchPaywall() {
-        logMessage("launch paywall")
+        viewModelScope.launch {
+            _shouldLaunchPaywall.emit(Unit)
+        }
     }
 
     val webhookUrl

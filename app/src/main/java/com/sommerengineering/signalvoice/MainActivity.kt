@@ -27,6 +27,7 @@ import com.google.android.play.core.appupdate.AppUpdateOptions
 import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.UpdateAvailability
 import com.sommerengineering.signalvoice.navigation.MainNavigation
+import com.sommerengineering.signalvoice.premium.BillingManager
 import com.sommerengineering.signalvoice.theme.AppTheme
 import com.sommerengineering.signalvoice.uitls.channelDescription
 import com.sommerengineering.signalvoice.uitls.channelGroupId
@@ -45,6 +46,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var updateRepository: UpdateRepository
+
+    @Inject
+    lateinit var billingManager: BillingManager
     private val viewModel: MainViewModel by viewModels()
 
     val requestNotificationPermissionLauncher =
@@ -180,6 +184,14 @@ class MainActivity : ComponentActivity() {
         super.onWindowFocusChanged(hasFocus)
         if (!hasFocus) return
         viewModel.updateNotificationsEnabled(areNotificationsEnabled())
+    }
+
+    private fun listenForPaywall() {
+        lifecycleScope.launch {
+            viewModel.shouldLaunchPaywall.collect {
+                billingManager.launchBillingFlow(this@MainActivity)
+            }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
