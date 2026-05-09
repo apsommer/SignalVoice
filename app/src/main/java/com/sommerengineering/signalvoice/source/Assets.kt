@@ -126,10 +126,10 @@ val siAsset = Asset(
     signalDescription = "Cascade repair structure",
     order = 5,
     style = MessageItemStyle(
-        primary = Color(0xFFE6EEF5),
-        accent = Color(0xFFFFFFFF),
-        surface = Color(0xFF0F1418),
-        text = Color(0xFFF5FAFF),
+        primary = Color(0xFFD2E4F2),
+        accent = Color(0xFFF4FAFF),
+        surface = Color(0xFF182028),
+        text = Color(0xFFF2F8FD),
         iconRes = R.drawable.si
     ),
     isPremium = true
