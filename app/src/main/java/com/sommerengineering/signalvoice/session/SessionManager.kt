@@ -92,7 +92,7 @@ class SessionManager @Inject constructor(
             updateSession(uid, isPremium)
 
             // fetch entitlement from network
-            isPremium = billingManager.isPremium()
+            isPremium = true // billingManager.isPremium()
             updateSession(uid, isPremium)
         }
     }
