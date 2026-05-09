@@ -15,7 +15,7 @@ import com.sommerengineering.signalvoice.uitls.znStream
 fun onboardingMessage(): Message {
 
     val now = System.currentTimeMillis()
-    val message = "Macro Supportive • Treasuries +0.36% • Dollar falling"
+    val message = "Gold • Macro Tailwind • Dollar weakening • +0.36%"
 
     return Message(
         timestamp = now.toString(),
@@ -34,25 +34,25 @@ fun onboardingMessages(): List<Message> {
     return listOf(
         Message(
             timestamp = now.toString(),
-            message = "Acceptance • Upside holding • 7125.25",
+            message = "S&P 500 • Acceptance • Upside holding • 7125.25",
             stream = esStream,
             source = null
         ),
         Message(
             timestamp = (now - staggerMillis).toString(),
-            message = "Cascade • Bullish short liquidation • 157 points",
+            message = "Nasdaq 100 • Cascade • Short covering • 157 points",
             stream = nqStream,
             source = null
         ),
         Message(
             timestamp = (now - 2 * staggerMillis).toString(),
-            message = "Impulse • Bearish momentum • -0.48%",
+            message = "Bitcoin • Impulse • Volatility expanding • -0.48%",
             stream = btcStream,
             source = null
         ),
         Message(
             timestamp = (now - 3 * staggerMillis).toString(),
-            message = "Repricing • Yields rising • +0.12%",
+            message = "10Y Treasury • Repricing • Yields moving higher • +0.12%",
             stream = znStream,
             source = null
         )
