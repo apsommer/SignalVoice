@@ -14,6 +14,7 @@ import com.sommerengineering.signalvoice.session.Session
 import com.sommerengineering.signalvoice.uitls.AppOnboardingRoute
 import com.sommerengineering.signalvoice.uitls.LoginRoute
 import com.sommerengineering.signalvoice.uitls.MessagesRoute
+import com.sommerengineering.signalvoice.uitls.SetupOnboardingCopyWebhookRoute
 import com.sommerengineering.signalvoice.uitls.SetupOnboardingRoute
 
 @Composable
@@ -93,7 +94,12 @@ fun MainNavigation(
         SetupWebhookNavigation(
             controller = controller,
             viewModel = viewModel,
-            onClose = { controller.popBackStack() }
+            onClose = {
+                controller.popBackStack(
+                    route = SetupOnboardingCopyWebhookRoute,
+                    inclusive = true
+                )
+            }
         )
     }
 }

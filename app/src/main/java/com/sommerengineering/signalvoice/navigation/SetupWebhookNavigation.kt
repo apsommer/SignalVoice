@@ -20,8 +20,6 @@ fun NavGraphBuilder.SetupWebhookNavigation(
     onClose: () -> Unit
 ) {
 
-    val session = viewModel.session
-
     navigation(
         route = SetupOnboardingRoute,
         startDestination = SetupOnboardingCopyWebhookRoute
