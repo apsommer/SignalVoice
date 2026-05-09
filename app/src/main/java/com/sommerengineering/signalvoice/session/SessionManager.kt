@@ -1,9 +1,13 @@
-package com.sommerengineering.signalvoice
+package com.sommerengineering.signalvoice.session
 
 import com.google.firebase.auth.FirebaseAuth
-import com.sommerengineering.signalvoice.Session.Authenticated
-import com.sommerengineering.signalvoice.Session.Guest
+import com.sommerengineering.signalvoice.ApplicationScope
+import com.sommerengineering.signalvoice.PREMIUM
+import com.sommerengineering.signalvoice.PreferenceStore
+import com.sommerengineering.signalvoice.UID
 import com.sommerengineering.signalvoice.premium.BillingManager
+import com.sommerengineering.signalvoice.session.Session.Authenticated
+import com.sommerengineering.signalvoice.session.Session.Guest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +25,7 @@ class SessionManager @Inject constructor(
 
     private val auth = FirebaseAuth.getInstance()
 
-    private val _session = MutableStateFlow<Session>(Session.Guest)
+    private val _session = MutableStateFlow<Session>(Guest)
     val session = _session.asStateFlow()
 
     private var entitlementJob: Job? = null
@@ -140,12 +144,4 @@ class SessionManager @Inject constructor(
         prefs.write(UID, uid)
         prefs.write(PREMIUM, isPremium)
     }
-}
-
-sealed class Session {
-    object Guest : Session()
-    data class Authenticated(
-        val uid: String,
-        val isPremium: Boolean
-    ) : Session()
 }

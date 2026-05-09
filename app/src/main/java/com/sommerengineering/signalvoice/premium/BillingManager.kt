@@ -16,6 +16,8 @@ import com.sommerengineering.signalvoice.MainActivity
 import com.sommerengineering.signalvoice.uitls.logMessage
 import com.sommerengineering.signalvoice.uitls.productId
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -37,11 +39,16 @@ class BillingManager @Inject constructor(
             .setListener { result, purchases -> handlePurchase(result, purchases) }
             .build()
 
-    suspend fun connect() {
+    private val _purchaseEvents = MutableSharedFlow<Unit>(
+        extraBufferCapacity = 1 // ensure no race between purchase event and entitlement update
+    )
+    val purchaseEvents = _purchaseEvents.asSharedFlow()
 
-        if (client.isReady) return
+    suspend fun connect(): Boolean {
 
-        suspendCancellableCoroutine { continuation ->
+        if (client.isReady) return true
+
+        return suspendCancellableCoroutine { continuation ->
             client.startConnection(
                 object : BillingClientStateListener {
                     override fun onBillingServiceDisconnected() =
@@ -49,8 +56,10 @@ class BillingManager @Inject constructor(
 
                     override fun onBillingSetupFinished(result: BillingResult) {
                         val isSuccess = result.responseCode == BillingClient.BillingResponseCode.OK
-                        if (!isSuccess) logMessage("Billing connection failed with code: ${result.responseCode}")
-                        continuation.resume(Unit)
+                        if (!isSuccess) {
+                            logMessage("Billing connection failed with code: ${result.responseCode}")
+                        }
+                        continuation.resume(isSuccess)
                     }
                 }
             )
@@ -59,7 +68,11 @@ class BillingManager @Inject constructor(
 
     suspend fun isPremium(): Boolean {
 
-        connect()
+        val isConnected = connect()
+        if (!isConnected) {
+            logMessage("Cannot check premium status without billing connection")
+            return false
+        }
 
         return suspendCancellableCoroutine { continuation ->
 
@@ -95,7 +108,11 @@ class BillingManager @Inject constructor(
 
     suspend fun launchBillingFlow(activity: MainActivity) {
 
-        connect()
+        val isConnected = connect()
+        if (!isConnected) {
+            logMessage("Cannot launch billing flow without billing connection")
+            return
+        }
 
         // fetch configured product
         val result = client.queryProductDetails(
@@ -171,7 +188,9 @@ class BillingManager @Inject constructor(
         }
 
         // extract purchase
-        val purchase = purchases?.firstOrNull()
+        val purchase = purchases?.firstOrNull {
+            it.products.contains(productId)
+        }
         if (purchase == null) {
             logMessage("Purchase successful but no purchase data found")
             return
@@ -187,7 +206,8 @@ class BillingManager @Inject constructor(
 
         // already acknowledged
         if (purchase.isAcknowledged) {
-            logMessage("Purchase already acknowledged")
+            logMessage("Purchase already acknowledged, updating entitlement ...")
+            _purchaseEvents.tryEmit(Unit)
             return
         }
 
@@ -205,7 +225,8 @@ class BillingManager @Inject constructor(
                 return@acknowledgePurchase
             }
 
-            logMessage("Purchase acknowledged successfully")
+            logMessage("Purchase acknowledged successfully, updating entitlement ...")
+            _purchaseEvents.tryEmit(Unit)
         }
     }
 }

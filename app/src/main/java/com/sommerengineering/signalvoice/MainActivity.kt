@@ -36,6 +36,8 @@ import com.sommerengineering.signalvoice.uitls.channelId
 import com.sommerengineering.signalvoice.uitls.channelName
 import com.sommerengineering.signalvoice.uitls.logException
 import com.sommerengineering.signalvoice.uitls.logMessage
+import com.sommerengineering.signalvoice.update.UpdateRepository
+import com.sommerengineering.signalvoice.update.UpdateRequirement
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await

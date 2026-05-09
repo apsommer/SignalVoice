@@ -6,6 +6,8 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.sommerengineering.signalvoice.firebase.FirebaseDatabaseImpl
 import com.sommerengineering.signalvoice.messages.FeedMode
 import com.sommerengineering.signalvoice.room.RoomImpl
+import com.sommerengineering.signalvoice.session.Session
+import com.sommerengineering.signalvoice.session.SessionManager
 import com.sommerengineering.signalvoice.source.Message
 import com.sommerengineering.signalvoice.source.MessageOrigin
 import com.sommerengineering.signalvoice.source.resolveMessageOrigin

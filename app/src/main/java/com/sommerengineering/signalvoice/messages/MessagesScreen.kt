@@ -31,9 +31,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import com.sommerengineering.signalvoice.MainViewModel
 import com.sommerengineering.signalvoice.R
-import com.sommerengineering.signalvoice.Session.Authenticated
 import com.sommerengineering.signalvoice.message.GroupHeaderItem
 import com.sommerengineering.signalvoice.message.MessageItem
+import com.sommerengineering.signalvoice.session.Session.Authenticated
 import com.sommerengineering.signalvoice.settings.SettingsDrawer
 import com.sommerengineering.signalvoice.source.Message
 import com.sommerengineering.signalvoice.source.MessageGroup

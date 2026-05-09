@@ -1,16 +1,11 @@
-package com.sommerengineering.signalvoice
+package com.sommerengineering.signalvoice.update
 
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.remoteConfigSettings
+import com.sommerengineering.signalvoice.R
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
-
-enum class UpdateRequirement {
-    NONE,
-    OPTIONAL,
-    REQUIRED
-}
 
 @Singleton
 class UpdateRepository @Inject constructor() {

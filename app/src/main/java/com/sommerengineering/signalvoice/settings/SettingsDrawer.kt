@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.sommerengineering.signalvoice.BuildConfig
 import com.sommerengineering.signalvoice.MainViewModel
 import com.sommerengineering.signalvoice.R
-import com.sommerengineering.signalvoice.Session.Authenticated
+import com.sommerengineering.signalvoice.session.Session.Authenticated
 import com.sommerengineering.signalvoice.source.MessageOrigin
 import com.sommerengineering.signalvoice.source.btcAsset
 import com.sommerengineering.signalvoice.source.esAsset
