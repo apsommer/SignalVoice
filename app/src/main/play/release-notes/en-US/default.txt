@@ -1,1 +1,1 @@
-Implement subscription payments
+Validate subscription flow
