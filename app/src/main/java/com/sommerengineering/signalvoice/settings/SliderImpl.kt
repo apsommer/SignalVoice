@@ -31,7 +31,7 @@ fun SliderImpl(
             colors = SliderDefaults.colors(
 
                 // active
-                thumbColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.55f),
+                thumbColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.65f),
                 activeTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
                 activeTickColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.0f),
 
