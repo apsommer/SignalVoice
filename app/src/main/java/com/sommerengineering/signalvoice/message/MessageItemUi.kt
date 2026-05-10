@@ -110,6 +110,7 @@ fun MessageItemUi(
                         isLocked = isLocked,
                         onLockedClick = onLockedClick
                     )
+                    Spacer(Modifier.width(rowIconPadding / 2))
                 }
             }
         }

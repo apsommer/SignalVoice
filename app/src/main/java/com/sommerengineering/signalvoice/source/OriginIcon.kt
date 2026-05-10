@@ -16,7 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -115,21 +118,68 @@ fun TextIcon(
     color: Color,
 ) {
 
-    // adjust text spacing
-    val letterSpacing = if (text == "100") (-0.2).sp else (-0.5).sp
-    val modifier = when (text) {
-        "100" -> Modifier.offset(x = (-0.5).dp)
-        "500" -> Modifier.offset(x = 0.3.dp)
-        else -> Modifier
-    }
+    val annotatedText =
+        when (text) {
+
+            "100" -> buildAnnotatedString {
+                withStyle(
+                    SpanStyle(
+                        letterSpacing = 0.5.sp
+                    )
+                ) {
+                    append("1")
+                }
+                withStyle(
+                    SpanStyle(
+                        letterSpacing = 0.6.sp
+                    )
+                ) {
+                    append("00")
+                }
+            }
+
+            "500" -> buildAnnotatedString {
+                withStyle(
+                    SpanStyle(
+                        letterSpacing = 0.5.sp
+                    )
+                ) {
+                    append("5")
+                }
+                withStyle(
+                    SpanStyle(
+                        letterSpacing = 0.6.sp
+                    )
+                ) {
+                    append("00")
+                }
+            }
+
+            // "10Y"
+            else -> buildAnnotatedString {
+                withStyle(
+                    SpanStyle(
+                        letterSpacing = (-0.4).sp
+                    )
+                ) {
+                    append(text)
+                }
+            }
+        }
+
+    val modifier =
+        when (text) {
+            "100" -> Modifier.offset(x = (-0.2).dp)
+            "500" -> Modifier.offset(x = 0.1.dp)
+            else -> Modifier.offset(x = (-0.2).dp) // "10Y"
+        }
 
     Text(
-        text = text,
+        text = annotatedText,
         color = color,
         fontSize = fontSize,
         fontWeight = FontWeight.Bold,
         fontFamily = fontFamily,
-        letterSpacing = letterSpacing,
         modifier = modifier
     )
 }
