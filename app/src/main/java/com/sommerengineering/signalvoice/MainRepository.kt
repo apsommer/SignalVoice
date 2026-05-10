@@ -13,11 +13,11 @@ import com.sommerengineering.signalvoice.source.MessageOrigin
 import com.sommerengineering.signalvoice.source.resolveMessageOrigin
 import com.sommerengineering.signalvoice.speak.TextToSpeechImpl
 import com.sommerengineering.signalvoice.uitls.btcStream
+import com.sommerengineering.signalvoice.uitls.clStream
 import com.sommerengineering.signalvoice.uitls.defaultVoice
 import com.sommerengineering.signalvoice.uitls.esStream
 import com.sommerengineering.signalvoice.uitls.gcStream
 import com.sommerengineering.signalvoice.uitls.nqStream
-import com.sommerengineering.signalvoice.uitls.siStream
 import com.sommerengineering.signalvoice.uitls.znStream
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -69,9 +69,9 @@ class MainRepository @Inject constructor(
             gcStream,
             firebaseDb.fetchStreamMessages(gcStream)
         )
-        if (loadSI()) roomDb.replaceStreamMessages(
-            siStream,
-            firebaseDb.fetchStreamMessages(siStream)
+        if (loadCL()) roomDb.replaceStreamMessages(
+            clStream,
+            firebaseDb.fetchStreamMessages(clStream)
         )
     }
 
@@ -209,13 +209,13 @@ class MainRepository @Inject constructor(
         appScope.launch { prefs.write(GC, enabled) }
     }
 
-    // stream SI
-    suspend fun loadSI() =
-        prefs.read(SI) ?: true
+    // stream CL
+    suspend fun loadCL() =
+        prefs.read(CL) ?: true
 
-    fun updateSI(enabled: Boolean) {
-        syncStream(siStream, enabled)
-        appScope.launch { prefs.write(SI, enabled) }
+    fun updateCL(enabled: Boolean) {
+        syncStream(clStream, enabled)
+        appScope.launch { prefs.write(CL, enabled) }
     }
 
     // sync stream with firebase/room
@@ -322,7 +322,7 @@ class MainRepository @Inject constructor(
                 if (loadBTC()) subscribeToTopic(btcStream) else unsubscribeFromTopic(btcStream)
                 if (loadES()) subscribeToTopic(esStream) else unsubscribeFromTopic(esStream)
                 if (loadGC()) subscribeToTopic(gcStream) else unsubscribeFromTopic(gcStream)
-                if (loadSI()) subscribeToTopic(siStream) else unsubscribeFromTopic(siStream)
+                if (loadCL()) subscribeToTopic(clStream) else unsubscribeFromTopic(clStream)
             }
         }
         firebaseDb.writeToken(token)

@@ -26,7 +26,7 @@ val NQ = booleanPreferencesKey("isNQ")
 val ES = booleanPreferencesKey("isES")
 val BTC = booleanPreferencesKey("isBTC")
 val GC = booleanPreferencesKey("isGC")
-val SI = booleanPreferencesKey("isSI")
+val CL = booleanPreferencesKey("isCL")
 val UID = stringPreferencesKey("uid")
 val PREMIUM = booleanPreferencesKey("isPremium")
 

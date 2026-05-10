@@ -34,10 +34,10 @@ import com.sommerengineering.signalvoice.R
 import com.sommerengineering.signalvoice.session.Session.Authenticated
 import com.sommerengineering.signalvoice.source.MessageOrigin
 import com.sommerengineering.signalvoice.source.btcAsset
+import com.sommerengineering.signalvoice.source.clAsset
 import com.sommerengineering.signalvoice.source.esAsset
 import com.sommerengineering.signalvoice.source.gcAsset
 import com.sommerengineering.signalvoice.source.nqAsset
-import com.sommerengineering.signalvoice.source.siAsset
 import com.sommerengineering.signalvoice.source.znAsset
 import com.sommerengineering.signalvoice.uitls.customDescription
 import com.sommerengineering.signalvoice.uitls.customDividerTitle
@@ -88,7 +88,7 @@ fun SettingsDrawer(
     val isBTC = viewModel.isBTC
     val isES = viewModel.isES
     val isGC = viewModel.isGC
-    val isSI = viewModel.isSI
+    val isCL = viewModel.isCL
 
     val isFullScreen = viewModel.isFullScreen
     val fullScreenDescription = viewModel.fullScreenDescription
@@ -258,13 +258,13 @@ fun SettingsDrawer(
                 )
             }
 
-            // stream SI
+            // stream CL
             item {
                 StreamSwitchItem(
-                    origin = MessageOrigin.BroadcastStream(siAsset),
-                    enabled = isSI,
-                    updateStream = { viewModel.updateSI(it) },
-                    isLocked = viewModel.isLocked(siAsset),
+                    origin = MessageOrigin.BroadcastStream(clAsset),
+                    enabled = isCL,
+                    updateStream = { viewModel.updateCL(it) },
+                    isLocked = viewModel.isLocked(clAsset),
                     onLockedClick = { viewModel.launchPaywall() }
                 )
             }

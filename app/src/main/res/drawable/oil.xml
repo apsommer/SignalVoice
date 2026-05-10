@@ -10,8 +10,8 @@
 
   <!-- scaled icon for padding -->
   <group
-      android:scaleX="0.75"
-      android:scaleY="0.75"
+      android:scaleX="0.5"
+      android:scaleY="0.5"
       android:pivotX="24"
       android:pivotY="24">
 

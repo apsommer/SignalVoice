@@ -8,7 +8,6 @@ import com.sommerengineering.signalvoice.uitls.clStream
 import com.sommerengineering.signalvoice.uitls.esStream
 import com.sommerengineering.signalvoice.uitls.gcStream
 import com.sommerengineering.signalvoice.uitls.nqStream
-import com.sommerengineering.signalvoice.uitls.siStream
 import com.sommerengineering.signalvoice.uitls.znStream
 
 val znAsset = Asset(
@@ -116,36 +115,16 @@ val gcAsset = Asset(
     isPremium = true
 )
 
-val siAsset = Asset(
-    origin = siStream,
-    symbol = "SI",
-    displayName = "Silver",
-    spokenName = "Silver",
-    category = "Metals",
-    exchange = "COMEX",
-    assetDescription = "COMEX · Metals · SI",
-    signalDescription = "Cascade repair structure",
-    order = 5,
-    style = MessageItemStyle(
-        primary = Color(0xFFD2E4F2),
-        accent = Color(0xFFF4FAFF),
-        surface = Color(0xFF182028),
-        text = Color(0xFFF2F8FD),
-        iconRes = R.drawable.si
-    ),
-    isPremium = true
-)
-
 val clAsset = Asset(
     origin = clStream,
     symbol = "CL",
-    displayName = "Crude Oil",
-    spokenName = "Crude oil",
+    displayName = "Oil",
+    spokenName = "Oil",
     category = "Energy",
     exchange = "NYMEX",
     assetDescription = "NYMEX · Energy · CL",
     signalDescription = "Violent inventory repricing",
-    order = 6,
+    order = 5,
     style = MessageItemStyle(
         primary = Color(0xFFD2E4F2),
         accent = Color(0xFFF4FAFF),
@@ -157,7 +136,7 @@ val clAsset = Asset(
 )
 
 val allAssets =
-    listOf(znAsset, nqAsset, btcAsset, esAsset, gcAsset, clAsset) // siAsset excluded for now
+    listOf(znAsset, nqAsset, btcAsset, esAsset, gcAsset, clAsset)
 val assetOrigins = allAssets.associateBy { it.origin }
 val assetDisplayNames = allAssets.map { it.displayName }.toSet()
 fun resolveAsset(stream: String) =

@@ -213,13 +213,13 @@ class MainViewModel @Inject constructor(
         repo.updateGC(enabled)
     }
 
-    // stream SI
-    var isSI by mutableStateOf(true)
+    // stream CL
+    var isCL by mutableStateOf(true)
         private set
 
-    fun updateSI(enabled: Boolean) {
-        isSI = enabled
-        repo.updateSI(enabled)
+    fun updateCL(enabled: Boolean) {
+        isCL = enabled
+        repo.updateCL(enabled)
     }
 
     // feed mode: linear or grouped
@@ -415,7 +415,7 @@ class MainViewModel @Inject constructor(
             isBTC = repo.loadBTC()
             isES = repo.loadES()
             isGC = repo.loadGC()
-            isSI = repo.loadSI()
+            isCL = repo.loadCL()
             feedMode = repo.loadFeedMode()
             isFullScreen = repo.loadFullScreen()
         }
