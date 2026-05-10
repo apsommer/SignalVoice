@@ -3,6 +3,7 @@ package com.sommerengineering.signalvoice.settings
 import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -103,12 +105,12 @@ fun SettingsDrawer(
 
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxHeight()
                 .background(MaterialTheme.colorScheme.background)
                 .padding(
                     top =
-                        if (isFullScreen) appBarHeight + edgePadding / 2
-                        else 0.dp + edgePadding / 2
+                        if (isFullScreen) appBarHeight
+                        else 0.dp
                 )
         ) {
 
@@ -358,7 +360,7 @@ fun SettingsDrawer(
             item {
                 Text(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
                         .padding(start = edgePadding, end = edgePadding, bottom = edgePadding),
                     text = "v" + BuildConfig.VERSION_NAME,
                     textAlign = TextAlign.End,
@@ -374,7 +376,7 @@ fun SettingsDrawer(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(appBarHeight)
-                    .background(MaterialTheme.colorScheme.surface)
+                    .background(MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp))
             )
         }
     }
