@@ -136,7 +136,7 @@ class MainActivity : ComponentActivity() {
 
                 UpdateRequirement.REQUIRED -> launchRequiredUpdateFlow()
                 UpdateRequirement.OPTIONAL -> launchOptionalUpdateFlow()
-                UpdateRequirement.NONE -> logMessage("App is current, no update required.")
+                UpdateRequirement.NONE -> {}
             }
         }
     }
