@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 import com.sommerengineering.signalvoice.R
 import com.sommerengineering.signalvoice.message.MessageItemStyle
 import com.sommerengineering.signalvoice.uitls.btcStream
+import com.sommerengineering.signalvoice.uitls.clStream
 import com.sommerengineering.signalvoice.uitls.esStream
 import com.sommerengineering.signalvoice.uitls.gcStream
 import com.sommerengineering.signalvoice.uitls.nqStream
@@ -135,7 +136,28 @@ val siAsset = Asset(
     isPremium = true
 )
 
-val allAssets = listOf(znAsset, nqAsset, btcAsset, esAsset, gcAsset, siAsset)
+val clAsset = Asset(
+    origin = clStream,
+    symbol = "CL",
+    displayName = "Crude Oil",
+    spokenName = "Crude oil",
+    category = "Energy",
+    exchange = "NYMEX",
+    assetDescription = "NYMEX · Energy · CL",
+    signalDescription = "Violent inventory repricing",
+    order = 6,
+    style = MessageItemStyle(
+        primary = Color(0xFFD2E4F2),
+        accent = Color(0xFFF4FAFF),
+        surface = Color(0xFF182028),
+        text = Color(0xFFF2F8FD),
+        iconRes = R.drawable.oil
+    ),
+    isPremium = true
+)
+
+val allAssets =
+    listOf(znAsset, nqAsset, btcAsset, esAsset, gcAsset, clAsset) // siAsset excluded for now
 val assetOrigins = allAssets.associateBy { it.origin }
 val assetDisplayNames = allAssets.map { it.displayName }.toSet()
 fun resolveAsset(stream: String) =

@@ -56,6 +56,7 @@ const val esStream = "ES"
 const val btcStream = "BTC"
 const val gcStream = "GC"
 const val siStream = "SI"
+const val clStream = "CL"
 
 // user signals
 const val userSignalDescription = "Custom signal"
