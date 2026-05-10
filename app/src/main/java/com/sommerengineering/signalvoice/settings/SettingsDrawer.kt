@@ -10,10 +10,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
@@ -95,6 +96,9 @@ fun SettingsDrawer(
 
     var isShowVoiceDialog by remember { mutableStateOf(false) }
 
+    // measure width of speed slider for proper alignment of pitch slider
+    var labelWidth by remember { mutableStateOf(0.dp) }
+
     Box {
 
         LazyColumn(
@@ -121,14 +125,6 @@ fun SettingsDrawer(
                     description = voiceDescription,
                     onClick = { isShowVoiceDialog = true }) {
 
-                    IconButton(
-                        onClick = { isShowVoiceDialog = true }) {
-                        Icon(
-                            painter = painterResource(R.drawable.more),
-                            contentDescription = null
-                        )
-                    }
-
                     if (isShowVoiceDialog) {
                         VoiceDialog(
                             viewModel = viewModel,
@@ -148,7 +144,9 @@ fun SettingsDrawer(
                 SliderItem(
                     iconRes = R.drawable.speed,
                     title = speedTitle,
-                    description = speedDescription
+                    description = speedDescription,
+                    labelWidth = labelWidth,
+                    onLabelWidthChanged = { labelWidth = it }
                 ) {
 
                     SliderImpl(
@@ -165,7 +163,9 @@ fun SettingsDrawer(
                 SliderItem(
                     iconRes = R.drawable.pitch,
                     title = pitchTitle,
-                    description = pitchDescription
+                    description = pitchDescription,
+                    labelWidth = labelWidth,
+                    onLabelWidthChanged = { labelWidth = it }
                 ) {
 
                     SliderImpl(
@@ -318,7 +318,20 @@ fun SettingsDrawer(
 
                     Switch(
                         checked = isFullScreen,
-                        onCheckedChange = { viewModel.updateFullScreen(it) })
+                        onCheckedChange = { viewModel.updateFullScreen(it) },
+                        colors = SwitchDefaults.colors(
+
+                            // active
+                            checkedThumbColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.75f),
+                            checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.22f),
+                            checkedBorderColor = Color.Transparent,
+
+                            // inactive
+                            uncheckedThumbColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                            uncheckedTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.16f),
+                            uncheckedBorderColor = Color.Transparent
+                        )
+                    )
                 }
             }
 
