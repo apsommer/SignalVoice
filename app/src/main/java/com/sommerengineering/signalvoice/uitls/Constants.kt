@@ -121,7 +121,7 @@ fun appBlue() = colorResource(R.color.app_blue)
 fun appGreen() = colorResource(R.color.app_green)
 
 // item style
-val rowHeight = 62.dp
+val rowHeight = 68.dp
 val assetIconSize = 32.dp
 val settingsIconSize = 24.dp
 val rowHorizontalPadding = 16.dp
