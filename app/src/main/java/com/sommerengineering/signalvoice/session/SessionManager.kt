@@ -2,6 +2,7 @@ package com.sommerengineering.signalvoice.session
 
 import com.google.firebase.auth.FirebaseAuth
 import com.sommerengineering.signalvoice.ApplicationScope
+import com.sommerengineering.signalvoice.BuildConfig
 import com.sommerengineering.signalvoice.PREMIUM
 import com.sommerengineering.signalvoice.PreferenceStore
 import com.sommerengineering.signalvoice.UID
@@ -92,11 +93,13 @@ class SessionManager @Inject constructor(
             updateSession(uid, isPremium)
 
             // fetch entitlement from network
-            isPremium = true // billingManager.isPremium()
+            isPremium =
+                if (BuildConfig.DEBUG) true
+                else billingManager.isPremium()
             updateSession(uid, isPremium)
         }
     }
-
+    
     private fun updateSession(
         uid: String,
         isPremium: Boolean
