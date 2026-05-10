@@ -159,7 +159,7 @@ fun TextIcon(
             else -> buildAnnotatedString {
                 withStyle(
                     SpanStyle(
-                        letterSpacing = (-0.4).sp
+                        letterSpacing = 0.sp
                     )
                 ) {
                     append(text)
