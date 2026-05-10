@@ -4,6 +4,8 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Context.CLIPBOARD_SERVICE
+import android.content.Intent
+import android.provider.Settings
 import android.speech.tts.Voice
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -19,10 +21,16 @@ import com.sommerengineering.signalvoice.messages.FeedMode
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationState.RECEIVED
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationState.WAITING
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationUiState
+import com.sommerengineering.signalvoice.session.Session
+import com.sommerengineering.signalvoice.session.SessionManager
+import com.sommerengineering.signalvoice.source.Asset
 import com.sommerengineering.signalvoice.source.Message
+import com.sommerengineering.signalvoice.source.MessageOrigin
+import com.sommerengineering.signalvoice.source.resolveMessageOrigin
 import com.sommerengineering.signalvoice.uitls.RomanNumerals
 import com.sommerengineering.signalvoice.uitls.screenFullDescription
 import com.sommerengineering.signalvoice.uitls.screenWindowedDescription
+import com.sommerengineering.signalvoice.uitls.webhookBaseUrl
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -37,11 +45,45 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
+    private val sessionManager: SessionManager,
     private val repo: MainRepository,
     private val credentialManager: CredentialManager,
     private val googleAuthenticator: GoogleAuthenticator,
     private val gitHubAuthenticator: GitHubAuthenticator,
 ) : ViewModel() {
+
+    // session
+    var session by mutableStateOf<Session>(Session.Guest)
+        private set
+
+    // premium (locked) todo collapse this overload
+    fun isLocked(message: Message): Boolean {
+        val origin = resolveMessageOrigin(message)
+        return isLocked(origin)
+    }
+
+    fun isLocked(origin: MessageOrigin): Boolean {
+        if (origin !is MessageOrigin.BroadcastStream) return false
+        return isLocked(origin.asset)
+    }
+
+    fun isLocked(asset: Asset): Boolean {
+        val isPremiumAsset = asset.isPremium
+        val isPremiumUser = (session as? Session.Authenticated)?.isPremium == true
+        return isPremiumAsset && !isPremiumUser
+    }
+
+    private val _shouldLaunchPaywall = MutableSharedFlow<Unit>()
+    val shouldLaunchPaywall = _shouldLaunchPaywall.asSharedFlow()
+
+    fun launchPaywall() {
+        viewModelScope.launch {
+            _shouldLaunchPaywall.emit(Unit)
+        }
+    }
+
+    val webhookUrl
+        get() = webhookBaseUrl + (session as Session.Authenticated).uid
 
     // room database
     val messages = repo.messages.stateIn(
@@ -91,18 +133,19 @@ class MainViewModel @Inject constructor(
         pitchDescription = repo.pitch.toString()
     }
 
-    // mute
-    val isMute = repo.isMute
-    fun toggleMute() = repo.setMute(!isMute.value)
+    // listening
+    val isListening = repo.isListening
+    fun toggleListening(context: Context) {
+        if (!areNotificationsEnabled) {
+            launchSystemNotificationSettings(context)
+            return
+        }
+        repo.setListening(!isListening.value)
+    }
 
     fun speakUtterance(utterance: String) =
         viewModelScope.launch {
-            repo.speakMessage(
-                Message(
-                    timestamp = System.currentTimeMillis().toString(),
-                    message = utterance, null, null
-                )
-            )
+            repo.speakPreview(utterance)
         }
 
     fun speakMessage(message: Message) =
@@ -170,13 +213,13 @@ class MainViewModel @Inject constructor(
         repo.updateGC(enabled)
     }
 
-    // stream SI
-    var isSI by mutableStateOf(true)
+    // stream CL
+    var isCL by mutableStateOf(true)
         private set
 
-    fun updateSI(enabled: Boolean) {
-        isSI = enabled
-        repo.updateSI(enabled)
+    fun updateCL(enabled: Boolean) {
+        isCL = enabled
+        repo.updateCL(enabled)
     }
 
     // feed mode: linear or grouped
@@ -244,7 +287,7 @@ class MainViewModel @Inject constructor(
     // notifications
     var hasRequestedNotificationPermission by mutableStateOf(false)
         private set
-    var areNotificationsEnabled by mutableStateOf(false)
+    var areNotificationsEnabled by mutableStateOf(true)
         private set
     private val _notificationPermissionResult = MutableSharedFlow<Unit>(
         extraBufferCapacity = 1
@@ -257,8 +300,38 @@ class MainViewModel @Inject constructor(
         _notificationPermissionResult.tryEmit(Unit)
     }
 
+    private var wasNotificationsEnabled: Boolean? = null
     fun updateNotificationsEnabled(enabled: Boolean) {
+
+        // previous notification permission
+        val wasEnabled = wasNotificationsEnabled
+        wasNotificationsEnabled = enabled
+
+        // update state
         areNotificationsEnabled = enabled
+
+        // always enforce off
+        if (!enabled) {
+            repo.setListening(false)
+            return
+        }
+
+        // first app launch, resume into stored preference
+        if (wasEnabled == null) return
+
+        // auto recover for transition off -> on
+        if (!wasEnabled) repo.setListening(true)
+    }
+
+    fun launchSystemNotificationSettings(context: Context) {
+        context.startActivity(
+            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                putExtra(
+                    Settings.EXTRA_APP_PACKAGE,
+                    context.packageName
+                )
+            }
+        )
     }
 
     // beautiful voice names
@@ -282,9 +355,8 @@ class MainViewModel @Inject constructor(
     }
 
     // copy webhook
-    val webhookUrl get() = repo.webhookUrl
     fun copyWebhook(
-        context: Context
+        context: Context,
     ) {
 
         // save url to clipboard
@@ -326,6 +398,13 @@ class MainViewModel @Inject constructor(
 
     init {
 
+        // observe session state
+        viewModelScope.launch {
+            sessionManager.session.collect {
+                session = it
+            }
+        }
+
         // load settings from preferences
         // block main thread is acceptable for datastore read ~3 ms each
         runBlocking {
@@ -336,7 +415,7 @@ class MainViewModel @Inject constructor(
             isBTC = repo.loadBTC()
             isES = repo.loadES()
             isGC = repo.loadGC()
-            isSI = repo.loadSI()
+            isCL = repo.loadCL()
             feedMode = repo.loadFeedMode()
             isFullScreen = repo.loadFullScreen()
         }
@@ -355,6 +434,11 @@ class MainViewModel @Inject constructor(
                     updateEmptyState(false)
                 }
             }
+        }
+
+        // cold start hydration sync of streams: firebase to local db
+        viewModelScope.launch {
+            repo.hydrateStreamMessages()
         }
     }
 }

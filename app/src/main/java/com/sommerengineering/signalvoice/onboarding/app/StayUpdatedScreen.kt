@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import com.sommerengineering.signalvoice.MainViewModel
-import com.sommerengineering.signalvoice.message.LinearMessageItem
 import com.sommerengineering.signalvoice.onboarding.OnboardingScreen
 import com.sommerengineering.signalvoice.uitls.onboardingStayUpdatedSubtitle
 import com.sommerengineering.signalvoice.uitls.onboardingStayUpdatedTitle
@@ -50,13 +49,9 @@ fun StayUpdatedScreen(
             // messages
             LazyColumn {
                 items(messages) {
-                    val state = getOnboardingMessageState(
+                    OnboardingMessageUi(
                         message = it,
                         isExpanded = true
-                    )
-                    LinearMessageItem(
-                        state = state,
-                        isShowDivider = true
                     )
                 }
             }

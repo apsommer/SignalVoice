@@ -10,9 +10,11 @@ import com.google.firebase.auth.auth
 import com.sommerengineering.signalvoice.MainViewModel
 import com.sommerengineering.signalvoice.login.LoginScreen
 import com.sommerengineering.signalvoice.messages.MessagesScreen
+import com.sommerengineering.signalvoice.session.Session
 import com.sommerengineering.signalvoice.uitls.AppOnboardingRoute
 import com.sommerengineering.signalvoice.uitls.LoginRoute
 import com.sommerengineering.signalvoice.uitls.MessagesRoute
+import com.sommerengineering.signalvoice.uitls.SetupOnboardingCopyWebhookRoute
 import com.sommerengineering.signalvoice.uitls.SetupOnboardingRoute
 
 @Composable
@@ -35,6 +37,21 @@ fun MainNavigation(
     val postLoginDestination =
         if (isOnboardingComplete) MessagesRoute
         else AppOnboardingRoute
+
+    // guest navigation
+    val session = viewModel.session
+    val onCustomSignalClick: () -> Unit = {
+        when (session) {
+            is Session.Authenticated -> controller.navigate(SetupOnboardingRoute) // webhook onboarding
+            else -> {
+                controller.navigate(LoginRoute) { // login screen
+                    popUpTo(controller.graph.startDestinationId) {
+                        inclusive = true
+                    }
+                }
+            }
+        }
+    }
 
     NavHost(
         navController = controller,
@@ -69,16 +86,21 @@ fun MainNavigation(
                         popUpTo(MessagesRoute) { inclusive = true }
                     }
                 },
-                onLaunchWebhookOnboarding = {
-                    controller.navigate(SetupOnboardingRoute)
-                })
+                onCustomSignalClick = onCustomSignalClick
+            )
         }
 
         // setup webhook onboarding
         SetupWebhookNavigation(
             controller = controller,
             viewModel = viewModel,
-            onClose = { controller.popBackStack() })
+            onClose = {
+                controller.popBackStack(
+                    route = SetupOnboardingCopyWebhookRoute,
+                    inclusive = true
+                )
+            }
+        )
     }
 }
 

@@ -1,15 +1,18 @@
 package com.sommerengineering.signalvoice.settings
 
 import android.content.Intent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,50 +26,56 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.sommerengineering.signalvoice.BuildConfig
 import com.sommerengineering.signalvoice.MainViewModel
 import com.sommerengineering.signalvoice.R
+import com.sommerengineering.signalvoice.session.Session.Authenticated
 import com.sommerengineering.signalvoice.source.MessageOrigin
 import com.sommerengineering.signalvoice.source.btcAsset
+import com.sommerengineering.signalvoice.source.clAsset
 import com.sommerengineering.signalvoice.source.esAsset
 import com.sommerengineering.signalvoice.source.gcAsset
 import com.sommerengineering.signalvoice.source.nqAsset
-import com.sommerengineering.signalvoice.source.siAsset
 import com.sommerengineering.signalvoice.source.znAsset
+import com.sommerengineering.signalvoice.uitls.customDescription
 import com.sommerengineering.signalvoice.uitls.customDividerTitle
-import com.sommerengineering.signalvoice.uitls.streamsDividerTitle
+import com.sommerengineering.signalvoice.uitls.customTitle
+import com.sommerengineering.signalvoice.uitls.descriptionAlpha
 import com.sommerengineering.signalvoice.uitls.edgePadding
 import com.sommerengineering.signalvoice.uitls.generalDividerTitle
+import com.sommerengineering.signalvoice.uitls.guestCustomDescription
+import com.sommerengineering.signalvoice.uitls.manageSubscriptionDescription
 import com.sommerengineering.signalvoice.uitls.manageSubscriptionTitle
 import com.sommerengineering.signalvoice.uitls.pitchChangeUtterance
 import com.sommerengineering.signalvoice.uitls.pitchTitle
 import com.sommerengineering.signalvoice.uitls.premiumDividerTitle
 import com.sommerengineering.signalvoice.uitls.screenTitle
+import com.sommerengineering.signalvoice.uitls.settingsIconSize
+import com.sommerengineering.signalvoice.uitls.signOutDescription
 import com.sommerengineering.signalvoice.uitls.signOutTitle
 import com.sommerengineering.signalvoice.uitls.speedChangeUtterance
 import com.sommerengineering.signalvoice.uitls.speedTitle
+import com.sommerengineering.signalvoice.uitls.streamsDividerTitle
 import com.sommerengineering.signalvoice.uitls.subscriptionUrl
 import com.sommerengineering.signalvoice.uitls.systemTtsDescription
 import com.sommerengineering.signalvoice.uitls.systemTtsInstallVoicesAction
 import com.sommerengineering.signalvoice.uitls.systemTtsTitle
 import com.sommerengineering.signalvoice.uitls.voiceDividerTitle
 import com.sommerengineering.signalvoice.uitls.voiceTitle
-import com.sommerengineering.signalvoice.uitls.customDescription
-import com.sommerengineering.signalvoice.uitls.customTitle
-import com.sommerengineering.signalvoice.uitls.manageSubscriptionDescription
-import com.sommerengineering.signalvoice.uitls.settingsIconSize
-import com.sommerengineering.signalvoice.uitls.signOutDescription
 
 @Composable
 fun SettingsDrawer(
     viewModel: MainViewModel,
     onSignOut: () -> Unit,
-    onLaunchSetupOnboarding: () -> Unit
+    onCustomSignalClick: () -> Unit,
+    appBarHeight: Dp
 ) {
 
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
+    val session = viewModel.session
 
     val speed = viewModel.speed
     val pitch = viewModel.pitch
@@ -79,18 +88,24 @@ fun SettingsDrawer(
     val isBTC = viewModel.isBTC
     val isES = viewModel.isES
     val isGC = viewModel.isGC
-    val isSI = viewModel.isSI
+    val isCL = viewModel.isCL
 
     val isFullScreen = viewModel.isFullScreen
     val fullScreenDescription = viewModel.fullScreenDescription
 
     var isShowVoiceDialog by remember { mutableStateOf(false) }
 
-    Scaffold { padding ->
+    Box {
 
         LazyColumn(
             modifier = Modifier
-                .padding(start = 0.dp, end = 0.dp, top = edgePadding / 2, bottom = 0.dp)
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(
+                    top =
+                        if (isFullScreen) appBarHeight + edgePadding / 2
+                        else 0.dp + edgePadding / 2
+                )
         ) {
 
             // divider
@@ -186,25 +201,34 @@ fun SettingsDrawer(
             // stream ZN
             item {
                 StreamSwitchItem(
-                    messageOrigin = MessageOrigin.BroadcastStream(znAsset),
-                    isStream = isZN,
-                    updateStream = { viewModel.updateZN(it) })
+                    origin = MessageOrigin.BroadcastStream(znAsset),
+                    enabled = isZN,
+                    updateStream = { viewModel.updateZN(it) },
+                    isLocked = viewModel.isLocked(znAsset),
+                    onLockedClick = { viewModel.launchPaywall() }
+                )
             }
 
             // stream NQ
             item {
                 StreamSwitchItem(
-                    messageOrigin = MessageOrigin.BroadcastStream(nqAsset),
-                    isStream = isNQ,
-                    updateStream = { viewModel.updateNQ(it) })
+                    origin = MessageOrigin.BroadcastStream(nqAsset),
+                    enabled = isNQ,
+                    updateStream = { viewModel.updateNQ(it) },
+                    isLocked = viewModel.isLocked(nqAsset),
+                    onLockedClick = { viewModel.launchPaywall() }
+                )
             }
 
             // stream BTC
             item {
                 StreamSwitchItem(
-                    messageOrigin = MessageOrigin.BroadcastStream(btcAsset),
-                    isStream = isBTC,
-                    updateStream = { viewModel.updateBTC(it) })
+                    origin = MessageOrigin.BroadcastStream(btcAsset),
+                    enabled = isBTC,
+                    updateStream = { viewModel.updateBTC(it) },
+                    isLocked = viewModel.isLocked(btcAsset),
+                    onLockedClick = { viewModel.launchPaywall() }
+                )
             }
 
             // divider
@@ -215,25 +239,34 @@ fun SettingsDrawer(
             // stream ES
             item {
                 StreamSwitchItem(
-                    messageOrigin = MessageOrigin.BroadcastStream(esAsset),
-                    isStream = isES,
-                    updateStream = { viewModel.updateES(it) })
+                    origin = MessageOrigin.BroadcastStream(esAsset),
+                    enabled = isES,
+                    updateStream = { viewModel.updateES(it) },
+                    isLocked = viewModel.isLocked(esAsset),
+                    onLockedClick = { viewModel.launchPaywall() }
+                )
             }
 
             // stream GC
             item {
                 StreamSwitchItem(
-                    messageOrigin = MessageOrigin.BroadcastStream(gcAsset),
-                    isStream = isGC,
-                    updateStream = { viewModel.updateGC(it) })
+                    origin = MessageOrigin.BroadcastStream(gcAsset),
+                    enabled = isGC,
+                    updateStream = { viewModel.updateGC(it) },
+                    isLocked = viewModel.isLocked(gcAsset),
+                    onLockedClick = { viewModel.launchPaywall() }
+                )
             }
 
-            // stream SI
+            // stream CL
             item {
                 StreamSwitchItem(
-                    messageOrigin = MessageOrigin.BroadcastStream(siAsset),
-                    isStream = isSI,
-                    updateStream = { viewModel.updateSI(it) })
+                    origin = MessageOrigin.BroadcastStream(clAsset),
+                    enabled = isCL,
+                    updateStream = { viewModel.updateCL(it) },
+                    isLocked = viewModel.isLocked(clAsset),
+                    onLockedClick = { viewModel.launchPaywall() }
+                )
             }
 
             // divider
@@ -246,8 +279,10 @@ fun SettingsDrawer(
                 DialogItem(
                     iconRes = R.drawable.webhook,
                     title = customTitle,
-                    description = customDescription,
-                    onClick = onLaunchSetupOnboarding
+                    description =
+                        if (session is Authenticated) customDescription
+                        else guestCustomDescription,
+                    onClick = onCustomSignalClick
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.chevron),
@@ -312,11 +347,22 @@ fun SettingsDrawer(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(start = edgePadding, end = edgePadding, bottom = edgePadding),
-                    text = BuildConfig.VERSION_NAME,
+                    text = "v" + BuildConfig.VERSION_NAME,
                     textAlign = TextAlign.End,
+                    color = LocalContentColor.current.copy(descriptionAlpha),
                     style = MaterialTheme.typography.bodySmall
                 )
             }
+        }
+
+        // prevent scroll into notch area when fullscreen
+        if (isFullScreen) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(appBarHeight)
+                    .background(MaterialTheme.colorScheme.surface)
+            )
         }
     }
 }

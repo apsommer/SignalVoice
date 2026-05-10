@@ -1,0 +1,26 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+  <path
+      android:pathData="M0,0h48v48h-48z"
+      android:fillColor="#000000" />
+
+  <!-- scaled icon for padding -->
+  <group
+      android:scaleX="0.5"
+      android:scaleY="0.5"
+      android:pivotX="24"
+      android:pivotY="24">
+
+    <path
+        android:pathData="M24,47c-7.84,0 -13.559,-6.487 -14.861,-13.8C7.3,22.825 24,1 24,1s16.7,21.83 14.853,32.2C37.556,40.5 31.843,46.993 24,47Z"
+        android:strokeLineJoin="round"
+        android:strokeWidth="0"
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#FFFFFF" />
+
+  </group>
+</vector>

@@ -2,6 +2,7 @@ package com.sommerengineering.signalvoice.login
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,7 +21,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.sommerengineering.signalvoice.MainViewModel
 import com.sommerengineering.signalvoice.R
-import com.sommerengineering.signalvoice.uitls.loginButtonSize
 
 @Composable
 fun LoginScreen(
@@ -53,16 +53,8 @@ fun LoginScreen(
             )
         }
 
-        // sign-in text
-        Spacer(Modifier.height(loginButtonSize / 2))
-        Text(
-            text = "Sign in to SignalVoice",
-            color = MaterialTheme.colorScheme.onSurface.copy(0.8f),
-            style = MaterialTheme.typography.bodyLarge
-        )
-        Spacer(Modifier.height(loginButtonSize / 2))
-
         // login buttons
+        Spacer(Modifier.height(48.dp))
         LoginButton(
             iconRes = R.drawable.google,
             iconRatio = 0.5f,
@@ -72,5 +64,17 @@ fun LoginScreen(
             iconRes = R.drawable.github,
             iconRatio = 0.55f,
             onClick = { viewModel.signInWithGitHub(context, onAuthentication) })
+
+        // guest login
+        Spacer(Modifier.height(24.dp))
+        Text(
+            text = "Continue as guest",
+            color = MaterialTheme.colorScheme.primary.copy(0.9f),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier
+                .offset(y = 4.dp)
+                .background(MaterialTheme.colorScheme.background) // keeps tap clean over scrim if needed
+                .clickable { onAuthentication() }
+        )
     }
 }

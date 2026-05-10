@@ -1,0 +1,150 @@
+package com.sommerengineering.signalvoice.session
+
+import com.google.firebase.auth.FirebaseAuth
+import com.sommerengineering.signalvoice.ApplicationScope
+import com.sommerengineering.signalvoice.BuildConfig
+import com.sommerengineering.signalvoice.PREMIUM
+import com.sommerengineering.signalvoice.PreferenceStore
+import com.sommerengineering.signalvoice.UID
+import com.sommerengineering.signalvoice.premium.BillingManager
+import com.sommerengineering.signalvoice.session.Session.Authenticated
+import com.sommerengineering.signalvoice.session.Session.Guest
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class SessionManager @Inject constructor(
+    @ApplicationScope private val appScope: CoroutineScope,
+    private val prefs: PreferenceStore,
+    private val billingManager: BillingManager
+) {
+
+    private val auth = FirebaseAuth.getInstance()
+
+    private val _session = MutableStateFlow<Session>(Guest)
+    val session = _session.asStateFlow()
+
+    private var entitlementJob: Job? = null
+
+    init {
+
+        // initialize session
+        val currentUid = auth.currentUser?.uid
+        onUid(currentUid)
+
+        // handle auth state changes
+        auth.addAuthStateListener { onAuth() }
+
+        // listen for purchase event
+        appScope.launch {
+            billingManager.purchaseEvents.collect {
+                val uid = uid ?: return@collect
+                updateSession(
+                    uid = uid,
+                    isPremium = true
+                )
+            }
+        }
+    }
+
+    val uid: String?
+        get() = when (val currentSession = _session.value) {
+            Guest -> null
+            is Authenticated -> currentSession.uid
+        }
+
+    private fun onAuth() {
+
+        val newUid = auth.currentUser?.uid
+
+        // dedupe
+        val currentUid = uid
+        if (newUid == currentUid) return
+
+        onUid(newUid)
+    }
+
+    private fun onUid(uid: String?) {
+
+        entitlementJob?.cancel()
+
+        // guest, or logout
+        if (uid == null) {
+            _session.value = Guest
+            return
+        }
+
+        // authenticated
+        _session.value = Authenticated(
+            uid = uid,
+            isPremium = false
+        )
+
+        // check premium entitlement
+        entitlementJob = appScope.launch {
+
+            // load entitlement from cache
+            var isPremium = loadPremium(uid)
+            updateSession(uid, isPremium)
+
+            // fetch entitlement from network
+            isPremium =
+                if (BuildConfig.DEBUG) true
+                else billingManager.isPremium()
+            updateSession(uid, isPremium)
+        }
+    }
+    
+    private fun updateSession(
+        uid: String,
+        isPremium: Boolean
+    ) {
+
+        val current = _session.value
+
+        // prevent race: validate session still active, and same user
+        if (current !is Authenticated) return
+        if (current.uid != uid) return
+
+        _session.value = current.copy(
+            isPremium = isPremium
+        )
+
+        // persist entitlement
+        appScope.launch {
+            updatePremium(uid, isPremium)
+        }
+    }
+
+    private suspend fun loadPremium(
+        uid: String
+    ): Boolean {
+
+        // retrieve cache
+        val storedUid = prefs.read(UID)
+        val storedPremium = prefs.read(PREMIUM) ?: false
+
+        return storedUid == uid && storedPremium
+    }
+
+    private suspend fun updatePremium(
+        uid: String,
+        isPremium: Boolean
+    ) {
+
+        // retrieve cache
+        val storedUid = prefs.read(UID)
+        val storedPremium = prefs.read(PREMIUM) ?: false
+
+        // prevent unnecessary writes
+        if (uid == storedUid && isPremium == storedPremium) return
+
+        prefs.write(UID, uid)
+        prefs.write(PREMIUM, isPremium)
+    }
+}

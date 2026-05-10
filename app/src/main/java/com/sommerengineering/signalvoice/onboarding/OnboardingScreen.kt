@@ -69,7 +69,7 @@ fun OnboardingScreen(
         IconButton(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(end = edgePadding / 2)
+                .padding(edgePadding / 2)
                 .wrapContentWidth(Alignment.End),
             onClick = { onCloseClick() }) {
             Icon(

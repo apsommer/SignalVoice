@@ -20,7 +20,7 @@ APP = initialize_app(
     options = {'databaseURL': 'https://signalvoice-api-default-rtdb.firebaseio.com/'})
 
 # streams
-STREAMS = frozenset({'ZN', 'NQ', 'BTC', 'ES', 'GC', 'SI'})
+STREAMS = frozenset({'ZN', 'NQ', 'BTC', 'ES', 'GC', 'CL'})
 
 # user sources
 TRADINGVIEW = {'52.89.214.238', '34.212.75.30', '54.218.53.128', '52.32.178.7'}
@@ -29,7 +29,7 @@ TRENDSPIDER = '3.12.143.24'
 
 # configure notification
 BASE_CONFIG = messaging.AndroidConfig(
-    priority = 'high',  # 'normal' default, 'high' attempts to wake device in doze mode
+    priority = 'normal',  # 'normal' default, 'high' attempts to wake device in doze mode
     ttl = 0)  # ttl is 'time to live', 0 = 'now or never', '43200' = 12h, 86400 = 24h
 
 # time adjustments
@@ -86,8 +86,9 @@ def signal(req: https_fn.Request) -> https_fn.Response:
     # send message to single device
     if uid:
 
-        # ensure user is authenticated
-        device_token = TOKENS_NODE.child(uid).get()
+        # ensure user is authenticated todo this is O(n) reverse lookup, refactor to O(1) with extra node
+        tokens = TOKENS_NODE.get() or {}
+        device_token = next((t for t, u in tokens.items() if u == uid), None)
         if device_token is None:
             return https_fn.Response(f'Sign-in to hear message')
 
@@ -123,7 +124,7 @@ def send_message_to_single_device(uid, device_token, timestamp, message, source)
     # construct notification
     notification = messaging.Message(
         data = {
-            'uid': uid,
+            'uid': uid, # todo remove? source implies user message, only use is "different user same device"?
             'timestamp': str(timestamp),
             'message': message,
             'source': source},
@@ -132,7 +133,7 @@ def send_message_to_single_device(uid, device_token, timestamp, message, source)
 
     # send notification to single device
     try: messaging.send(notification)
-    except UnregisteredError: TOKENS_NODE.child(uid).delete() # delete token if unregistered (google test accounts)
+    except UnregisteredError: TOKENS_NODE.child(device_token).delete() # delete token if unregistered (google test accounts)
     except FirebaseError as error: print(f'Send to uid: {uid}, error: {error}')
 
 def write_stream_message_to_database(stream, timestamp, message):

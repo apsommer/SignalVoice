@@ -25,7 +25,6 @@ import com.sommerengineering.signalvoice.R
 import com.sommerengineering.signalvoice.theme.monospacedFontFamily
 import com.sommerengineering.signalvoice.uitls.appBlue
 import com.sommerengineering.signalvoice.uitls.edgePadding
-import com.sommerengineering.signalvoice.uitls.logMessage
 
 @Composable
 fun WebhookUrlCard(
@@ -35,10 +34,8 @@ fun WebhookUrlCard(
 
     // clarify spacing of long url
     val formattedUrl = webhookUrl
-        .replace("com-", "com\n-")
-        .replace("signalvoice.", "signalvoice\n.")
-        .replace("/signal?", "/signal?\n")
-    logMessage(formattedUrl)
+        .replace(".app", ".app\n")
+        .replace("?uid=", "?uid=\n")
 
     Column(
         modifier = Modifier

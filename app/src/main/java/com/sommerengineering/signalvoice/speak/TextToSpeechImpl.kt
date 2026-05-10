@@ -5,19 +5,17 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.speech.tts.Voice
 import androidx.core.os.bundleOf
-import com.ibm.icu.text.RuleBasedNumberFormat
 import com.sommerengineering.signalvoice.uitls.RomanNumerals
-import com.sommerengineering.signalvoice.uitls.logMessage
-import com.sommerengineering.signalvoice.uitls.volumeKey
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.suspendCancellableCoroutine
-import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
+
+const val volumeKey = TextToSpeech.Engine.KEY_PARAM_VOLUME
 
 @Singleton
 class TextToSpeechImpl @Inject constructor(
@@ -72,27 +70,24 @@ class TextToSpeechImpl @Inject constructor(
     fun isSpeaking() = _textToSpeech.isSpeaking
     fun stop() = _textToSpeech.stop()
 
-    suspend fun speak(
+    suspend fun speakQueued(
         timestamp: String,
         message: String
     ) = suspendCancellableCoroutine { continuation ->
 
-        // cancel on service destruction, etc
-        continuation.invokeOnCancellation { _textToSpeech.stop() }
-
         // listen to speech progress
         val listener = object : UtteranceProgressListener() {
-            override fun onDone(id: String?) {
-                if (id != timestamp || !continuation.isActive) return
-                continuation.resume(Unit)
-            }
-
-            override fun onError(id: String?) {
-                if (id != timestamp || !continuation.isActive) return
-                continuation.resume(Unit)
-            }
 
             override fun onStart(id: String?) = Unit
+
+            // cancel coroutine on completion, error, or stop
+            override fun onDone(id: String?) = finishCoroutine(id)
+            override fun onStop(id: String?, interrupted: Boolean) = finishCoroutine(id)
+            override fun onError(id: String?) = finishCoroutine(id)
+            private fun finishCoroutine(id: String?) {
+                if (id != timestamp || !continuation.isActive) return
+                continuation.resume(Unit)
+            }
         }
 
         _textToSpeech.setOnUtteranceProgressListener(listener)
@@ -105,6 +100,14 @@ class TextToSpeechImpl @Inject constructor(
             timestamp
         )
     }
+
+    fun speakImmediate(utterance: String) =
+        _textToSpeech.speak(
+            normalizeMessage(utterance),
+            TextToSpeech.QUEUE_FLUSH,
+            bundleOf(volumeKey to 1f),
+            System.currentTimeMillis().toString()
+        )
 
     override fun onInit(status: Int) {
         if (status != TextToSpeech.SUCCESS) return
@@ -132,14 +135,46 @@ class TextToSpeechImpl @Inject constructor(
             }
 
         // numbers to words, prevent "oh" instead of "zero"
-        spokenText = Regex("""-?\d[\d,]*(\.\d+)?""")
-            .replace(spokenText) {
-                val number = it.value.toDouble()
-                RuleBasedNumberFormat(Locale.US, RuleBasedNumberFormat.SPELLOUT)
-                    .format(number)
+        spokenText = Regex("""[+-]?\d+(\.\d+)?%?""")
+            .replace(spokenText) { match ->
+
+                val raw = match.value
+
+                val isPercent = raw.endsWith("%")
+                val clean = raw.removeSuffix("%")
+
+                val sign = when {
+                    clean.startsWith("+") -> "plus "
+                    clean.startsWith("-") -> "minus "
+                    else -> ""
+                }
+
+                val number = clean.trimStart('+', '-')
+
+                val spokenNumber =
+                    if (number.contains(".")) {
+                        val (intPart, decPart) = number.split(".")
+                        val decimals = decPart.map { digit ->
+                            units[digit.digitToInt()]
+                        }.joinToString(" ")
+                        "${intPart.toInt()} point $decimals"
+                    } else {
+                        number.toInt().toString()
+                    }
+
+                buildString {
+                    append(sign)
+                    append(spokenNumber)
+                    if (isPercent) append(" percent")
+                }
             }
 
-        logMessage("Spoken text\n$spokenText")
         return spokenText
     }
+
+    private val units = listOf(
+        "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+        "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
+        "sixteen", "seventeen", "eighteen", "nineteen"
+    )
 }

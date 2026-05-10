@@ -11,8 +11,11 @@ import com.sommerengineering.signalvoice.BuildConfig
 import com.sommerengineering.signalvoice.R
 
 // logs
-const val TAG = "~~"
-fun logMessage(msg: String?) = Log.v(TAG, "$msg")
+const val TAG = "~~~"
+fun logMessage(msg: String?) {
+    Log.v(TAG, "$msg")
+}
+
 fun logException(e: Exception) {
     Log.e(TAG, "handleException: ${e.message}", e)
     Firebase.crashlytics.recordException(e)
@@ -26,7 +29,7 @@ const val roomDatabaseName = "messages.db"
 
 // firebase database
 const val databaseUrl = "https://signalvoice-api-default-rtdb.firebaseio.com/"
-const val webhookBaseUrl = "..."
+const val webhookBaseUrl = "https://api.signalvoice.app/signal?uid="
 const val streamsNode = "streams"
 const val usersNode = "users"
 const val tokensNode = "tokens"
@@ -38,7 +41,8 @@ const val channelDescription = "Real-time trading alerts"
 const val channelGroupId = "42"
 const val channelGroupName = "Alerts"
 const val notificationId = 42
-const val notificationKey = "notification"
+
+// firebase keys
 const val streamKey = "stream"
 const val uidKey = "uid"
 const val timestampKey = "timestamp"
@@ -51,7 +55,7 @@ const val nqStream = "NQ"
 const val esStream = "ES"
 const val btcStream = "BTC"
 const val gcStream = "GC"
-const val siStream = "SI"
+const val clStream = "CL"
 
 // user signals
 const val userSignalDescription = "Custom signal"
@@ -68,27 +72,8 @@ const val SetupOnboardingCopyWebhookRoute = "SetupOnboardingCopyWebhook"
 const val SetupOnboardingPasteWebhookRoute = "SetupOnboardingPasteWebhook"
 const val SetupOnboardingSignalArmedRoute = "SetupOnboardingSignalArmed"
 
-// datastore
-const val localCache = "localCache"
-const val onboardingKey = "onboarding"
-const val emptyStateKey = "emptyState"
-const val voiceNameKey = "voice"
-const val speedKey = "speed"
-const val pitchKey = "pitch"
-const val isMuteKey = "isMuteKey"
-const val isFullScreenKey = "isFullScreen"
-const val volumeKey = TextToSpeech.Engine.KEY_PARAM_VOLUME
-const val feedModeKey = "feedMode"
-const val isZNKey = "isZN"
-const val isNQKey = "isNQ"
-const val isESKey = "isES"
-const val isBTCKey = "isBTC"
-const val isGCKey = "isGC"
-const val isSIKey = "isSI"
-
 // billing
-const val productId = "subscription" // match play store config
-const val freeTrial = "free-trial" // match play store config
+const val productId = "premium" // match play store config
 const val subscriptionUrl = "https://play.google.com/store/account/subscriptions?sku=" +
         productId + "&package=" + BuildConfig.APPLICATION_ID
 
@@ -102,9 +87,10 @@ const val systemTtsDescription = "Install additional voices"
 const val systemTtsInstallVoicesAction = TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA
 const val streamsDividerTitle = "STREAMS"
 const val premiumDividerTitle = "PREMIUM"
-const val customTitle = "Custom signal"
 const val customDividerTitle = "CUSTOM"
+const val customTitle = "Custom signal"
 const val customDescription = "Webhook alerts"
+const val guestCustomDescription = "Sign in to set up webhooks"
 const val screenTitle = "Screen"
 const val screenFullDescription = "Full screen"
 const val screenWindowedDescription = "Show system bars"
@@ -113,6 +99,13 @@ const val manageSubscriptionTitle = "Manage subscription"
 const val manageSubscriptionDescription = "Billing and plan"
 const val signOutTitle = "Sign-out"
 const val signOutDescription = "End session"
+
+// cards
+const val emptyStateTitle = "Custom signal"
+const val emptyStateSubtitle = "Set up your webhook to receive alerts →"
+const val guestEmptyStateSubtitle = "Sign in to set up webhook →"
+const val notificationsDisabledTitle = "Signals are paused"
+const val notificationsDisabledSubtitle = "Enable notifications for real-time voice alerts"
 
 // images
 val loginButtonSize = 96.dp
@@ -129,7 +122,7 @@ fun appGreen() = colorResource(R.color.app_green)
 
 // item style
 val rowHeight = 62.dp
-val assetIconSize = 26.dp
+val assetIconSize = 32.dp
 val settingsIconSize = 24.dp
 val rowHorizontalPadding = 16.dp
 val rowVerticalPadding = 12.dp
@@ -167,3 +160,7 @@ const val gitHubProviderId = "github.com"
 const val defaultVoice = "en-gb-x-gbd-local"  // british, male
 const val speedChangeUtterance = "Speed, "
 const val pitchChangeUtterance = "Pitch, "
+
+// lock badge
+val lockBadgeSize = 12.dp
+val lockBadgePadding = 2.dp

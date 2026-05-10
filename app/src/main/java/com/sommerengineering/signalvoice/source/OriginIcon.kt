@@ -2,6 +2,7 @@ package com.sommerengineering.signalvoice.source
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
@@ -15,20 +16,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sommerengineering.signalvoice.premium.LockBadge
 import com.sommerengineering.signalvoice.theme.fontFamily
 import com.sommerengineering.signalvoice.uitls.assetIconSize
+import com.sommerengineering.signalvoice.uitls.lockBadgePadding
+import com.sommerengineering.signalvoice.uitls.lockBadgeSize
 import com.sommerengineering.signalvoice.uitls.settingsIconSize
 
 @Composable
 fun OriginIcon(
-    messageOrigin: MessageOrigin,
-    isSettings: Boolean = false
+    origin: MessageOrigin,
+    isSettings: Boolean = false,
+    isLocked: Boolean,
+    onLockedClick: () -> Unit
 ) {
 
-    val style = messageOrigin.style
+    val style = origin.style
 
     // de-emphasize settings presentation
     val size =
@@ -41,55 +51,140 @@ fun OriginIcon(
         if (isSettings) style.accent.copy(alpha = 0.4f)
         else style.accent.copy(alpha = 0.4f)
 
+    // locked status: show lock badge and make icon clickable
+    val clickableModifier =
+        if (isLocked) Modifier.clickable { onLockedClick() }
+        else Modifier
+
     Box(
-        modifier = Modifier
-            .size(size)
-            .clip(CircleShape)
-            .background(textIconBackground)
-            .border(
-                width = 1.dp,
-                color = borderColor,
-                shape = CircleShape
-            ),
-        contentAlignment = Alignment.Center
+        modifier = Modifier.size(size)
     ) {
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .clip(CircleShape)
+                .then(clickableModifier)
+                .background(textIconBackground)
+                .border(
+                    width = 1.dp,
+                    color = borderColor,
+                    shape = CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
 
-        // drawable icon
-        if (style.iconRes != null) {
-            Icon(
-                painter = painterResource(style.iconRes),
-                contentDescription = null,
-                tint = Color.Unspecified,
-                modifier = Modifier.fillMaxSize()
-            )
-        }
-
-        // text icon (NQ: "100", ES: "500", ...)
-        else {
-
-            val iconText = style.iconText ?: return@Box
-
-            // adjust text spacing
-            val fontSize = if (isSettings) 11.sp else 12.sp
-            val letterSpacing = if (iconText == "100") (-0.2).sp else (-0.5).sp
-            val modifier = when (iconText) {
-                "100" -> Modifier.offset(x = (-0.5).dp)
-                "500" -> Modifier.offset(x = 0.3.dp)
-                else -> Modifier
+            // drawable icon
+            if (style.iconRes != null) {
+                Icon(
+                    painter = painterResource(style.iconRes),
+                    contentDescription = null,
+                    tint = Color.Unspecified,
+                    modifier = Modifier.fillMaxSize()
+                )
             }
 
-            Text(
-                text = iconText,
-                color = style.text,
-                fontSize = fontSize,
-                fontWeight = FontWeight.Bold,
-                fontFamily = fontFamily,
-                letterSpacing = letterSpacing,
-                modifier = modifier
+            // text icon (NQ: "100", ES: "500", ...)
+            if (style.iconText != null) {
+                TextIcon(
+                    text = style.iconText,
+                    fontSize = if (isSettings) 11.sp else 12.sp,
+                    color = style.text
+                )
+            }
+        }
+
+        if (isLocked) {
+
+            // accommodate inherent vector padding from emoji conversion
+            val offset = lockBadgeSize * 0.14f + lockBadgePadding
+
+            LockBadge(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .size(lockBadgeSize)
+                    .offset(
+                        x = offset,
+                        y = lockBadgePadding
+                    )
             )
         }
     }
 }
+
+@Composable
+fun TextIcon(
+    text: String,
+    fontSize: TextUnit,
+    color: Color,
+) {
+
+    val annotatedText =
+        when (text) {
+
+            "100" -> buildAnnotatedString {
+                withStyle(
+                    SpanStyle(
+                        letterSpacing = 0.sp
+                    )
+                ) {
+                    append("1")
+                }
+                withStyle(
+                    SpanStyle(
+                        letterSpacing = 0.4.sp
+                    )
+                ) {
+                    append("00")
+                }
+            }
+
+            "500" -> buildAnnotatedString {
+                withStyle(
+                    SpanStyle(
+                        letterSpacing = 0.sp
+                    )
+                ) {
+                    append("5")
+                }
+                withStyle(
+                    SpanStyle(
+                        letterSpacing = 0.4.sp
+                    )
+                ) {
+                    append("00")
+                }
+            }
+
+            // "10Y"
+            else -> buildAnnotatedString {
+                withStyle(
+                    SpanStyle(
+                        letterSpacing = 0.sp
+                    )
+                ) {
+                    append(text)
+                }
+            }
+        }
+
+    val modifier =
+        when (text) {
+            "100" -> Modifier.offset(x = (-0.2).dp)
+            "500" -> Modifier.offset(x = 0.1.dp)
+            else -> Modifier.offset(x = 0.dp) // "10Y"
+        }
+
+    Text(
+        text = annotatedText,
+        color = color,
+        fontSize = fontSize,
+        fontWeight = FontWeight.Bold,
+        fontFamily = fontFamily,
+        modifier = modifier
+    )
+}
+
+
 
 
 

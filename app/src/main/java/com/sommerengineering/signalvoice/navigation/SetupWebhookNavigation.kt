@@ -28,16 +28,14 @@ fun NavGraphBuilder.SetupWebhookNavigation(
         // copy webhook
         composable(SetupOnboardingCopyWebhookRoute) {
 
-            val webhookUrl = viewModel.webhookUrl
             val context = LocalContext.current
-            val onNextClick = {
-                viewModel.copyWebhook(context)
-                controller.navigate(SetupOnboardingPasteWebhookRoute)
-            }
 
             CopyWebhookScreen(
-                webhookUrl = webhookUrl,
-                onNextClick = onNextClick
+                webhookUrl = viewModel.webhookUrl,
+                onNextClick = {
+                    viewModel.copyWebhook(context)
+                    controller.navigate(SetupOnboardingPasteWebhookRoute)
+                }
             )
         }
 
@@ -56,12 +54,6 @@ fun NavGraphBuilder.SetupWebhookNavigation(
         // signal armed (setup complete)
         composable(SetupOnboardingSignalArmedRoute) {
 
-            val onClose: () -> Unit = {
-                controller.popBackStack(
-                    route = SetupOnboardingRoute,
-                    inclusive = true
-                )
-            }
             SignalVerificationScreen(
                 viewModel = viewModel,
                 onClose = onClose

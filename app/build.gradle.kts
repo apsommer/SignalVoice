@@ -12,6 +12,7 @@ plugins {
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.hilt)
     id("kotlin-parcelize")
+    id("com.github.triplet.play")
 }
 
 // import release upload signing keystore
@@ -19,7 +20,7 @@ val keystoreProperties = Properties()
 keystoreProperties.load(
     FileInputStream(
         rootProject.file(
-            rootProject.projectDir.absolutePath + "/upload/keystore.properties"
+            rootProject.projectDir.absolutePath + "/publisher/keystore.properties"
         )
     )
 )
@@ -55,8 +56,8 @@ configure<ApplicationExtension> {
         applicationId = "com.sommerengineering.signalvoice"
         minSdk = 28
         targetSdk = 36
-        versionCode = 1 // increment for each release
-        versionName = "1.0" // major.minor.date.letter
+        versionCode = 17 // increment for each release
+        versionName = "1.17" // major.minor.date.letter
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -111,8 +112,6 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.androidx.compose.foundation.layout)
-    implementation(libs.androidx.compose.material3)
     implementation(kotlin("script-runtime"))
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.credentials)
@@ -131,13 +130,12 @@ dependencies {
     implementation(libs.billing.ktx)
     implementation(libs.app.update)
     implementation(libs.app.update.ktx)
-    implementation(libs.dotlottie.android)
     implementation(libs.hilt.android)
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    implementation(libs.icu4j)
-    implementation(libs.androidx.foundation.layout)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.config)
 
     ksp(libs.hilt.compiler)
     ksp(libs.kotlin.metadata)
@@ -150,4 +148,10 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+}
+
+// set play publisher credentials
+play {
+    serviceAccountCredentials.set(file("${rootProject.projectDir}/publisher/publisher-key.json"))
+    track.set("alpha")
 }

@@ -4,10 +4,10 @@ import androidx.compose.ui.graphics.Color
 import com.sommerengineering.signalvoice.R
 import com.sommerengineering.signalvoice.message.MessageItemStyle
 import com.sommerengineering.signalvoice.uitls.btcStream
+import com.sommerengineering.signalvoice.uitls.clStream
 import com.sommerengineering.signalvoice.uitls.esStream
 import com.sommerengineering.signalvoice.uitls.gcStream
 import com.sommerengineering.signalvoice.uitls.nqStream
-import com.sommerengineering.signalvoice.uitls.siStream
 import com.sommerengineering.signalvoice.uitls.znStream
 
 val znAsset = Asset(
@@ -27,7 +27,8 @@ val znAsset = Asset(
         text = Color(0xFFE6FFFA),
         iconRes = null,
         iconText = "10Y"
-    )
+    ),
+    isPremium = false
 )
 
 val nqAsset = Asset(
@@ -47,7 +48,8 @@ val nqAsset = Asset(
         text = Color(0xFFEAE6FF),
         iconRes = null,
         iconText = "100"
-    )
+    ),
+    isPremium = false
 )
 
 val btcAsset = Asset(
@@ -66,7 +68,8 @@ val btcAsset = Asset(
         surface = Color(0xFF2A1A0A),
         text = Color(0xFFFFF4E6),
         iconRes = R.drawable.btc
-    )
+    ),
+    isPremium = false
 )
 
 // premium /////////////////////////////////////////////////////////////////////////////////////////
@@ -88,7 +91,8 @@ val esAsset = Asset(
         text = Color(0xFFE6F0FF),
         iconRes = null,
         iconText = "500"
-    )
+    ),
+    isPremium = true
 )
 
 val gcAsset = Asset(
@@ -107,29 +111,33 @@ val gcAsset = Asset(
         surface = Color(0xFF2B2400),
         text = Color(0xFFFFF9E6),
         iconRes = R.drawable.gc
-    )
+    ),
+    isPremium = true
 )
 
-val siAsset = Asset(
-    origin = siStream,
-    symbol = "SI",
-    displayName = "Silver",
-    spokenName = "Silver",
-    category = "Metals",
-    exchange = "COMEX",
-    assetDescription = "COMEX · Metals · SI",
-    signalDescription = "Cascade repair structure",
+val clAsset = Asset(
+    origin = clStream,
+    symbol = "CL",
+    displayName = "Oil",
+    spokenName = "Oil",
+    category = "Energy",
+    exchange = "NYMEX",
+    assetDescription = "NYMEX · Energy · CL",
+    signalDescription = "Violent inventory repricing",
     order = 5,
     style = MessageItemStyle(
-        primary = Color(0xFFE6EEF5),
-        accent = Color(0xFFFFFFFF),
-        surface = Color(0xFF0F1418),
-        text = Color(0xFFF5FAFF),
-        iconRes = R.drawable.si
-    )
+        primary = Color(0xFFD2E4F2),
+        accent = Color(0xFFF4FAFF),
+        surface = Color(0xFF182028),
+        text = Color(0xFFF2F8FD),
+        iconRes = R.drawable.oil
+    ),
+    isPremium = true
 )
 
-val allAssets = listOf(znAsset, nqAsset, btcAsset, esAsset, gcAsset, siAsset)
-val assetMap = allAssets.associateBy { it.origin }
+val allAssets =
+    listOf(znAsset, nqAsset, btcAsset, esAsset, gcAsset, clAsset)
+val assetOrigins = allAssets.associateBy { it.origin }
+val assetDisplayNames = allAssets.map { it.displayName }.toSet()
 fun resolveAsset(stream: String) =
-    assetMap[stream] ?: error("Unknown asset for stream: $stream")
+    assetOrigins[stream] ?: error("Unknown asset for stream: $stream")

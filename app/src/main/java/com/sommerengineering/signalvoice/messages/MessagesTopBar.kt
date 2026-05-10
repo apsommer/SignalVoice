@@ -1,29 +1,36 @@
 package com.sommerengineering.signalvoice.messages
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
@@ -31,89 +38,97 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.sommerengineering.signalvoice.MainViewModel
 import com.sommerengineering.signalvoice.R
+import com.sommerengineering.signalvoice.uitls.appGreen
 import com.sommerengineering.signalvoice.uitls.logoAlpha
 import com.sommerengineering.signalvoice.uitls.rowHorizontalPadding
 
 @Composable
 fun MessagesTopBar(
     viewModel: MainViewModel,
-    onSettingsClick: () -> Unit,
     onToggleFeedMode: () -> Unit,
-    onToggleMute: () -> Unit
+    onToggleListening: () -> Unit
 ) {
 
-    // fullscreen
     val isFullScreen = viewModel.isFullScreen
+    val feedMode = viewModel.feedMode
+    val isListening by viewModel.isListening.collectAsState()
+
+    // full screen toggles logo size to accommodate notches/cutouts
     val basePadding = rowHorizontalPadding / 2
     val (cutoutStart, cutoutEnd) = getCutoutPadding(isFullScreen)
     val logoIcon = if (isFullScreen) R.drawable.appbar_compact else R.drawable.appbar
 
-    // feed mode
-    val feedMode = viewModel.feedMode
-    val feedModeIcon = if (feedMode == FeedMode.Linear) R.drawable.group else R.drawable.ungroup
+    // listening bar
+    val listeningBarHeight = 2.dp
 
-    // mute
-    val isMute by viewModel.isMute.collectAsState()
-    val muteIcon = if (isMute) R.drawable.mute else R.drawable.unmute
-    val muteAlpa = if (isMute) 0.5f else 0.7f
+    Box {
 
-    // icon size
-    val iconSize = 28.dp
-    val muteIconSize = 24.dp
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                start = basePadding + cutoutStart,
-                end = basePadding + cutoutEnd,
-                top = basePadding,
-                bottom = basePadding
-            ),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-
-        // settings drawer
-        AppBarIcon(
-            iconRes = R.drawable.drawer,
-            iconSize = iconSize,
-            onClick = onSettingsClick,
+        Row(
             modifier = Modifier
-                .padding(end = 2.dp)
-                .rotate(180f)
-        )
+                .fillMaxWidth()
+                .padding(
+                    start = basePadding + cutoutStart,
+                    end = basePadding + cutoutEnd,
+                    top = basePadding,
+                    bottom = basePadding + listeningBarHeight
+                ),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
 
-        // logo, with scrim overlay
-        Box(Modifier.weight(1f)) {
-            Image(
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .height(22.dp),
-                painter = painterResource(logoIcon),
-                contentDescription = null
+            // logo, with scrim overlay
+            Box(Modifier.weight(1f)) {
+                Image(
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(4.dp)
+                        .height(22.dp),
+                    painter = painterResource(logoIcon),
+                    contentDescription = null
+                )
+                Box(
+                    Modifier
+                        .matchParentSize()
+                        .background(MaterialTheme.colorScheme.background.copy(logoAlpha))
+                )
+            }
+
+            // feed mode
+            AppBarIcon(
+                iconRes =
+                    if (feedMode == FeedMode.Linear) R.drawable.group
+                    else R.drawable.ungroup,
+                iconTint = MaterialTheme.colorScheme.onSurface,
+                backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.03f),
+                borderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                onClick = onToggleFeedMode
             )
-            Box(
-                Modifier
-                    .matchParentSize()
-                    .background(MaterialTheme.colorScheme.background.copy(logoAlpha))
+
+            Spacer(Modifier.width(6.dp))
+
+            // listening
+            AppBarIcon(
+                iconRes =
+                    if (isListening) R.drawable.listening_on
+                    else R.drawable.listening_off,
+                iconTint =
+                    if (isListening) appGreen()
+                    else MaterialTheme.colorScheme.onSurface.copy(0.6f),
+                backgroundColor =
+                    if (isListening) appGreen().copy(alpha = 0.15f)
+                    else appGreen().copy(alpha = 0.04f),
+                borderColor =
+                    if (isListening) appGreen().copy(alpha = 0.4f)
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.10f),
+                onClick = onToggleListening
             )
         }
 
-        // feed mode
-        AppBarIcon(
-            iconRes = feedModeIcon,
-            iconSize = iconSize,
-            iconAlpha = 0.7f,
-            onClick = onToggleFeedMode,
-            modifier = Modifier.offset(x = iconSize / 2)
-        )
-
-        // mute
-        AppBarIcon(
-            iconRes = muteIcon,
-            iconSize = muteIconSize,
-            iconAlpha = muteAlpa,
-            onClick = onToggleMute
+        ListeningBar(
+            isListening = isListening,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .height(listeningBarHeight)
+                .fillMaxWidth()
         )
     }
 }
@@ -121,25 +136,36 @@ fun MessagesTopBar(
 @Composable
 fun AppBarIcon(
     iconRes: Int,
-    iconSize: Dp,
-    iconAlpha: Float = 1f,
+    iconTint: Color = Color.Unspecified,
+    backgroundColor: Color = Color.Transparent,
+    borderColor: Color = Color.Transparent,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
 
-    val rippleSize = 48.dp
+    val iconSize = 26.dp
+    val rippleSize = 44.dp
+    val shape = RoundedCornerShape(12.dp)
 
     Box(
         modifier = modifier
             .size(rippleSize)
-            .clip(CircleShape)
+            .clip(shape)
+            .background(backgroundColor)
+            .border(
+                width = 1.dp,
+                color = borderColor,
+                shape = shape
+            )
             .clickable(interactionSource = remember { MutableInteractionSource() }) { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            modifier = Modifier.size(iconSize),
+            modifier = Modifier
+                .size(iconSize)
+                .padding(horizontal = 2.dp),
             painter = painterResource(iconRes),
-            tint = MaterialTheme.colorScheme.onSurface.copy(iconAlpha),
+            tint = iconTint,
             contentDescription = null
         )
     }
@@ -162,4 +188,41 @@ fun getCutoutPadding(isFullScreen: Boolean): Pair<Dp, Dp> {
     val right = (rightPx / density.density).dp
 
     return left to right
+}
+
+@Composable
+fun ListeningBar(
+    isListening: Boolean,
+    modifier: Modifier = Modifier
+) {
+
+    val color =
+        if (isListening) appGreen()
+        else MaterialTheme.colorScheme.onSurface
+
+    val progress = remember { Animatable(0f) }
+
+    LaunchedEffect(isListening) {
+        progress.snapTo(0f)
+        progress.animateTo(1f, tween(500))
+    }
+
+    Box(modifier) {
+
+        if (progress.value > 0f) {
+            Box(
+                Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(progress.value)
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                color.copy(alpha = 0f),
+                                color.copy(alpha = 0.4f)
+                            )
+                        )
+                    )
+            )
+        }
+    }
 }

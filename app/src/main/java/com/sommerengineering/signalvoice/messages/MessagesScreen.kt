@@ -1,6 +1,8 @@
 package com.sommerengineering.signalvoice.messages
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -18,28 +20,41 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import com.sommerengineering.signalvoice.MainViewModel
+import com.sommerengineering.signalvoice.R
 import com.sommerengineering.signalvoice.message.GroupHeaderItem
 import com.sommerengineering.signalvoice.message.MessageItem
+import com.sommerengineering.signalvoice.session.Session.Authenticated
 import com.sommerengineering.signalvoice.settings.SettingsDrawer
 import com.sommerengineering.signalvoice.source.Message
 import com.sommerengineering.signalvoice.source.MessageGroup
 import com.sommerengineering.signalvoice.source.MessageOrigin
 import com.sommerengineering.signalvoice.source.resolveMessageOrigin
-import com.sommerengineering.signalvoice.uitls.logMessage
+import com.sommerengineering.signalvoice.speak.ForegroundSpeechService
+import com.sommerengineering.signalvoice.uitls.emptyStateSubtitle
+import com.sommerengineering.signalvoice.uitls.emptyStateTitle
+import com.sommerengineering.signalvoice.uitls.guestEmptyStateSubtitle
+import com.sommerengineering.signalvoice.uitls.notificationsDisabledSubtitle
+import com.sommerengineering.signalvoice.uitls.notificationsDisabledTitle
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 
 @Composable
 fun MessagesScreen(
     viewModel: MainViewModel,
     onSignOut: () -> Unit,
-    onLaunchWebhookOnboarding: () -> Unit
+    onCustomSignalClick: () -> Unit,
 ) {
+
+    val context = LocalContext.current
 
     // lazy column of messages
     val messages by viewModel.messages.collectAsState()
@@ -47,7 +62,6 @@ fun MessagesScreen(
 
     // setting drawer
     val drawerState = rememberDrawerState(DrawerValue.Closed)
-    val coroutineScope = rememberCoroutineScope()
 
     // special cards: notifications disabled, user signal empty state
     val areNotificationsEnabled = viewModel.areNotificationsEnabled
@@ -58,21 +72,52 @@ fun MessagesScreen(
     val groups = remember(messages) { groupMessages(messages) }
     val expandedGroups = remember(feedMode) { mutableStateMapOf<MessageOrigin, Boolean>() }
 
-    // scroll to latest when user at top of list
-    LaunchedEffect(messages.size) {
-        if (listState.firstVisibleItemIndex > 1) return@LaunchedEffect
-        snapshotFlow { listState.isScrollInProgress }.first { !it } // wait for compose internal scroll
-        listState.scrollToItem(0)
+    // session
+    val session = viewModel.session
+
+    // start/stop speech service
+    LaunchedEffect(Unit) {
+        viewModel.isListening.collect { enabled ->
+            if (enabled) ForegroundSpeechService.start(context)
+            else ForegroundSpeechService.stop(context)
+        }
     }
+
+    // scroll to latest: user at top of list or inline card appears
+    LaunchedEffect(messages.size, areNotificationsEnabled, isEmptyState) {
+
+        val isCardVisible = !areNotificationsEnabled || isEmptyState
+        val isUserNearTop = listState.firstVisibleItemIndex <= 1
+
+        // wait for any ongoing scroll to finish
+        snapshotFlow { listState.isScrollInProgress }.first { !it }
+
+        // new message arrives
+        if (!isCardVisible && isUserNearTop) {
+            listState.scrollToItem(0)
+        }
+
+        // card appears
+        if (isCardVisible && listState.firstVisibleItemIndex > 0) {
+            listState.animateScrollToItem(0)
+        }
+    }
+
+    // measure appbar height for settings drawer
+    var appbarHeightPx by remember { mutableStateOf(0) }
+    val appbarHeight = with(LocalDensity.current) { appbarHeightPx.toDp() }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            ModalDrawerSheet {
+            ModalDrawerSheet(
+                windowInsets = WindowInsets(0)
+            ) {
                 SettingsDrawer(
                     viewModel = viewModel,
                     onSignOut = onSignOut,
-                    onLaunchSetupOnboarding = onLaunchWebhookOnboarding
+                    onCustomSignalClick = onCustomSignalClick,
+                    appBarHeight = appbarHeight
                 )
             }
         },
@@ -82,11 +127,14 @@ fun MessagesScreen(
 
         Scaffold(
             topBar = {
-                MessagesTopBar(
-                    viewModel = viewModel,
-                    onSettingsClick = { coroutineScope.launch { drawerState.open() } },
-                    onToggleFeedMode = { viewModel.toggleFeedMode() },
-                    onToggleMute = { viewModel.toggleMute() })
+                Box(
+                    modifier = Modifier.onSizeChanged { appbarHeightPx = it.height }
+                ) {
+                    MessagesTopBar(
+                        viewModel = viewModel,
+                        onToggleFeedMode = { viewModel.toggleFeedMode() },
+                        onToggleListening = { viewModel.toggleListening(context) })
+                }
             }
         ) { padding ->
 
@@ -99,20 +147,30 @@ fun MessagesScreen(
                 // messages
                 LazyColumn(state = listState) {
 
-                    // notification permission
-                    if (!areNotificationsEnabled) {
-                        item {
-                            NotificationsDisabledCard()
-                        }
+                    // notification card
+                    item {
+                        InlineActionCard(
+                            iconRes = R.drawable.notifications,
+                            title = notificationsDisabledTitle,
+                            subTitle = notificationsDisabledSubtitle,
+                            visible = !areNotificationsEnabled,
+                            onClick = { viewModel.launchSystemNotificationSettings(context) },
+                            titleWeight = FontWeight.Bold
+                        )
                     }
 
-                    // user signal empty state
-                    if (isEmptyState) {
-                        item {
-                            EmptyStateCard(
-                                onLaunchWebhookOnboarding = { onLaunchWebhookOnboarding() },
-                                onDismiss = { viewModel.updateEmptyState(false) })
-                        }
+                    // user signal empty state card
+                    item {
+                        InlineActionCard(
+                            iconRes = R.drawable.webhook,
+                            title = emptyStateTitle,
+                            subTitle =
+                                if (session is Authenticated) emptyStateSubtitle
+                                else guestEmptyStateSubtitle,
+                            onClick = onCustomSignalClick,
+                            visible = isEmptyState,
+                            onDismiss = { viewModel.updateEmptyState(false) }
+                        )
                     }
 
                     when (feedMode) {
@@ -122,11 +180,12 @@ fun MessagesScreen(
                             itemsIndexed(
                                 items = messages,
                                 key = { _, it -> it.timestamp }) { index, message ->
-                                logMessage(message.message)
+
                                 MessageItem(
                                     viewModel = viewModel,
                                     message = message,
-                                    isShowDivider = index != messages.lastIndex
+                                    isShowDivider = index != messages.lastIndex,
+                                    isEven = index % 2 == 0
                                 )
                             }
                         }
@@ -137,6 +196,7 @@ fun MessagesScreen(
                                 val isExpanded = expandedGroups[origin] == true
                                 item(origin.key) {
                                     GroupHeaderItem(
+                                        viewModel = viewModel,
                                         origin = origin,
                                         messageCount = messages.size,
                                         isExpanded = isExpanded,
@@ -150,7 +210,8 @@ fun MessagesScreen(
                                         MessageItem(
                                             viewModel = viewModel,
                                             message = message,
-                                            isShowDivider = !(groupIndex == groups.lastIndex && index == messages.lastIndex)
+                                            isShowDivider = !(groupIndex == groups.lastIndex && index == messages.lastIndex),
+                                            isEven = index % 2 == 0
                                         )
                                     }
                                 }

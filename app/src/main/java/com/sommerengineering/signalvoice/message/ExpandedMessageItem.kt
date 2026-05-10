@@ -13,34 +13,57 @@ import com.sommerengineering.signalvoice.uitls.TimestampFormatter
 
 @Composable
 fun ExpandedMessageItem(
-    state: MessageItemState,
-    displayText: String,
+    messageText: MessageText,
+    beautifulTimestamp: String,
+    timestamp: String,
+    isLocked: Boolean,
     modifier: Modifier = Modifier
 ) {
 
+    // separate message parts
+    val assetAnnotated = messageText.asset
+    val signalAnnotated = messageText.signal
+    val magnitudeAnnotated = messageText.magnitude
+
     Column(modifier) {
 
-        // message
+        // asset name (feed mode linear)
+        if (assetAnnotated != null) {
+            AssetText(
+                annotatedText = assetAnnotated,
+                isLocked = isLocked
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+        }
+
+        // signal
         Text(
-            text = buildStyledMessage(
-                displayText = displayText,
-                state = state
-            ),
-            style = MaterialTheme.typography.bodyMedium
+            text = signalAnnotated,
+            style = MaterialTheme.typography.bodyMedium,
         )
-        Spacer(Modifier.height(4.dp))
+
+        Spacer(Modifier.height(8.dp))
+
+        // magnitude
+        Text(
+            text = magnitudeAnnotated,
+            style = MaterialTheme.typography.bodyMedium,
+        )
+
+        Spacer(Modifier.height(12.dp))
 
         // compact timestamp
         Text(
-            text = state.beautifulTimestamp,
+            text = beautifulTimestamp,
             style = timestampTextStyle,
             color = MaterialTheme.colorScheme.onSurface.copy(0.6f)
         )
-        Spacer(Modifier.height(4.dp))
+
+        Spacer(Modifier.height(2.dp))
 
         // full timestamp
         Text(
-            text = TimestampFormatter.beautifyFull(state.timestamp),
+            text = TimestampFormatter.beautifyFull(timestamp),
             style = timestampTextStyle,
             color = MaterialTheme.colorScheme.onSurface.copy(0.45f)
         )
