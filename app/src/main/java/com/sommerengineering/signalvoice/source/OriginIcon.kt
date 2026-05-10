@@ -124,14 +124,14 @@ fun TextIcon(
             "100" -> buildAnnotatedString {
                 withStyle(
                     SpanStyle(
-                        letterSpacing = 0.5.sp
+                        letterSpacing = 0.sp
                     )
                 ) {
                     append("1")
                 }
                 withStyle(
                     SpanStyle(
-                        letterSpacing = 0.6.sp
+                        letterSpacing = 0.4.sp
                     )
                 ) {
                     append("00")
@@ -141,14 +141,14 @@ fun TextIcon(
             "500" -> buildAnnotatedString {
                 withStyle(
                     SpanStyle(
-                        letterSpacing = 0.5.sp
+                        letterSpacing = 0.sp
                     )
                 ) {
                     append("5")
                 }
                 withStyle(
                     SpanStyle(
-                        letterSpacing = 0.6.sp
+                        letterSpacing = 0.4.sp
                     )
                 ) {
                     append("00")
@@ -171,7 +171,7 @@ fun TextIcon(
         when (text) {
             "100" -> Modifier.offset(x = (-0.2).dp)
             "500" -> Modifier.offset(x = 0.1.dp)
-            else -> Modifier.offset(x = (-0.2).dp) // "10Y"
+            else -> Modifier.offset(x = 0.dp) // "10Y"
         }
 
     Text(
