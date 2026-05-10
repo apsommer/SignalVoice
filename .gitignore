@@ -12,6 +12,7 @@
 
 /.gradle
 /.idea
+/.firebase
 
 database-debug.log
 database_rules.json
