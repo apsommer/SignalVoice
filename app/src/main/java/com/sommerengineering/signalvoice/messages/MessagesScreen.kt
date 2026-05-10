@@ -168,7 +168,8 @@ fun MessagesScreen(
                                 if (session is Authenticated) emptyStateSubtitle
                                 else guestEmptyStateSubtitle,
                             onClick = onCustomSignalClick,
-                            visible = isEmptyState
+                            visible = isEmptyState,
+                            onDismiss = { viewModel.updateEmptyState(false) }
                         )
                     }
 
