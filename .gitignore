@@ -10,8 +10,11 @@
 /functions/admin.json
 /functions/ui-debug.log
 
+/public
+
 /.gradle
 /.idea
+/.firebase
 
 database-debug.log
 database_rules.json
