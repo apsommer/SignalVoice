@@ -131,8 +131,7 @@ val e6Asset = Asset(
         accent = Color(0xFFDFF7FC),
         surface = Color(0xFF142126),
         text = Color(0xFFF1FCFF),
-        iconRes = null,
-        iconText = "€"
+        iconRes = R.drawable.euro
     ),
     isPremium = true
 )
