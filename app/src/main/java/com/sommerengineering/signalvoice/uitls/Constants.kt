@@ -41,6 +41,7 @@ const val channelDescription = "Real-time trading alerts"
 const val channelGroupId = "42"
 const val channelGroupName = "Alerts"
 const val notificationId = 42
+const val notificationTitle = "Listening for market signals"
 
 // firebase keys
 const val streamKey = "stream"

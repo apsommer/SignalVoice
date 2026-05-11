@@ -11,6 +11,7 @@ import com.sommerengineering.signalvoice.MainRepository
 import com.sommerengineering.signalvoice.R
 import com.sommerengineering.signalvoice.uitls.channelId
 import com.sommerengineering.signalvoice.uitls.notificationId
+import com.sommerengineering.signalvoice.uitls.notificationTitle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -125,7 +126,7 @@ class ForegroundSpeechService : Service() {
 
         return NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.monochrome)
-            .setContentTitle("Listening for signals")
+            .setContentTitle(notificationTitle)
             .setContentIntent(pendingOpenAppIntent)
             .setDeleteIntent(pendingDismissIntent)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
