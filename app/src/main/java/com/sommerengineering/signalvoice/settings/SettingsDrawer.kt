@@ -38,6 +38,7 @@ import com.sommerengineering.signalvoice.session.Session.Authenticated
 import com.sommerengineering.signalvoice.source.MessageOrigin
 import com.sommerengineering.signalvoice.source.btcAsset
 import com.sommerengineering.signalvoice.source.clAsset
+import com.sommerengineering.signalvoice.source.e6Asset
 import com.sommerengineering.signalvoice.source.esAsset
 import com.sommerengineering.signalvoice.source.gcAsset
 import com.sommerengineering.signalvoice.source.nqAsset
@@ -91,6 +92,7 @@ fun SettingsDrawer(
     val isBTC = viewModel.isBTC
     val isES = viewModel.isES
     val isGC = viewModel.isGC
+    val isE6 = viewModel.isE6
     val isCL = viewModel.isCL
 
     val isFullScreen = viewModel.isFullScreen
@@ -256,6 +258,17 @@ fun SettingsDrawer(
                     enabled = isGC,
                     updateStream = { viewModel.updateGC(it) },
                     isLocked = viewModel.isLocked(gcAsset),
+                    onLockedClick = { viewModel.launchPaywall() }
+                )
+            }
+
+            // stream E6
+            item {
+                StreamSwitchItem(
+                    origin = MessageOrigin.BroadcastStream(e6Asset),
+                    enabled = isE6,
+                    updateStream = { viewModel.updateE6(it) },
+                    isLocked = viewModel.isLocked(e6Asset),
                     onLockedClick = { viewModel.launchPaywall() }
                 )
             }

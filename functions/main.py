@@ -20,7 +20,7 @@ APP = initialize_app(
     options = {'databaseURL': 'https://signalvoice-api-default-rtdb.firebaseio.com/'})
 
 # streams
-STREAMS = frozenset({'ZN', 'NQ', 'BTC', 'ES', 'GC', 'CL'})
+STREAMS = frozenset({'ZN', 'NQ', 'BTC', 'ES', 'GC', 'E6', 'CL'})
 
 # user sources
 TRADINGVIEW = {'52.89.214.238', '34.212.75.30', '54.218.53.128', '52.32.178.7'}

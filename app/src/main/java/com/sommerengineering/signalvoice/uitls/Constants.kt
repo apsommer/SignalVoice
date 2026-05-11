@@ -55,6 +55,7 @@ const val nqStream = "NQ"
 const val esStream = "ES"
 const val btcStream = "BTC"
 const val gcStream = "GC"
+const val e6Stream = "E6"
 const val clStream = "CL"
 
 // user signals

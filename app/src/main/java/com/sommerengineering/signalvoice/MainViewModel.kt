@@ -213,6 +213,15 @@ class MainViewModel @Inject constructor(
         repo.updateGC(enabled)
     }
 
+    // stream E6
+    var isE6 by mutableStateOf(true)
+        private set
+
+    fun updateE6(enabled: Boolean) {
+        isE6 = enabled
+        repo.updateE6(enabled)
+    }
+
     // stream CL
     var isCL by mutableStateOf(true)
         private set
@@ -415,6 +424,7 @@ class MainViewModel @Inject constructor(
             isBTC = repo.loadBTC()
             isES = repo.loadES()
             isGC = repo.loadGC()
+            isE6 = repo.loadE6()
             isCL = repo.loadCL()
             feedMode = repo.loadFeedMode()
             isFullScreen = repo.loadFullScreen()

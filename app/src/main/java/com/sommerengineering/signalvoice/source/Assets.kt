@@ -5,6 +5,7 @@ import com.sommerengineering.signalvoice.R
 import com.sommerengineering.signalvoice.message.MessageItemStyle
 import com.sommerengineering.signalvoice.uitls.btcStream
 import com.sommerengineering.signalvoice.uitls.clStream
+import com.sommerengineering.signalvoice.uitls.e6Stream
 import com.sommerengineering.signalvoice.uitls.esStream
 import com.sommerengineering.signalvoice.uitls.gcStream
 import com.sommerengineering.signalvoice.uitls.nqStream
@@ -115,6 +116,26 @@ val gcAsset = Asset(
     isPremium = true
 )
 
+val e6Asset = Asset(
+    origin = e6Stream,
+    symbol = "E6",
+    displayName = "Euro FX",
+    spokenName = "Euro",
+    category = "Currencies",
+    exchange = "CME",
+    assetDescription = "CME · FX Futures · E6",
+    signalDescription = "Macro currency repricing",
+    order = 5,
+    style = MessageItemStyle(
+        primary = Color(0xFF7EC7D8),
+        accent = Color(0xFFDFF7FC),
+        surface = Color(0xFF142126),
+        text = Color(0xFFF1FCFF),
+        iconRes = R.drawable.webhook
+    ),
+    isPremium = true
+)
+
 val clAsset = Asset(
     origin = clStream,
     symbol = "CL",
@@ -124,7 +145,7 @@ val clAsset = Asset(
     exchange = "NYMEX",
     assetDescription = "NYMEX · Energy · CL",
     signalDescription = "Violent inventory repricing",
-    order = 5,
+    order = 6,
     style = MessageItemStyle(
         primary = Color(0xFFD2E4F2),
         accent = Color(0xFFF4FAFF),
@@ -135,8 +156,7 @@ val clAsset = Asset(
     isPremium = true
 )
 
-val allAssets =
-    listOf(znAsset, nqAsset, btcAsset, esAsset, gcAsset, clAsset)
+val allAssets = listOf(znAsset, nqAsset, btcAsset, esAsset, gcAsset, e6Asset, clAsset)
 val assetOrigins = allAssets.associateBy { it.origin }
 val assetDisplayNames = allAssets.map { it.displayName }.toSet()
 fun resolveAsset(stream: String) =

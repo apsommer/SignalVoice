@@ -15,6 +15,7 @@ import com.sommerengineering.signalvoice.speak.TextToSpeechImpl
 import com.sommerengineering.signalvoice.uitls.btcStream
 import com.sommerengineering.signalvoice.uitls.clStream
 import com.sommerengineering.signalvoice.uitls.defaultVoice
+import com.sommerengineering.signalvoice.uitls.e6Stream
 import com.sommerengineering.signalvoice.uitls.esStream
 import com.sommerengineering.signalvoice.uitls.gcStream
 import com.sommerengineering.signalvoice.uitls.nqStream
@@ -68,6 +69,10 @@ class MainRepository @Inject constructor(
         if (loadGC()) roomDb.replaceStreamMessages(
             gcStream,
             firebaseDb.fetchStreamMessages(gcStream)
+        )
+        if (loadE6()) roomDb.replaceStreamMessages(
+            e6Stream,
+            firebaseDb.fetchStreamMessages(e6Stream)
         )
         if (loadCL()) roomDb.replaceStreamMessages(
             clStream,
@@ -209,6 +214,15 @@ class MainRepository @Inject constructor(
         appScope.launch { prefs.write(GC, enabled) }
     }
 
+    // stream E6
+    suspend fun loadE6() =
+        prefs.read(E6) ?: true
+
+    fun updateE6(enabled: Boolean) {
+        syncStream(e6Stream, enabled)
+        appScope.launch { prefs.write(E6, enabled) }
+    }
+
     // stream CL
     suspend fun loadCL() =
         prefs.read(CL) ?: true
@@ -322,6 +336,7 @@ class MainRepository @Inject constructor(
                 if (loadBTC()) subscribeToTopic(btcStream) else unsubscribeFromTopic(btcStream)
                 if (loadES()) subscribeToTopic(esStream) else unsubscribeFromTopic(esStream)
                 if (loadGC()) subscribeToTopic(gcStream) else unsubscribeFromTopic(gcStream)
+                if (loadE6()) subscribeToTopic(e6Stream) else unsubscribeFromTopic(e6Stream)
                 if (loadCL()) subscribeToTopic(clStream) else unsubscribeFromTopic(clStream)
             }
         }
