@@ -83,12 +83,15 @@ fun buildMessageText(
     // .............................................................................................
     // todo end temp fallback (test data)
 
-    val primaryPart = signalParts[0]
-    val magnitudePart = signalParts.last()
+    val primaryPart = signalParts.first()
 
     val secondaryPart =
         if (signalParts.size > 2) signalParts[1]
         else null
+
+    val magnitudeParts =
+        if (signalParts.size > 3) signalParts.drop(2)
+        else listOf(signalParts.last())
 
     // annotate asset
     val assetAnnotated = assetPart?.let {
@@ -140,14 +143,28 @@ fun buildMessageText(
 
     // annotate magnitude (always present)
     val magnitudeAnnotated = buildAnnotatedString {
-        withStyle(
-            SpanStyle(
-                fontWeight = FontWeight.Medium,
-                fontSize = 17.sp,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 1f)
-            )
-        ) {
-            append(magnitudePart)
+
+        magnitudeParts.forEachIndexed { index, part ->
+
+            if (index > 0) {
+                withStyle(
+                    SpanStyle(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.20f)
+                    )
+                ) {
+                    append(" • ")
+                }
+            }
+
+            withStyle(
+                SpanStyle(
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 17.sp,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 1f)
+                )
+            ) {
+                append(part)
+            }
         }
     }
 
