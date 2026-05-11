@@ -1,9 +1,9 @@
 //@version=6
 strategy(
-    "ZN • 6E • GC",
+    "macro GC",
     overlay = true,
     max_bars_back = 2000,
-    calc_on_every_tick = false,
+    calc_on_every_tick = true,
 
     process_orders_on_close = true,
     initial_capital = 50000, // qty 1 -> needs to be greater than close of first bar * 10
@@ -22,16 +22,16 @@ strategy(
 
 ZN_SYMBOL = "CBOT:ZN1!"
 E6_SYMBOL = "CME:6E1!"
-GC_SYMBOL = "COMEX_MINI:MGC1!"
+GC_SYMBOL = "COMEX:GC1!"
 
 ticker = ticker.standard(syminfo.tickerid)
 isZN = str.contains(ticker, "ZN1!")
 isE6 = str.contains(ticker, "6E1!")
-isGC = str.contains(ticker, "MGC1!")
+isGC = str.contains(syminfo.tickerid, "GC1!")
 
 ZN_LOOKBACK = 85
 E6_LOOKBACK = 55
-GC_LOOKBACK = 30
+GC_LOOKBACK = 35
 GC_EARLY_ALIGNMENT_MIN_BARS  = 1 // wait for stability
 GC_EARLY_ALIGNMENT_MAX_BARS = 10 // ensure move is early
 
@@ -182,7 +182,7 @@ isLongEntry =
      and isInSession
      and not isLongTradeActive
      and not isShortTradeActive
-     and open > gcVwap
+     // and open > gcVwap
      and isMacroSupportive
      and isGCsupportiveEarly
 
@@ -191,7 +191,7 @@ isShortEntry =
      and isInSession
      and not isLongTradeActive
      and not isShortTradeActive
-     and gcVwap > open
+     // and gcVwap > open
      and isMacroHostile
      and isGChostileEarly
 
@@ -271,6 +271,26 @@ bg_session_transparency = 50
 
 line_width = 2
 
+/////////////////////////////////////////////////
+
+// asset name (top right)
+assetName =
+     isGC ? "Gold (GC)" :
+     "Untagged signal\n" + syminfo.description + " (" + syminfo.ticker + ")"
+
+assetNameColor =
+     isGC ? color.yellow :
+     color.red
+
+var table assetTable = table.new(position.top_right, 1, 1)
+
+if barstate.islast
+    table.cell(assetTable, 0, 0, assetName,
+         text_color = assetNameColor,
+         text_size = size.normal,
+         text_halign = text.align_right,
+         bgcolor = na)
+
 // bar color
 barColor =
      isZN and isZNsupportive ? color.new(long_color, bar_transparency) :
@@ -331,7 +351,7 @@ plot(isGC ? gcAvg : na , color = color.new(GC_color, line_transparency), linewid
 
 var string alertMessage = na
 var int lastMacroAlertBar = 0
-var int lastMacroAlertDirection = 0 // -1 hostile, 0 nuetral, 1 supportive
+var int lastMacroAlertDirection = 0 // -1 hostile, 0 neutral, 1 supportive
 
 // reset alert container
 alertMessage := na
@@ -341,21 +361,23 @@ MACRO_COOLDOWN_BARS = 15
 barsSinceMacro = bar_index - lastMacroAlertBar
 isMacroCooldownPassed = barsSinceMacro >= MACRO_COOLDOWN_BARS
 
-// beautify price
+// magnitude
 formattedPrice = str.tostring(math.round_to_mintick(open), "#.00")
+
+gcPrevClose = request.security(GC_SYMBOL, "D", close[1])
+gcSessionPercent = (open - gcPrevClose) / gcPrevClose * 100.0
+
+formattedPercent =
+     gcSessionPercent == 0 ? "0.00%" :
+     gcSessionPercent > 0 ? "+" + str.tostring(math.abs(gcSessionPercent), "0.00") + "%" :
+     "-" + str.tostring(math.abs(gcSessionPercent), "0.00") + "%"
+
+formattedMagnitude = formattedPrice + " • " + formattedPercent
 
 // calculate p&l in ticks (protect user financial implications spoken aloud)
 tickSize = syminfo.mintick
 longTicks = math.round((open - entryPrice) / tickSize)
 shortTicks = math.round((entryPrice - open) / tickSize)
-
-// calculate percent change on ZN (match tradingview watchlist)
-znPrevClose = request.security(ZN_SYMBOL, "D", close[1])
-znSessionPercent = (znOpen - znPrevClose) / znPrevClose * 100.0
-formattedZnSessionPercent =
-     znSessionPercent == 0 ? "0.00%" :
-     znSessionPercent > 0 ? "+" + str.tostring(math.abs(znSessionPercent), "0.00") + "%" :
-     "-" + str.tostring(math.abs(znSessionPercent), "0.00") + "%"
 
 // macro supportive
 triggerMacroSupportive =
@@ -364,9 +386,13 @@ triggerMacroSupportive =
      and isMacroSupportive[1]
      and isMacroCooldownPassed
      and lastMacroAlertDirection != 1
+
 if triggerMacroSupportive
     if na(alertMessage)
-        alertMessage := "Macro Supportive • Treasuries " + formattedZnSessionPercent + " • Dollar falling"
+        alertMessage :=
+             "Macro • Supportive alignment • " +
+             formattedMagnitude
+
         lastMacroAlertBar := bar_index
         lastMacroAlertDirection := 1
 
@@ -377,45 +403,60 @@ triggerMacroHostile =
      and isMacroHostile[1]
      and isMacroCooldownPassed
      and lastMacroAlertDirection != -1
+
 if triggerMacroHostile
     if na(alertMessage)
-        alertMessage := "Macro Hostile • Treasuries " + formattedZnSessionPercent + " • Dollar rising"
+        alertMessage :=
+             "Macro • Hostile alignment • " +
+             formattedMagnitude
+
         lastMacroAlertBar := bar_index
         lastMacroAlertDirection := -1
 
 // entry
 if isGC and isLongEntry
     if na(alertMessage)
-        alertMessage := "Entry • Long • " + formattedPrice
+        alertMessage :=
+             "Alignment • Bullish confirmation • " +
+             formattedMagnitude
+
 if isGC and isShortEntry
     if na(alertMessage)
-        alertMessage := "Entry • Short • " + formattedPrice
+        alertMessage :=
+             "Alignment • Bearish confirmation • " +
+             formattedMagnitude
 
 // exit long
 if isGC and isLongExit
     if na(alertMessage)
         isYieldRising = isZNhostile
         isDollarStronger = isE6hostile
+
         exitReason =
              isYieldRising and not isDollarStronger ? "Yields rising" :
-             isDollarStronger and not isYieldRising ? "Dollar rising" : "Macro alignment lost"
-        exitPnL =
-             longTicks >= 0 ? "+" + str.tostring(longTicks) + " ticks" :
-             "-" + str.tostring(math.abs(longTicks)) + " ticks"
-        alertMessage := "Exit • Long • " + exitReason + " • " + exitPnL
+             isDollarStronger and not isYieldRising ? "Dollar strengthening" :
+             "Macro alignment lost"
+
+        alertMessage :=
+             "Weakness • Bullish alignment fading • " +
+             exitReason + " • " +
+             formattedMagnitude
 
 // exit short
 if isGC and isShortExit
     if na(alertMessage)
         isTreasuriesStronger = isZNsupportive
         isDollarWeaker = isE6supportive
+
         exitReason =
-             isTreasuriesStronger and not isDollarWeaker ? "Treasuries rising" :
-             isDollarWeaker and not isTreasuriesStronger ? "Dollar falling" : "Macro alignment lost"
-        exitPnL =
-             shortTicks >= 0 ? "+" + str.tostring(shortTicks) + " ticks" :
-             "-" + str.tostring(math.abs(shortTicks)) + " ticks"
-        alertMessage := "Exit • Short • " + exitReason + " • " + exitPnL
+             isTreasuriesStronger and not isDollarWeaker ? "Treasuries strengthening" :
+             isDollarWeaker and not isTreasuriesStronger ? "Dollar weakening" :
+             "Macro alignment lost"
+
+        alertMessage :=
+             "Weakness • Bearish alignment fading • " +
+             exitReason + " • " +
+             formattedMagnitude
 
 // alert
 if not na(alertMessage)
