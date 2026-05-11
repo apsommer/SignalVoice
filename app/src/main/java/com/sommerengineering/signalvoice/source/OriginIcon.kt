@@ -19,6 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextGeometricTransform
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -44,12 +45,11 @@ fun OriginIcon(
     val size =
         if (isSettings) settingsIconSize
         else assetIconSize
-    val textIconBackground =
-        if (isSettings) style.primary.copy(alpha = 0.85f)
-        else style.primary.copy(alpha = 0.85f)
-    val borderColor =
-        if (isSettings) style.accent.copy(alpha = 0.4f)
-        else style.accent.copy(alpha = 0.4f)
+    val textIconBackground = when {
+        style.iconText == "€" -> Color(0xFF003399).copy(alpha = 0.9f)
+        else -> style.primary.copy(alpha = 0.85f)
+    }
+    val borderColor = style.accent.copy(alpha = 0.4f)
 
     // locked status: show lock badge and make icon clickable
     val clickableModifier =
@@ -85,9 +85,19 @@ fun OriginIcon(
 
             // text icon (NQ: "100", ES: "500", ...)
             if (style.iconText != null) {
+
+                val size = when {
+                    style.iconText == "€" -> {
+                        if (isSettings) 16.sp else 21.sp
+                    }
+
+                    isSettings -> 11.sp
+                    else -> 12.sp
+                }
+
                 TextIcon(
                     text = style.iconText,
-                    fontSize = if (isSettings) 11.sp else 12.sp,
+                    fontSize = size,
                     color = style.text
                 )
             }
@@ -155,7 +165,17 @@ fun TextIcon(
                 }
             }
 
-            // "10Y"
+            "€" -> buildAnnotatedString {
+                withStyle(
+                    SpanStyle(
+                        color = Color(0xFFFFCC00),
+                        textGeometricTransform = TextGeometricTransform(scaleX = 1.15f)
+                    )
+                ) {
+                    append("€")
+                }
+            }
+
             else -> buildAnnotatedString {
                 withStyle(
                     SpanStyle(
@@ -171,7 +191,9 @@ fun TextIcon(
         when (text) {
             "100" -> Modifier.offset(x = (-0.2).dp)
             "500" -> Modifier.offset(x = 0.1.dp)
-            else -> Modifier.offset(x = 0.dp) // "10Y"
+            "10Y" -> Modifier.offset(x = 0.dp)
+            "€" -> Modifier.offset(x = (-1.1).dp)
+            else -> Modifier.offset(x = 0.dp)
         }
 
     Text(
