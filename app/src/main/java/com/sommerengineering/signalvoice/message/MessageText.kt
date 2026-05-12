@@ -22,7 +22,7 @@ import com.sommerengineering.signalvoice.uitls.lockBadgeSize
 data class MessageText(
     val asset: AnnotatedString?,
     val signal: AnnotatedString,
-    val magnitude: AnnotatedString
+    val magnitude: AnnotatedString?
 )
 
 fun isStreamMessage(text: String): Boolean {
@@ -118,23 +118,10 @@ fun buildUserSignalMessageText(
         }
     }
 
-    val magnitudeAnnotated = buildAnnotatedString {
-
-        withStyle(
-            SpanStyle(
-                fontWeight = FontWeight.Medium,
-                fontSize = 17.sp,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 1f)
-            )
-        ) {
-            append("User")
-        }
-    }
-
     return MessageText(
         asset = assetAnnotated,
         signal = signalAnnotated,
-        magnitude = magnitudeAnnotated
+        magnitude = null
     )
 }
 

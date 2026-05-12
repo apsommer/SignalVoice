@@ -45,10 +45,12 @@ fun ExpandedMessageItem(
         Spacer(Modifier.height(8.dp))
 
         // magnitude
-        Text(
-            text = magnitudeAnnotated,
-            style = MaterialTheme.typography.bodyMedium,
-        )
+        if (magnitudeAnnotated != null) {
+            Text(
+                text = magnitudeAnnotated,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
 
         Spacer(Modifier.height(12.dp))
 
