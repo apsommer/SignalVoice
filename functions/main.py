@@ -54,7 +54,8 @@ def signal(req: https_fn.Request) -> https_fn.Response:
     source_override = req.headers.get('dev-source') # catch dev environment: postman, insomnia, ...
 
     # clean raw message
-    message = message.strip()[:200] if message else '' # keep messages short for client display
+    message = message.strip() if message else ''
+    message = message[:200] + '...' if len(message) > 200 else message # keep messages short for client display
 
     # calculate raw utc timestamp from system (millis)
     timestamp = time.time_ns() // 1_000_000 # // floor division discards remainder after ms
@@ -66,10 +67,6 @@ def signal(req: https_fn.Request) -> https_fn.Response:
         return https_fn.Response('Request must not include both stream and uid query parameters')
     if not stream and not uid:
         return https_fn.Response('Request must include either stream or uid query parameters')
-
-    # catch empty message
-    if len(message) == 0:
-        return https_fn.Response('The message is empty')
 
     # broadcast to stream subscribers
     if stream:

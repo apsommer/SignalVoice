@@ -36,7 +36,7 @@ fun isStreamMessage(text: String): Boolean {
         .filter { it.isNotBlank() }
 
     // validate part count
-    val isValidPartCount = parts.size >= 2 && 4 >= parts.size
+    val isValidPartCount = parts.size >= 2 && 5 >= parts.size
     if (!isValidPartCount) return false
 
     // validate magnitude part (last part)
@@ -95,14 +95,10 @@ fun buildUserSignalMessageText(
     // validation
     val trimmedSignal = signalText.trim()
     val isBlankMessage = trimmedSignal.isBlank()
-    val isTooLongMessage = trimmedSignal.length > 200
 
     val visibleSignalText =
-        when {
-            isBlankMessage -> "Your message is blank."
-            isTooLongMessage -> trimmedSignal.take(200) + "..."
-            else -> trimmedSignal
-        }
+        if (isBlankMessage) "Your message is blank."
+        else trimmedSignal
 
     val signalAnnotated = buildAnnotatedString {
 
