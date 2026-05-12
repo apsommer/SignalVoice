@@ -157,7 +157,7 @@ val clAsset = Asset(
 )
 
 val allAssets = listOf(znAsset, nqAsset, btcAsset, esAsset, gcAsset, e6Asset, clAsset)
-val assetOrigins = allAssets.associateBy { it.origin }
+private val assetOrigins = allAssets.associateBy { it.origin }
 val assetDisplayNames = allAssets.map { it.displayName }.toSet()
 fun resolveAsset(stream: String) =
     assetOrigins[stream] ?: error("Unknown asset for stream: $stream")

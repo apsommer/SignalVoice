@@ -45,12 +45,12 @@ fun MessageItemUi(
 
     // build styled message
     val style = origin.style
-    val styledMessageText = buildMessageText(
+    val annotatedMessage = MessageParser.buildAnnotatedMessage(
         displayText = displayText,
         style = style
     )
 
-    // supress ripple in onboarding presentation
+    // suppress ripple in onboarding presentation
     val clickableModifier =
         if (isInteractive) {
             Modifier.combinedClickable(
@@ -85,7 +85,7 @@ fun MessageItemUi(
                 if (!isExpanded) {
 
                     CollapsedMessageItem(
-                        messageText = styledMessageText,
+                        annotatedMessage = annotatedMessage,
                         beautifulTimestamp = beautifulTimestamp,
                         isLocked = isLocked,
                         modifier = modifier
@@ -96,7 +96,7 @@ fun MessageItemUi(
                 else {
 
                     ExpandedMessageItem(
-                        messageText = styledMessageText,
+                        annotatedMessage = annotatedMessage,
                         beautifulTimestamp = beautifulTimestamp,
                         timestamp = timestamp,
                         isLocked = isLocked,

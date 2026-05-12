@@ -56,7 +56,8 @@ val unknownSource = Source(
     )
 )
 
-val allSignalSources = listOf(tradingViewSource, trendSpiderSource, insomniaSource, unknownSource)
-private val signalSourceMap = allSignalSources.associateBy { it.key }
+val allSources = listOf(tradingViewSource, trendSpiderSource, insomniaSource, unknownSource)
+private val signalSources = allSources.associateBy { it.key }
+val sourceDisplayNames = allSources.map { it.displayName }.toSet()
 fun resolveSignalSource(key: String) =
-    signalSourceMap[key] ?: unknownSource
+    signalSources[key] ?: unknownSource

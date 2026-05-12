@@ -13,7 +13,6 @@ import androidx.compose.ui.unit.dp
 import com.sommerengineering.signalvoice.MainViewModel
 import com.sommerengineering.signalvoice.messages.FeedMode
 import com.sommerengineering.signalvoice.source.Message
-import com.sommerengineering.signalvoice.source.MessageOrigin
 import com.sommerengineering.signalvoice.source.resolveMessageOrigin
 import com.sommerengineering.signalvoice.uitls.TimestampFormatter
 import kotlinx.coroutines.delay
@@ -36,11 +35,9 @@ fun MessageItem(
     // premium locked state
     val isLocked = viewModel.isLocked(message)
 
-    // prepend asset display name for streams in linear mode
-    val isLinearStream = viewModel.feedMode == FeedMode.Linear
-            && origin is MessageOrigin.BroadcastStream
+    // prepend origin display name in linear mode
     val displayText =
-        if (isLinearStream) "${origin.displayName} • $text"
+        if (viewModel.feedMode == FeedMode.Linear) "${origin.displayName} • $text"
         else text
 
     // detect tap (expand) and long press (speak)

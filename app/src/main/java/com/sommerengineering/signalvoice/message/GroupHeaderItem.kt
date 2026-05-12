@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.sommerengineering.signalvoice.MainViewModel
 import com.sommerengineering.signalvoice.R
 import com.sommerengineering.signalvoice.source.MessageOrigin
+import com.sommerengineering.signalvoice.source.MessageOriginText
 import com.sommerengineering.signalvoice.uitls.descriptionAlpha
 import com.sommerengineering.signalvoice.uitls.dividerThickness
 import com.sommerengineering.signalvoice.uitls.rowAccentWidth
@@ -92,7 +93,7 @@ fun GroupHeaderItem(
 
                     // display name
                     val assetSpan = MaterialTheme.typography.titleMedium.toSpanStyle()
-                    AssetText(
+                    MessageOriginText(
                         annotatedText = buildAnnotatedString {
                             withStyle(assetSpan) { append(displayName) }
                         },
