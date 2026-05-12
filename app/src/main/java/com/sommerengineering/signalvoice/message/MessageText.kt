@@ -25,76 +25,41 @@ data class MessageText(
     val magnitude: AnnotatedString
 )
 
-@Composable
-fun buildMessageText(
-    displayText: String,
-    style: MessageItemStyle
-): MessageText {
+fun isStreamMessage(text: String): Boolean {
 
     // (Asset) • Signal primary • Signal secondary (optional) • Magnitude
 
     // split message into parts
-    val parts = displayText.split("•").map { it.trim() }
+    val parts = text
+        .split("•")
+        .map { it.trim() }
+        .filter { it.isNotBlank() }
+
+    // validate part count
+    val isValidPartCount = parts.size >= 2 && 4 >= parts.size
+    if (!isValidPartCount) return false
+
+    // validate magnitude part (last part)
+    val magnitudePart = parts.last()
+    if (magnitudePart.isBlank()) return false
+
+    // validate signal part (first part, or second part if asset is shown)
+    val signalParts = parts.dropLast(1)
+    val hasSignal = signalParts.any { it.isNotBlank() }
+
+    return hasSignal
+}
+
+fun getAnnotatedAssetPart(
+    firstPart: String,
+    style: MessageItemStyle
+): AnnotatedString? {
 
     // determine if asset is shown
-    val isShowAsset = parts.first() in assetDisplayNames
-
-    // separate asset + remaining parts
-    val assetPart = if (isShowAsset) parts.first() else null
-    val signalParts =
-        if (isShowAsset) parts.drop(1)
-        else parts
-
-    // todo temp fallback (test data)
-    // .............................................................................................
-
-    if (signalParts.size < 2) {
-
-        val signalAnnotated = buildAnnotatedString {
-            withStyle(
-                SpanStyle(
-                    color = MaterialTheme.colorScheme.error,
-                    fontWeight = FontWeight.Medium
-                )
-            ) {
-                append(displayText)
-            }
-        }
-
-        val magnitudeAnnotated = buildAnnotatedString {
-            withStyle(
-                SpanStyle(
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 15.sp,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.95f)
-                )
-            ) {
-                append("123") // fallback magnitude
-            }
-        }
-
-        return MessageText(
-            asset = null, // UI handles asset prepend
-            signal = signalAnnotated,
-            magnitude = magnitudeAnnotated
-        )
-    }
-
-    // .............................................................................................
-    // todo end temp fallback (test data)
-
-    val primaryPart = signalParts.first()
-
-    val secondaryPart =
-        if (signalParts.size > 2) signalParts[1]
-        else null
-
-    val magnitudeParts =
-        if (signalParts.size > 3) signalParts.drop(2)
-        else listOf(signalParts.last())
+    if (firstPart !in assetDisplayNames) return null
 
     // annotate asset
-    val assetAnnotated = assetPart?.let {
+    return firstPart.let {
         buildAnnotatedString {
             withStyle(
                 SpanStyle(
@@ -106,6 +71,101 @@ fun buildMessageText(
             }
         }
     }
+}
+
+@Composable
+fun buildUserSignalMessageText(
+    displayText: String,
+    style: MessageItemStyle
+): MessageText {
+
+    // split message into parts
+    val parts = displayText.split("•").map { it.trim() }
+
+    // annotate asset, if present (first part)
+    val firstPart = parts.first()
+    val assetAnnotated = getAnnotatedAssetPart(firstPart, style)
+    val isShowAsset = assetAnnotated != null
+
+    // remaining signal text
+    val signalText =
+        if (isShowAsset) parts.drop(1).joinToString(" • ")
+        else displayText
+
+    // validation
+    val trimmedSignal = signalText.trim()
+    val isBlankMessage = trimmedSignal.isBlank()
+    val isTooLongMessage = trimmedSignal.length > 200
+
+    val visibleSignalText =
+        when {
+            isBlankMessage -> "Your message is blank."
+            isTooLongMessage -> trimmedSignal.take(200) + "..."
+            else -> trimmedSignal
+        }
+
+    val signalAnnotated = buildAnnotatedString {
+
+        withStyle(
+            SpanStyle(
+                color =
+                    if (isBlankMessage) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                fontWeight = FontWeight.Medium
+            )
+        ) {
+            append(visibleSignalText)
+        }
+    }
+
+    val magnitudeAnnotated = buildAnnotatedString {
+
+        withStyle(
+            SpanStyle(
+                fontWeight = FontWeight.Medium,
+                fontSize = 17.sp,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 1f)
+            )
+        ) {
+            append("User")
+        }
+    }
+
+    return MessageText(
+        asset = assetAnnotated,
+        signal = signalAnnotated,
+        magnitude = magnitudeAnnotated
+    )
+}
+
+@Composable
+fun buildBroadcastStreamMessageText(
+    displayText: String,
+    style: MessageItemStyle
+): MessageText {
+
+    // split message into parts
+    val parts = displayText.split("•").map { it.trim() }
+
+    // annotate asset, if present (first part)
+    val firstPart = parts.first()
+    val assetAnnotated = getAnnotatedAssetPart(firstPart, style)
+    val isShowAsset = assetAnnotated != null
+
+    // separate remaining parts
+    val signalParts =
+        if (isShowAsset) parts.drop(1)
+        else parts
+
+    val primaryPart = signalParts.first()
+
+    val secondaryPart =
+        if (signalParts.size > 2) signalParts[1]
+        else null
+
+    val magnitudeParts =
+        if (signalParts.size > 3) signalParts.drop(2)
+        else listOf(signalParts.last())
 
     // annotate primary + secondary (signal)
     val signalAnnotated = buildAnnotatedString {
@@ -176,6 +236,14 @@ fun buildMessageText(
 }
 
 @Composable
+fun buildMessageText(
+    displayText: String,
+    style: MessageItemStyle
+) =
+    if (isStreamMessage(displayText)) buildBroadcastStreamMessageText(displayText, style)
+    else buildUserSignalMessageText(displayText, style)
+
+@Composable
 fun AssetText(
     annotatedText: AnnotatedString,
     isLocked: Boolean
@@ -201,5 +269,4 @@ fun AssetText(
 
         Spacer(modifier = Modifier.size(4.dp))
     }
-
 }
