@@ -23,17 +23,20 @@ VELOCITY_BARS = isZN ? 14 : isNQ ? 8 : isBTC ? 12 : isES ? 10 : isE6 ? 11 : isCL
 VELOCITY_BASELINE_BARS = isZN ? 220 : isNQ ? 120 : isBTC ? 160 : isES ? 140 : isE6 ? 180 : isCL ? 110 : na
 SMOOTH_BARS = isZN ? 12 : isNQ ? 6 : isBTC ? 10 : isES ? 8 : isE6 ? 8 : isCL ? 6 : na
 
+// opening gap
+OPEN_GAP_MAGNITUDE_POINTS = isZN ? 0.125 : isNQ ? 35 : isBTC ? 600 : isES ? 30 : isE6 ? 0.0040 : isCL ? 1.50 : na
+
 // cascade
 CASCADE_STRUCTURE_BARS = isZN ? 8 : isNQ ? 6 : isBTC ? 8 : isES ? 6 : isE6 ? 7 : isCL ? 5 : na
-CASCADE_LARGE_BAR_RATIO = isZN ? 3.2 : isNQ ? 4.0 : isBTC ? 4.5 : isES ? 4.2 : isE6 ? 3.6 : isCL ? 5.2 : na
+CASCADE_LARGE_BAR_RATIO = isZN ? 3.2 : isNQ ? 4.0 : isBTC ? 4.0 : isES ? 4.2 : isE6 ? 3.6 : isCL ? 4 : na
 CASCADE_SWEEP_RATIO = isZN ? 0.30 : isNQ ? 0.35 : isBTC ? 0.45 : isES ? 0.33 : isE6 ? 0.32 : isCL ? 0.42 : na
 CASCADE_CONTINUATION_BARS = isZN ? 20 : isNQ ? 15 : isBTC ? 20 : isES ? 15 : isE6 ? 18 : isCL ? 12 : na
 
 // expansion
 ACCELERATION_BARS = isZN ? 8 : isNQ ? 5 : isBTC ? 8 : isES ? 7 : isE6 ? 6 : isCL ? 5 : na
-EXPANSION_STRUCTURE_LOOKBACK = isZN ? 24 : isNQ ? 18 : isBTC ? 22 : isES ? 16 : isE6 ? 20 : isCL ? 14 : na
-ACCELERATION_PERCENT = isZN ? 12.0 : isNQ ? 16.0 : isBTC ? 14.0 : isES ? 20.0 : isE6 ? 13.0 : isCL ? 22.0 : na
-EXPANSION_LEVEL_PERCENT = isZN ? 85 : isNQ ? 105 : isBTC ? 100 : isES ? 108 : isE6 ? 92 : isCL ? 120 : na
+EXPANSION_STRUCTURE_LOOKBACK = isZN ? 24 : isNQ ? 18 : isBTC ? 19 : isES ? 16 : isE6 ? 20 : isCL ? 14 : na
+ACCELERATION_PERCENT = isZN ? 12.0 : isNQ ? 16.0 : isBTC ? 13.0 : isES ? 20.0 : isE6 ? 13.0 : isCL ? 15 : na
+EXPANSION_LEVEL_PERCENT = isZN ? 85 : isNQ ? 105 : isBTC ? 90 : isES ? 108 : isE6 ? 92 : isCL ? 120 : na
 
 // exhaustion
 EXHAUSTION_LEVEL_PERCENT = isZN ? 60 : isNQ ? 48 : isBTC ? 55 : isES ? 52 : isE6 ? 58 : isCL ? 48 : na
@@ -42,14 +45,14 @@ EXHAUSTION_LOOKBACK = isZN ? 26 : isNQ ? 20 : isBTC ? 24 : isES ? 18 : isE6 ? 22
 EXHAUSTION_REVERSAL_BARS = isZN ? 8 : isNQ ? 6 : isBTC ? 8 : isES ? 7 : isE6 ? 7 : isCL ? 5 : na
 
 // range
-RANGE_BARS = isZN ? 90 : isNQ ? 60 : isBTC ? 90 : isES ? 120 : isE6 ? 80 : isCL ? 45 : na
-RANGE_MAGNITUDE_POINTS = isZN ? 0.125 : isNQ ? 20 : isBTC ? 200 : isES ? 18 : isE6 ? 0.0035 : isCL ? 1.20 : na
+RANGE_BARS = isZN ? 90 : isNQ ? 60 : isBTC ? 90 : isES ? 120 : isE6 ? 135 : isCL ? 90 : na
+RANGE_MAGNITUDE_POINTS = isZN ? 0.125 : isNQ ? 20 : isBTC ? 200 : isES ? 18 : isE6 ? 0.0010 : isCL ? 0.95 : na
 
 // acceptance
 ACCEPTANCE_BARS = isZN ? 6 : isNQ ? 5 : isBTC ? 7 : isES ? 6 : isE6 ? 5 : isCL ? 4 : na
 
 // slow trend
-SLOW_TREND_BARS = isZN ? 120 : isNQ ? 70 : isBTC ? 90 : isES ? 90 : isE6 ? 100 : isCL ? 55 : na
+SLOW_TREND_BARS = isZN ? 120 : isNQ ? 70 : isBTC ? 90 : isES ? 90 : isE6 ? 100 : isCL ? 100 : na
 SLOW_TREND_COOLDOWN_BARS = isCL ? 40 : isE6 ? 70 : 60
 SMA_BARS = isZN ? 120 : isNQ ? 90 : isBTC ? 70 : isES ? 90 : isE6 ? 110 : isCL ? 50 : na
 SLOPE_LOOKBACK = isZN ? 20 : isNQ ? 10 : isBTC ? 10 : isES ? 20 : isE6 ? 16 : isCL ? 8 : na
@@ -131,6 +134,24 @@ velocitySma = velocitySmaRaw > 0 ? velocitySmaRaw : 1
 rawMomentumPercent = (velocity / velocitySma - 1.0) * 100.0
 momentum = ta.sma(rawMomentumPercent, SMOOTH_BARS)
 
+// OPEN GAP
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+marketOpeningTime = "1800-1801"
+isMarketOpening = not na(time(timeframe.period, marketOpeningTime, "America/New_York"))
+
+isOpenGapUp =
+     isMarketOpening
+     and high - close[1] > OPEN_GAP_MAGNITUDE_POINTS
+
+isOpenGapDown =
+     isMarketOpening
+     and close[1] - low > OPEN_GAP_MAGNITUDE_POINTS
+
+isOpenGap =
+     isOpenGapUp
+     or isOpenGapDown
+
 // CASCADE
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -172,8 +193,8 @@ isStopCascadeDown =
      and (not isUpCascadeCandidate or downSweep > upSweep)
 
 triggerStopCascade =
-     isStopCascadeUp
-     or isStopCascadeDown
+     not isOpenGap
+     and (isStopCascadeUp or isStopCascadeDown)
 
 // CONTINUATION CASCADE
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -472,17 +493,16 @@ isSlowEnvironment =
 sma = ta.sma(ta.sma(close[1], SMA_BARS), 10)
 slope = sma - sma[SLOPE_LOOKBACK]
 isSlopeUp = slope > 0
-isSlopeDown = sma[SLOPE_LOOKBACK] > sma
+isSlopeDown = 0 > slope
 
 // distance from SMA
-distanceUp = (high - sma) / sma
-distanceDown = (sma - low) / sma
-isAboveSma = distanceUp > DISTANCE_THRESHOLD
-isBelowSma = distanceDown > DISTANCE_THRESHOLD
+distance = math.abs(close - sma) / sma
+isAboveSma = close > sma and distance > DISTANCE_THRESHOLD
+isBelowSma = sma > close and distance > DISTANCE_THRESHOLD
 
 // structure (entry filter only)
-isStructureUp = low > ta.lowest(low[1], STRUCTURE_BARS)
-isStructureDown = ta.highest(high[1], STRUCTURE_BARS) > high
+isStructureUp = close > ta.lowest(close[1], STRUCTURE_BARS)
+isStructureDown = ta.highest(close[1], STRUCTURE_BARS) > close
 
 // cooldown
 barsSinceSlowTrend = bar_index - lastSlowTrendBar
@@ -492,7 +512,7 @@ isSlowTrendCooledDown =
 
 // raw triggers
 triggerSlowTrendUpRaw =
-     isSlowEnvironment and not isSlowEnvironment[1]
+     isSlowEnvironment // and not isSlowEnvironment[1]
      and isSlopeUp
      and isAboveSma
      and isStructureUp
@@ -612,14 +632,14 @@ if triggerRangeBreakoutEvent or (not isRangeActive and isRangeActive[1])
         bgcolor = color.new(color.teal, 88))
 
 plotshape(
-    isRangeBreakoutUp,
+    triggerRangeBreakoutEvent and rangeBreakoutDirectionUp,
     title="range exit up",
     location=location.abovebar,
     style=shape.circle,
     color=color.blue,
     size=size.tiny)
 plotshape(
-    isRangeBreakoutDown,
+    triggerRangeBreakoutEvent and not rangeBreakoutDirectionUp,
     title="range exit down",
     location=location.belowbar,
     style=shape.circle,
@@ -714,14 +734,17 @@ formattedPrice = str.tostring(close, format.mintick)
 prevClose = request.security(syminfo.tickerid, "D", close[1])
 percentChange = (close - prevClose) / prevClose * 100.0
 formattedPercent =
-     percentChange == 0 ? "0.00%" :
-     percentChange > 0 ? "+" + str.tostring(math.abs(percentChange), "0.00") + "% today" :
-     "-" + str.tostring(math.abs(percentChange), "0.00") + "% today"
+     math.abs(percentChange) < 0.005 ? "0%" :
+     percentChange > 0 ? "+" + str.tostring(math.abs(percentChange), "0.00") + "%" :
+     "-" + str.tostring(math.abs(percentChange), "0.00") + "%"
 formattedMagnitude = formattedPrice + " • " + formattedPercent
 
 // cascade move (points)
-cascadeMove = math.round(math.abs(high - low)) // round to nearest point
-formattedPoints = str.tostring(cascadeMove) + " points"
+
+cascadeTicks = math.round(math.abs(high - low) / syminfo.mintick) // round to nearest tick
+cascadePoints = math.round(math.abs(high - low)) // round to nearest point
+formattedCascadeTicks = str.tostring(cascadeTicks) + " ticks"
+formattedCascadePoints = str.tostring(cascadePoints) + " points"
 
 // range duration
 rangeDuration = bar_index - (rangeStartBar - RANGE_BARS)
@@ -732,8 +755,11 @@ rangeDuration = bar_index - (rangeStartBar - RANGE_BARS)
 getZNmessage() =>
     string message = na
 
-    cascadeTicks = math.round(math.abs(high - low) / syminfo.mintick)
-    formattedCascadeTicks = str.tostring(cascadeTicks) + " ticks"
+    if isOpenGap
+        message :=
+             "Gap • " +
+             (isOpenGapUp ? "Opening yield contraction • " : "Opening yield expansion • ") +
+             formattedCascadeTicks
 
     if triggerStopCascade and not (isContinuationCascadeUp or isContinuationCascadeDown)
         message :=
@@ -788,17 +814,23 @@ getZNmessage() =>
 getNQmessage() =>
     string message = na
 
+    if isOpenGap
+        message :=
+             "Gap • " +
+             (isOpenGapUp ? "Bullish opening imbalance • " : "Bearish opening imbalance • ") +
+             formattedCascadePoints
+
     if triggerStopCascade and not (isContinuationCascadeUp or isContinuationCascadeDown)
         message :=
              "Cascade • " +
              (isStopCascadeUp ? "Bullish short liquidation • " : "Bearish long liquidation • ") +
-             formattedPoints
+             formattedCascadePoints
 
     else if triggerContinuationCascade
         message :=
              "Cascade • " +
              (isContinuationCascadeUp ? "Bullish continuation • " : "Bearish continuation • ") +
-             formattedPoints
+             formattedCascadePoints
 
     else if triggerExpansionEvent
         message :=
@@ -846,11 +878,17 @@ getNQmessage() =>
 getBTCmessage() =>
     string message = na
 
+    if isOpenGap
+        message :=
+             "Gap • " +
+             (isOpenGapUp ? "Bullish opening repricing • " : "Bearish opening repricing • ") +
+             formattedCascadePoints
+
     if triggerStopCascade
         message :=
              "Liquidation • " +
              (isStopCascadeUp ? "Short squeeze • " : "Long flush • ") +
-             formattedPoints
+             formattedCascadePoints
 
     else if triggerExpansionEvent
         message :=
@@ -896,11 +934,17 @@ getBTCmessage() =>
 getESmessage() =>
     string message = na
 
+    if isOpenGap
+        message :=
+             "Gap • " +
+             (isOpenGapUp ? "Upside opening imbalance • " : "Downside opening imbalance • ") +
+             formattedCascadePoints
+
     if triggerStopCascade
         message :=
              "Sweep • " +
              (isStopCascadeUp ? "Upside liquidation • " : "Downside liquidation • ") +
-             formattedPoints
+             formattedCascadePoints
 
     else if triggerExpansionEvent
         message :=
@@ -943,8 +987,11 @@ getESmessage() =>
 getE6message() =>
     string message = na
 
-    cascadeTicks = math.round(math.abs(high - low) / syminfo.mintick / 0.00005)
-    formattedCascadeTicks = str.tostring(cascadeTicks) + " ticks"
+    if isOpenGap
+        message :=
+             "Gap • " +
+             (isOpenGapUp ? "Euro opening repricing • " : "Dollar opening repricing • ") +
+             formattedCascadeTicks
 
     if triggerStopCascade and not (isContinuationCascadeUp or isContinuationCascadeDown)
         message :=
@@ -1002,8 +1049,11 @@ getE6message() =>
 getCLmessage() =>
     string message = na
 
-    cascadeTicks = math.round(math.abs(high - low) / syminfo.mintick)
-    formattedCascadeTicks = str.tostring(cascadeTicks) + " ticks"
+    if isOpenGap
+        message :=
+             "Gap • " +
+             (isOpenGapUp ? "Upside opening shock • " : "Downside opening shock • ") +
+             formattedCascadeTicks
 
     if triggerStopCascade and not (isContinuationCascadeUp or isContinuationCascadeDown)
         message :=
@@ -1081,9 +1131,9 @@ shouldFireAlert =
      or isRejectionTriggerUp
      or isRejectionTriggerDown
 
-// cascades fire on bar close to capture full magnitude, special case
-isCascadeAlert = triggerStopCascade or triggerContinuationCascade
+// cascades and opening gap fire on bar close to capture full magnitude, special case
+isCloseEvaluatedAlert = triggerStopCascade or triggerContinuationCascade or isOpenGap
 
 // send alert to webhook
-if shouldFireAlert and not na(alertMessage) and (barstate.isconfirmed or not isCascadeAlert)
+if shouldFireAlert and not na(alertMessage) and (barstate.isconfirmed or not isCloseEvaluatedAlert)
     alert(alertMessage, alert.freq_once_per_bar)
