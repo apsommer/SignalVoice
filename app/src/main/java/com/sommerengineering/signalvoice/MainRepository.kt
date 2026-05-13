@@ -341,7 +341,6 @@ class MainRepository @Inject constructor(
             }
         }
         firebaseDb.writeToken(token)
-        if (cachedToken == token) cachedToken = null
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -351,7 +350,7 @@ class MainRepository @Inject constructor(
         // observe session state
         appScope.launch {
             sessionManager.session
-                .map { it.uid }
+                .map { sessionManager.uid }
                 .distinctUntilChanged()
                 .collect { uid ->
 

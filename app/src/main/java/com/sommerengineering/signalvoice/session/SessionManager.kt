@@ -13,6 +13,8 @@ import com.sommerengineering.signalvoice.PREMIUM
 import com.sommerengineering.signalvoice.PreferenceStore
 import com.sommerengineering.signalvoice.UID
 import com.sommerengineering.signalvoice.premium.BillingManager
+import com.sommerengineering.signalvoice.session.Session.Authenticated
+import com.sommerengineering.signalvoice.session.Session.Guest
 import com.sommerengineering.signalvoice.uitls.logException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -33,36 +35,36 @@ class SessionManager @Inject constructor(
 
     private val auth = FirebaseAuth.getInstance()
 
-    private val _session = MutableStateFlow(
-        Session(
-            uid = "",
-            isAnonymous = true,
-            isPremium = false
-        )
-    )
+    private val _session = MutableStateFlow<Session>(Guest)
     val session = _session.asStateFlow()
 
     private var entitlementJob: Job? = null
 
     val uid: String
-        get() = session.value.uid
+        get() = (session.value as? Authenticated)?.uid ?: ""
 
     val isPremium: Boolean
-        get() = session.value.isPremium
+        get() = (session.value as? Authenticated)?.isPremium ?: false
 
     private fun onAuth() {
 
         val currentUser = auth.currentUser
-        val newUid = currentUser?.uid ?: return
+
+        // sign-out
+        if (currentUser == null) {
+            _session.value = Guest
+            return
+        }
+
+        val newUid = currentUser.uid
 
         // dedupe
-        val currentUid = _session.value.uid
+        val currentUid = uid
         if (newUid == currentUid) return
 
         // initialize user without premium
-        _session.value = Session(
+        _session.value = Authenticated(
             uid = newUid,
-            isAnonymous = currentUser.isAnonymous,
             isPremium = false
         )
 
@@ -83,22 +85,22 @@ class SessionManager @Inject constructor(
     }
 
     private fun updateSession(
-        uid: String,
+        newUid: String,
         isPremium: Boolean
     ) {
 
         // prevent race: validate session still active, and same user
-        val current = _session.value
-        if (current.uid != uid) return
+        if (newUid != uid) return
 
         // update entitlement
+        val current = _session.value as? Authenticated ?: return
         _session.value = current.copy(
             isPremium = isPremium
         )
 
         // persist entitlement to cache
         appScope.launch {
-            updatePremium(uid, isPremium)
+            updatePremium(newUid, isPremium)
         }
     }
 
@@ -131,12 +133,10 @@ class SessionManager @Inject constructor(
     ): Boolean {
 
         if (credential == null) return false
-        val currentUser = auth.currentUser ?: return false
 
-        // link anonymous to provider
+        // launches system google sign-in bottom sheet
         return try {
-            currentUser
-                .linkWithCredential(credential)
+            auth.signInWithCredential(credential)
                 .await()
             true
 
@@ -151,12 +151,9 @@ class SessionManager @Inject constructor(
         provider: OAuthProvider
     ): Boolean {
 
-        val currentUser = auth.currentUser ?: return false
-
+        // launches web browser and backgrounds app
         return try {
-
-            // link anonymous to provider: launches web browser and backgrounds app
-            currentUser.startActivityForLinkWithProvider(
+            auth.startActivityForSignInWithProvider(
                 context as ComponentActivity,
                 provider
             ).await()
@@ -181,7 +178,7 @@ class SessionManager @Inject constructor(
         appScope.launch {
             billingManager.purchaseEvents.collect {
                 updateSession(
-                    uid = uid,
+                    newUid = uid,
                     isPremium = true
                 )
             }
@@ -189,9 +186,5 @@ class SessionManager @Inject constructor(
 
         // listen for auth state changes
         auth.addAuthStateListener { onAuth() }
-
-        // check for anonymous
-        val currentUid = auth.currentUser?.uid
-        if (currentUid == null) auth.signInAnonymously()
     }
 }

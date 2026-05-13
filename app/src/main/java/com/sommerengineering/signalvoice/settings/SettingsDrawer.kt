@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.sommerengineering.signalvoice.BuildConfig
 import com.sommerengineering.signalvoice.MainViewModel
 import com.sommerengineering.signalvoice.R
+import com.sommerengineering.signalvoice.session.Session.Guest
 import com.sommerengineering.signalvoice.source.MessageOrigin
 import com.sommerengineering.signalvoice.source.btcAsset
 import com.sommerengineering.signalvoice.source.clAsset
@@ -295,7 +296,7 @@ fun SettingsDrawer(
                     iconRes = R.drawable.webhook,
                     title = customTitle,
                     description =
-                        if (session.isAnonymous) anonymousCustomDescription
+                        if (session is Guest) anonymousCustomDescription
                         else customDescription,
                     onClick = onCustomSignalClick
                 ) {

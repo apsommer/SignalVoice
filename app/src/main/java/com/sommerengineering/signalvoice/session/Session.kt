@@ -1,7 +1,9 @@
 package com.sommerengineering.signalvoice.session
 
-data class Session(
-    val uid: String,
-    val isAnonymous: Boolean,
-    val isPremium: Boolean
-)
+sealed class Session {
+    object Guest : Session()
+    data class Authenticated(
+        val uid: String,
+        val isPremium: Boolean
+    ) : Session()
+}
