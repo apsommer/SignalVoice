@@ -1,7 +1,5 @@
 package com.sommerengineering.signalvoice
 
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
 import com.google.firebase.messaging.FirebaseMessaging
 import com.sommerengineering.signalvoice.firebase.FirebaseDatabaseImpl
 import com.sommerengineering.signalvoice.messages.FeedMode
@@ -280,7 +278,7 @@ class MainRepository @Inject constructor(
     }
 
     fun signOut() {
-        Firebase.auth.signOut()
+        sessionManager.signOut()
         appScope.launch {
             roomDb.removeUserMessages()
         }

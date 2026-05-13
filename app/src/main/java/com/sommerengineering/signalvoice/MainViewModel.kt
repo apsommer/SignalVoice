@@ -11,8 +11,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.credentials.ClearCredentialStateRequest
-import androidx.credentials.CredentialManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sommerengineering.signalvoice.login.GitHubAuthenticator
@@ -46,7 +44,6 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val sessionManager: SessionManager,
     private val repo: MainRepository,
-    private val credentialManager: CredentialManager,
     private val googleAuthenticator: GoogleAuthenticator,
     private val gitHubAuthenticator: GitHubAuthenticator,
 ) : ViewModel() {
@@ -263,12 +260,8 @@ class MainViewModel @Inject constructor(
         pitchDescription = repo.pitch.toString()
     }
 
-    fun signOut() {
+    fun signOut() =
         repo.signOut()
-        viewModelScope.launch {
-            credentialManager.clearCredentialState(ClearCredentialStateRequest())
-        }
-    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -277,7 +270,10 @@ class MainViewModel @Inject constructor(
         context: Context,
         onAuthentication: () -> Unit
     ) = viewModelScope.launch {
-        if (googleAuthenticator.signIn(context)) {
+
+        val credential = googleAuthenticator.getCredential(context)
+        val isSuccess = sessionManager.signInWithCredential(credential)
+        if (isSuccess) {
             onAuthentication()
         }
     }
@@ -286,7 +282,13 @@ class MainViewModel @Inject constructor(
         context: Context,
         onAuthentication: () -> Unit
     ) = viewModelScope.launch {
-        if (gitHubAuthenticator.signIn(context)) {
+
+        val provider = gitHubAuthenticator.provider
+        val isSuccess = sessionManager.signInWithProvider(
+            context = context,
+            provider = provider
+        )
+        if (isSuccess) {
             onAuthentication()
         }
     }
