@@ -7,9 +7,6 @@ import com.sommerengineering.signalvoice.source.Message
 import com.sommerengineering.signalvoice.uitls.databaseUrl
 import com.sommerengineering.signalvoice.uitls.messageKey
 import com.sommerengineering.signalvoice.uitls.sourceKey
-import com.sommerengineering.signalvoice.uitls.streamsNode
-import com.sommerengineering.signalvoice.uitls.tokensNode
-import com.sommerengineering.signalvoice.uitls.usersNode
 import kotlinx.coroutines.suspendCancellableCoroutine
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -17,6 +14,11 @@ import kotlin.coroutines.resume
 
 @Singleton
 class FirebaseDatabaseImpl @Inject constructor() {
+
+    private val STREAMS = "streams"
+    private val SIGNALS = "signals"
+    private val TOKENS = "tokens"
+    private val USERS = "users"
 
     private val db = Firebase.database(databaseUrl)
     private var uid: String? = null
@@ -28,7 +30,7 @@ class FirebaseDatabaseImpl @Inject constructor() {
 
     suspend fun fetchStreamMessages(stream: String) =
         suspendCancellableCoroutine { continuation ->
-            db.getReference(streamsNode)
+            db.getReference(STREAMS)
                 .child(stream)
                 .get()
                 .addOnSuccessListener { snapshot ->
@@ -45,7 +47,7 @@ class FirebaseDatabaseImpl @Inject constructor() {
         val currentUid = uid ?: return emptyList()
 
         return suspendCancellableCoroutine { continuation ->
-            db.getReference(usersNode)
+            db.getReference(SIGNALS)
                 .child(currentUid)
                 .get()
                 .addOnSuccessListener { snapshot ->
@@ -77,8 +79,18 @@ class FirebaseDatabaseImpl @Inject constructor() {
     }
 
     fun writeToken(newToken: String) {
-        db.getReference(tokensNode)
+
+        val currentUid = uid
+
+        // write token: uid? (guest or authenticated)
+        db.getReference(TOKENS)
             .child(newToken)
-            .setValue(uid ?: "")
+            .setValue(currentUid ?: "guest")
+
+        // write uid: token (authenticated)
+        if (currentUid == null) return
+        db.getReference(USERS)
+            .child(currentUid)
+            .setValue(newToken)
     }
 }

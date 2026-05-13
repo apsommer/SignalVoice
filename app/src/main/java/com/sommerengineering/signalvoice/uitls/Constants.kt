@@ -27,12 +27,9 @@ const val messageItemExpansionTimeMillis = 140
 // room
 const val roomDatabaseName = "messages.db"
 
-// firebase database
+// firebase
 const val databaseUrl = "https://signalvoice-api-default-rtdb.firebaseio.com/"
 const val webhookBaseUrl = "https://api.signalvoice.app/signal?uid="
-const val streamsNode = "streams"
-const val usersNode = "users"
-const val tokensNode = "tokens"
 
 // notifications
 const val channelId = "42"
