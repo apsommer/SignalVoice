@@ -7,25 +7,18 @@ from firebase_admin.exceptions import FirebaseError
 from firebase_admin.messaging import UnregisteredError
 from firebase_functions import https_fn
 
-# view logs
-# ...
-
-# todo production notes
-# credential only required for local environment, can be removed for cloud only production
-# min-instances=0 by default, change to 1 for to keep container running at all times, reduce latency by 500ms, cost $2-4/month
+########################################################################################################################
+streams = frozenset({'ZN', 'NQ', 'BTC', 'ES', 'GC', 'E6', 'CL'})
+########################################################################################################################
 
 # initialize admin sdk
 APP = initialize_app(
-    credential = credentials.Certificate('admin.json'),
+    credential = credentials.Certificate('admin.json'), # todo credential only required for local environment, can be removed for cloud only production
     options = {'databaseURL': 'https://signalvoice-api-default-rtdb.firebaseio.com/'})
-
-# streams
-STREAMS = frozenset({'ZN', 'NQ', 'BTC', 'ES', 'GC', 'E6', 'CL'})
 
 # user sources
 TRADINGVIEW = {'52.89.214.238', '34.212.75.30', '54.218.53.128', '52.32.178.7'}
 TRENDSPIDER = '3.12.143.24'
-# todo MT5
 
 # configure notification
 BASE_CONFIG = messaging.AndroidConfig(
@@ -38,11 +31,11 @@ DAY_MILLIS = 86400000
 WEEK_MILLIS = 7 * DAY_MILLIS
 
 # database
-USERS_NODE = db.reference('users')
-STREAMS_NODE = db.reference('streams')
-TOKENS_NODE = db.reference('tokens')
+TOKENS = db.reference('tokens')
+USERS = db.reference('users')
+STREAMS = db.reference('streams')
+SIGNALS = db.reference('signals')
 
-# ...
 @https_fn.on_request()
 def signal(req: https_fn.Request) -> https_fn.Response:
 
@@ -72,7 +65,7 @@ def signal(req: https_fn.Request) -> https_fn.Response:
     if stream:
 
         # prevent unauthorized broadcasts
-        if stream not in STREAMS:
+        if stream not in streams:
             return https_fn.Response(f'Stream {stream} does not exist')
 
         broadcast_to_stream(stream, timestamp, message)
@@ -83,9 +76,8 @@ def signal(req: https_fn.Request) -> https_fn.Response:
     # send message to single device
     if uid:
 
-        # ensure user is authenticated todo this is O(n) reverse lookup, refactor to O(1) with extra node
-        tokens = TOKENS_NODE.get() or {}
-        device_token = next((t for t, u in tokens.items() if u == uid), None)
+        # get user device token
+        device_token = USERS.child(uid).get()
         if device_token is None:
             return https_fn.Response(f'Sign-in to hear message')
 
@@ -130,12 +122,14 @@ def send_message_to_single_device(uid, device_token, timestamp, message, source)
 
     # send notification to single device
     try: messaging.send(notification)
-    except UnregisteredError: TOKENS_NODE.child(device_token).delete() # delete token if unregistered (google test accounts)
+    except UnregisteredError: # delete token if unregistered (google test accounts)
+        TOKENS.child(device_token).delete()
+        USERS.child(uid).delete()
     except FirebaseError as error: print(f'Send to uid: {uid}, error: {error}')
 
 def write_stream_message_to_database(stream, timestamp, message):
 
-    node = STREAMS_NODE.child(stream)
+    node = STREAMS.child(stream)
 
     # purge old message, if needed
     purge_node(node, timestamp)
@@ -146,7 +140,7 @@ def write_stream_message_to_database(stream, timestamp, message):
 
 def write_user_message_to_database(uid, timestamp, message, source):
 
-    node = USERS_NODE.child(uid)
+    node = SIGNALS.child(uid)
 
     # purge old message, if needed
     purge_node(node, timestamp)
