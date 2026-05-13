@@ -5,6 +5,7 @@ import com.sommerengineering.signalvoice.R
 import com.sommerengineering.signalvoice.message.MessageItemStyle
 import com.sommerengineering.signalvoice.uitls.btcStream
 import com.sommerengineering.signalvoice.uitls.clStream
+import com.sommerengineering.signalvoice.uitls.e6Stream
 import com.sommerengineering.signalvoice.uitls.esStream
 import com.sommerengineering.signalvoice.uitls.gcStream
 import com.sommerengineering.signalvoice.uitls.nqStream
@@ -65,7 +66,7 @@ val btcAsset = Asset(
     style = MessageItemStyle(
         primary = Color(0xFFF7931A),
         accent = Color(0xFFFFB347),
-        surface = Color(0xFF2A1A0A),
+        surface = Color(0xFF2B1700),
         text = Color(0xFFFFF4E6),
         iconRes = R.drawable.btc
     ),
@@ -108,9 +109,29 @@ val gcAsset = Asset(
     style = MessageItemStyle(
         primary = Color(0xFFE6C96A),
         accent = Color(0xFFF4DE9A),
-        surface = Color(0xFF2B2400),
+        surface = Color(0xFF332900),
         text = Color(0xFFFFF9E6),
         iconRes = R.drawable.gc
+    ),
+    isPremium = true
+)
+
+val e6Asset = Asset(
+    origin = e6Stream,
+    symbol = "E6",
+    displayName = "Euro",
+    spokenName = "Euro",
+    category = "Currencies",
+    exchange = "CME",
+    assetDescription = "CME · Currency · E6",
+    signalDescription = "Macro currency repricing",
+    order = 5,
+    style = MessageItemStyle(
+        primary = Color(0xFF7EC7D8),
+        accent = Color(0xFFDFF7FC),
+        surface = Color(0xFF1A3036),
+        text = Color(0xFFF1FCFF),
+        iconRes = R.drawable.euro
     ),
     isPremium = true
 )
@@ -124,20 +145,19 @@ val clAsset = Asset(
     exchange = "NYMEX",
     assetDescription = "NYMEX · Energy · CL",
     signalDescription = "Violent inventory repricing",
-    order = 5,
+    order = 6,
     style = MessageItemStyle(
         primary = Color(0xFFD2E4F2),
         accent = Color(0xFFF4FAFF),
-        surface = Color(0xFF182028),
+        surface = Color(0xFF141A20),
         text = Color(0xFFF2F8FD),
         iconRes = R.drawable.oil
     ),
     isPremium = true
 )
 
-val allAssets =
-    listOf(znAsset, nqAsset, btcAsset, esAsset, gcAsset, clAsset)
-val assetOrigins = allAssets.associateBy { it.origin }
+val allAssets = listOf(znAsset, nqAsset, btcAsset, esAsset, gcAsset, e6Asset, clAsset)
+private val assetOrigins = allAssets.associateBy { it.origin }
 val assetDisplayNames = allAssets.map { it.displayName }.toSet()
 fun resolveAsset(stream: String) =
     assetOrigins[stream] ?: error("Unknown asset for stream: $stream")

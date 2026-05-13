@@ -5,7 +5,6 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.speech.tts.Voice
 import androidx.core.os.bundleOf
-import com.sommerengineering.signalvoice.uitls.RomanNumerals
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +18,7 @@ const val volumeKey = TextToSpeech.Engine.KEY_PARAM_VOLUME
 
 @Singleton
 class TextToSpeechImpl @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
 ) : TextToSpeech.OnInitListener {
 
     // system text to speech engine
@@ -94,7 +93,7 @@ class TextToSpeechImpl @Inject constructor(
 
         // speak message
         _textToSpeech.speak(
-            normalizeMessage(message),
+            SpeechParser.normalizeMessage(message),
             TextToSpeech.QUEUE_ADD,
             bundleOf(volumeKey to _volume),
             timestamp
@@ -103,7 +102,7 @@ class TextToSpeechImpl @Inject constructor(
 
     fun speakImmediate(utterance: String) =
         _textToSpeech.speak(
-            normalizeMessage(utterance),
+            SpeechParser.normalizeMessage(utterance),
             TextToSpeech.QUEUE_FLUSH,
             bundleOf(volumeKey to 1f),
             System.currentTimeMillis().toString()
@@ -115,66 +114,4 @@ class TextToSpeechImpl @Inject constructor(
         _isInit.update { true }
     }
 
-    fun normalizeMessage(message: String): String {
-
-        // punctuation
-        var spokenText = message
-            .replace(Regex("""\s*•\s*"""), ", ") // bullet to comma
-            .replace(Regex("""(?<=\d),(?=\d)"""), "") // remove thousands separators
-
-        // roman numerals to words, handle voice names
-        spokenText =
-            Regex("""\b(I|II|III|IV|V|VI|VII|VIII|IX|X|XI|XII|XIII|XIV|XV|XVI|XVII|XVIII|XIX|XX)\b""")
-                .replace(spokenText) { RomanNumerals.toWord(it.value) }
-
-        // 'm' to minutes, 123m -> 123 minutes
-        spokenText = Regex("""\b(\d+)m\b""")
-            .replace(spokenText) {
-                val value = it.groupValues[1]
-                if (value == "1") "$value minute" else "$value minutes"
-            }
-
-        // numbers to words, prevent "oh" instead of "zero"
-        spokenText = Regex("""[+-]?\d+(\.\d+)?%?""")
-            .replace(spokenText) { match ->
-
-                val raw = match.value
-
-                val isPercent = raw.endsWith("%")
-                val clean = raw.removeSuffix("%")
-
-                val sign = when {
-                    clean.startsWith("+") -> "plus "
-                    clean.startsWith("-") -> "minus "
-                    else -> ""
-                }
-
-                val number = clean.trimStart('+', '-')
-
-                val spokenNumber =
-                    if (number.contains(".")) {
-                        val (intPart, decPart) = number.split(".")
-                        val decimals = decPart.map { digit ->
-                            units[digit.digitToInt()]
-                        }.joinToString(" ")
-                        "${intPart.toInt()} point $decimals"
-                    } else {
-                        number.toInt().toString()
-                    }
-
-                buildString {
-                    append(sign)
-                    append(spokenNumber)
-                    if (isPercent) append(" percent")
-                }
-            }
-
-        return spokenText
-    }
-
-    private val units = listOf(
-        "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
-        "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
-        "sixteen", "seventeen", "eighteen", "nineteen"
-    )
 }

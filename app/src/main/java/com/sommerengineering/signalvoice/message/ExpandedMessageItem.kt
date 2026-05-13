@@ -8,12 +8,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.sommerengineering.signalvoice.source.MessageOriginText
 import com.sommerengineering.signalvoice.theme.timestampTextStyle
 import com.sommerengineering.signalvoice.uitls.TimestampFormatter
 
 @Composable
 fun ExpandedMessageItem(
-    messageText: MessageText,
+    annotatedMessage: AnnotatedMessage,
     beautifulTimestamp: String,
     timestamp: String,
     isLocked: Boolean,
@@ -21,15 +22,15 @@ fun ExpandedMessageItem(
 ) {
 
     // separate message parts
-    val assetAnnotated = messageText.asset
-    val signalAnnotated = messageText.signal
-    val magnitudeAnnotated = messageText.magnitude
+    val assetAnnotated = annotatedMessage.asset
+    val signalAnnotated = annotatedMessage.signal
+    val magnitudeAnnotated = annotatedMessage.magnitude
 
     Column(modifier) {
 
-        // asset name (feed mode linear)
+        // origin name (feed mode linear)
         if (assetAnnotated != null) {
-            AssetText(
+            MessageOriginText(
                 annotatedText = assetAnnotated,
                 isLocked = isLocked
             )
@@ -45,10 +46,12 @@ fun ExpandedMessageItem(
         Spacer(Modifier.height(8.dp))
 
         // magnitude
-        Text(
-            text = magnitudeAnnotated,
-            style = MaterialTheme.typography.bodyMedium,
-        )
+        if (magnitudeAnnotated != null) {
+            Text(
+                text = magnitudeAnnotated,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
 
         Spacer(Modifier.height(12.dp))
 

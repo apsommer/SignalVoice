@@ -9,10 +9,10 @@ val tradingViewSource = Source(
     displayName = "TradingView",
     order = 0,
     style = MessageItemStyle(
-        primary = Color(0xFF2962FF),
-        accent = Color(0xFF82B1FF),
-        surface = Color(0xFF0B1A3A),
-        text = Color(0xFFEAF1FF),
+        primary = Color(0xFF5B8CFF),
+        accent = Color(0xFFA9C4FF),
+        surface = Color(0xFF111827),
+        text = Color(0xFFF3F7FF),
         iconRes = R.drawable.tradingview
     )
 )
@@ -22,10 +22,10 @@ val trendSpiderSource = Source(
     displayName = "TrendSpider",
     order = 1,
     style = MessageItemStyle(
-        primary = Color(0xFF00C853),
-        accent = Color(0xFF69F0AE),
-        surface = Color(0xFF002B12),
-        text = Color(0xFFE8FBEF),
+        primary = Color(0xFF7FD6AE),
+        accent = Color(0xFFC7F3DE),
+        surface = Color(0xFF10241C),
+        text = Color(0xFFF1FFF8),
         iconRes = R.drawable.trendspider
     )
 )
@@ -35,28 +35,29 @@ val insomniaSource = Source(
     displayName = "Insomnia",
     order = 2,
     style = MessageItemStyle(
-        primary = Color(0xFF4000BF),
-        accent = Color(0xFF7C4DFF),
-        surface = Color(0xFF1B0D3A),
-        text = Color(0xFFF0E9FF),
-        iconRes = R.drawable.tradingview
-    )
-) // todo temp, fix all these icons color/scale/alphs
-
-val unknownSource = Source(
-    key = "unknown",
-    displayName = "Unknown",
-    order = 3,
-    style = MessageItemStyle(
-        primary = Color(0xFF8A8A8A),
-        accent = Color(0xFFB0B0B0),
-        surface = Color(0xFF1C1C1C),
-        text = Color(0xFFEAEAEA),
-        iconRes = R.drawable.webhook
+        primary = Color(0xFFA07CFF),
+        accent = Color(0xFFD6C8FF),
+        surface = Color(0xFF1B1630),
+        text = Color(0xFFF7F3FF),
+        iconRes = R.drawable.insomnia
     )
 )
 
-val allSignalSources = listOf(tradingViewSource, trendSpiderSource, insomniaSource, unknownSource)
-private val signalSourceMap = allSignalSources.associateBy { it.key }
+val unknownSource = Source(
+    key = "unknown",
+    displayName = "External",
+    order = 3,
+    style = MessageItemStyle(
+        primary = Color(0xFFB05A6A),
+        accent = Color(0xFFE7A7B3),
+        surface = Color(0xFF241318),
+        text = Color(0xFFFFF1F4),
+        iconRes = R.drawable.unknown
+    )
+)
+
+val allSources = listOf(tradingViewSource, trendSpiderSource, insomniaSource, unknownSource)
+private val signalSources = allSources.associateBy { it.key }
+val sourceDisplayNames = allSources.map { it.displayName }.toSet()
 fun resolveSignalSource(key: String) =
-    signalSourceMap[key] ?: unknownSource
+    signalSources[key] ?: unknownSource

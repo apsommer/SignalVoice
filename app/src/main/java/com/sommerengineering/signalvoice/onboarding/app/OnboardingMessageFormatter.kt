@@ -15,7 +15,7 @@ import com.sommerengineering.signalvoice.uitls.znStream
 fun onboardingMessage(): Message {
 
     val now = System.currentTimeMillis()
-    val message = "Gold • Macro Tailwind • Dollar weakening • +0.36%"
+    val message = "Gold • Macro Tailwind • Soft Dollar • +0.36%"
 
     return Message(
         timestamp = now.toString(),

@@ -5,11 +5,9 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.database
 import com.sommerengineering.signalvoice.source.Message
 import com.sommerengineering.signalvoice.uitls.databaseUrl
+import com.sommerengineering.signalvoice.uitls.logMessage
 import com.sommerengineering.signalvoice.uitls.messageKey
 import com.sommerengineering.signalvoice.uitls.sourceKey
-import com.sommerengineering.signalvoice.uitls.streamsNode
-import com.sommerengineering.signalvoice.uitls.tokensNode
-import com.sommerengineering.signalvoice.uitls.usersNode
 import kotlinx.coroutines.suspendCancellableCoroutine
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -18,17 +16,22 @@ import kotlin.coroutines.resume
 @Singleton
 class FirebaseDatabaseImpl @Inject constructor() {
 
-    private val db = Firebase.database(databaseUrl)
-    private var uid: String? = null
+    private val STREAMS = "streams"
+    private val SIGNALS = "signals"
+    private val TOKENS = "tokens"
+    private val USERS = "users"
 
-    fun setUid(newUid: String?) {
+    private val db = Firebase.database(databaseUrl)
+    private var uid = ""
+
+    fun setUid(newUid: String) {
         if (uid == newUid) return
         uid = newUid
     }
 
     suspend fun fetchStreamMessages(stream: String) =
         suspendCancellableCoroutine { continuation ->
-            db.getReference(streamsNode)
+            db.getReference(STREAMS)
                 .child(stream)
                 .get()
                 .addOnSuccessListener { snapshot ->
@@ -41,11 +44,12 @@ class FirebaseDatabaseImpl @Inject constructor() {
 
     suspend fun fetchUserMessages(): List<Message> {
 
-        // guest user has no messages
-        val currentUid = uid ?: return emptyList()
+        // anonymous user has no messages
+        val currentUid = uid
+        if (currentUid.isEmpty()) return emptyList()
 
         return suspendCancellableCoroutine { continuation ->
-            db.getReference(usersNode)
+            db.getReference(SIGNALS)
                 .child(currentUid)
                 .get()
                 .addOnSuccessListener { snapshot ->
@@ -77,8 +81,19 @@ class FirebaseDatabaseImpl @Inject constructor() {
     }
 
     fun writeToken(newToken: String) {
-        db.getReference(tokensNode)
+
+        val currentUid = uid
+
+        // write token: uid
+        logMessage("writeToken: newToken=$newToken, currentUid=$currentUid")
+        db.getReference(TOKENS)
             .child(newToken)
-            .setValue(uid ?: "")
+            .setValue(currentUid)
+
+        // write uid: token
+        if (currentUid.isEmpty()) return
+        db.getReference(USERS)
+            .child(currentUid)
+            .setValue(newToken)
     }
 }

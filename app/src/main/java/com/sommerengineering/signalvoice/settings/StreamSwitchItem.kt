@@ -38,8 +38,13 @@ fun StreamSwitchItem(
             checked = enabled,
             onCheckedChange = { updateStream(it) },
             colors = SwitchDefaults.colors(
+
+                // active
                 checkedThumbColor = lerp(style.primary, Color.Black, 0.20f),
                 checkedTrackColor = style.primary.copy(alpha = 0.22f),
+                checkedBorderColor = Color.Transparent,
+
+                // inactive
                 uncheckedThumbColor = lerp(style.primary, Color.Black, 0.42f),
                 uncheckedTrackColor = style.primary.copy(alpha = 0.10f),
                 uncheckedBorderColor = Color.Transparent

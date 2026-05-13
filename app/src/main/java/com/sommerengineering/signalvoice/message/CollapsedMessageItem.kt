@@ -8,29 +8,30 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
+import com.sommerengineering.signalvoice.source.MessageOriginText
 import com.sommerengineering.signalvoice.theme.timestampTextStyle
 import com.sommerengineering.signalvoice.uitls.rowHorizontalPadding
 
 @Composable
 fun CollapsedMessageItem(
-    messageText: MessageText,
+    annotatedMessage: AnnotatedMessage,
     beautifulTimestamp: String,
     isLocked: Boolean,
     modifier: Modifier = Modifier
 ) {
 
     // separate message parts
-    val assetAnnotated = messageText.asset
-    val signalAnnotated = messageText.signal
+    val assetAnnotated = annotatedMessage.asset
+    val signalAnnotated = annotatedMessage.signal
 
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
 
-        // asset name (feed mode linear)
+        // origin name (feed mode linear)
         if (assetAnnotated != null) {
-            AssetText(
+            MessageOriginText(
                 annotatedText = assetAnnotated,
                 isLocked = isLocked
             )

@@ -44,12 +44,8 @@ fun OriginIcon(
     val size =
         if (isSettings) settingsIconSize
         else assetIconSize
-    val textIconBackground =
-        if (isSettings) style.primary.copy(alpha = 0.85f)
-        else style.primary.copy(alpha = 0.85f)
-    val borderColor =
-        if (isSettings) style.accent.copy(alpha = 0.4f)
-        else style.accent.copy(alpha = 0.4f)
+    val textIconBackground = style.primary.copy(alpha = 0.85f)
+    val borderColor = style.accent.copy(alpha = 0.4f)
 
     // locked status: show lock badge and make icon clickable
     val clickableModifier =
@@ -155,7 +151,6 @@ fun TextIcon(
                 }
             }
 
-            // "10Y"
             else -> buildAnnotatedString {
                 withStyle(
                     SpanStyle(
@@ -171,7 +166,8 @@ fun TextIcon(
         when (text) {
             "100" -> Modifier.offset(x = (-0.2).dp)
             "500" -> Modifier.offset(x = 0.1.dp)
-            else -> Modifier.offset(x = 0.dp) // "10Y"
+            "10Y" -> Modifier.offset(x = 0.dp)
+            else -> Modifier.offset(x = 0.dp)
         }
 
     Text(

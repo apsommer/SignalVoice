@@ -6,12 +6,10 @@ import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.google.firebase.Firebase
+import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.auth.auth
 import com.sommerengineering.signalvoice.R
 import com.sommerengineering.signalvoice.uitls.logException
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,7 +18,7 @@ class GoogleAuthenticator @Inject constructor(
     private val credentialManager: CredentialManager
 ) {
 
-    suspend fun signIn(context: Context): Boolean {
+    suspend fun getCredential(context: Context): AuthCredential? {
 
         try {
 
@@ -42,16 +40,12 @@ class GoogleAuthenticator @Inject constructor(
             // extract google id token
             val credential = response.credential
             if (credential.type != GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-                return false
+                return null
             }
             val googleToken = GoogleIdTokenCredential.createFrom(credential.data).idToken
 
             // sign-in to firebase with google id token
-            Firebase.auth
-                .signInWithCredential(GoogleAuthProvider.getCredential(googleToken, null))
-                .await()
-
-            return true
+            return GoogleAuthProvider.getCredential(googleToken, null)
 
         } catch (e: Exception) {
 
@@ -61,6 +55,6 @@ class GoogleAuthenticator @Inject constructor(
             }
         }
 
-        return false
+        return null
     }
 }

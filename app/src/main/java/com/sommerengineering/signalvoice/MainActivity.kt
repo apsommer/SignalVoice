@@ -135,7 +135,7 @@ class MainActivity : ComponentActivity() {
             when (updateRequirement) {
 
                 UpdateRequirement.REQUIRED -> launchRequiredUpdateFlow()
-                UpdateRequirement.OPTIONAL -> launchOptionalUpdateFlow()
+                UpdateRequirement.OPTIONAL -> {}
                 UpdateRequirement.NONE -> {}
             }
         }
@@ -176,10 +176,6 @@ class MainActivity : ComponentActivity() {
                 .newBuilder(AppUpdateType.IMMEDIATE)
                 .build()
         )
-    }
-
-    private fun launchOptionalUpdateFlow() {
-        // todo launch flow to encourage user to update app, but allow them to continue without updating
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {

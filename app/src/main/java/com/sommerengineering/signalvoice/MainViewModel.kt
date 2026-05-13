@@ -11,23 +11,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.credentials.ClearCredentialStateRequest
-import androidx.credentials.CredentialManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sommerengineering.signalvoice.login.GitHubAuthenticator
 import com.sommerengineering.signalvoice.login.GoogleAuthenticator
 import com.sommerengineering.signalvoice.messages.FeedMode
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationState.RECEIVED
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationState.WAITING
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationUiState
-import com.sommerengineering.signalvoice.session.Session
 import com.sommerengineering.signalvoice.session.SessionManager
 import com.sommerengineering.signalvoice.source.Asset
 import com.sommerengineering.signalvoice.source.Message
 import com.sommerengineering.signalvoice.source.MessageOrigin
 import com.sommerengineering.signalvoice.source.resolveMessageOrigin
 import com.sommerengineering.signalvoice.uitls.RomanNumerals
+import com.sommerengineering.signalvoice.uitls.gitHubProvider
 import com.sommerengineering.signalvoice.uitls.screenFullDescription
 import com.sommerengineering.signalvoice.uitls.screenWindowedDescription
 import com.sommerengineering.signalvoice.uitls.webhookBaseUrl
@@ -47,14 +44,11 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val sessionManager: SessionManager,
     private val repo: MainRepository,
-    private val credentialManager: CredentialManager,
     private val googleAuthenticator: GoogleAuthenticator,
-    private val gitHubAuthenticator: GitHubAuthenticator,
 ) : ViewModel() {
 
     // session
-    var session by mutableStateOf<Session>(Session.Guest)
-        private set
+    val session = sessionManager.session
 
     // premium (locked) todo collapse this overload
     fun isLocked(message: Message): Boolean {
@@ -69,7 +63,7 @@ class MainViewModel @Inject constructor(
 
     fun isLocked(asset: Asset): Boolean {
         val isPremiumAsset = asset.isPremium
-        val isPremiumUser = (session as? Session.Authenticated)?.isPremium == true
+        val isPremiumUser = sessionManager.isPremium
         return isPremiumAsset && !isPremiumUser
     }
 
@@ -83,7 +77,7 @@ class MainViewModel @Inject constructor(
     }
 
     val webhookUrl
-        get() = webhookBaseUrl + (session as Session.Authenticated).uid
+        get() = webhookBaseUrl + sessionManager.uid
 
     // room database
     val messages = repo.messages.stateIn(
@@ -142,6 +136,8 @@ class MainViewModel @Inject constructor(
         }
         repo.setListening(!isListening.value)
     }
+
+    suspend fun restoreListening() = repo.restoreListening()
 
     fun speakUtterance(utterance: String) =
         viewModelScope.launch {
@@ -213,6 +209,15 @@ class MainViewModel @Inject constructor(
         repo.updateGC(enabled)
     }
 
+    // stream E6
+    var isE6 by mutableStateOf(true)
+        private set
+
+    fun updateE6(enabled: Boolean) {
+        isE6 = enabled
+        repo.updateE6(enabled)
+    }
+
     // stream CL
     var isCL by mutableStateOf(true)
         private set
@@ -256,12 +261,8 @@ class MainViewModel @Inject constructor(
         pitchDescription = repo.pitch.toString()
     }
 
-    fun signOut() {
+    fun signOut() =
         repo.signOut()
-        viewModelScope.launch {
-            credentialManager.clearCredentialState(ClearCredentialStateRequest())
-        }
-    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -270,7 +271,10 @@ class MainViewModel @Inject constructor(
         context: Context,
         onAuthentication: () -> Unit
     ) = viewModelScope.launch {
-        if (googleAuthenticator.signIn(context)) {
+
+        val credential = googleAuthenticator.getCredential(context)
+        val isSuccess = sessionManager.signInWithCredential(credential)
+        if (isSuccess) {
             onAuthentication()
         }
     }
@@ -279,7 +283,12 @@ class MainViewModel @Inject constructor(
         context: Context,
         onAuthentication: () -> Unit
     ) = viewModelScope.launch {
-        if (gitHubAuthenticator.signIn(context)) {
+
+        val isSuccess = sessionManager.signInWithProvider(
+            context = context,
+            provider = gitHubProvider
+        )
+        if (isSuccess) {
             onAuthentication()
         }
     }
@@ -398,13 +407,6 @@ class MainViewModel @Inject constructor(
 
     init {
 
-        // observe session state
-        viewModelScope.launch {
-            sessionManager.session.collect {
-                session = it
-            }
-        }
-
         // load settings from preferences
         // block main thread is acceptable for datastore read ~3 ms each
         runBlocking {
@@ -415,6 +417,7 @@ class MainViewModel @Inject constructor(
             isBTC = repo.loadBTC()
             isES = repo.loadES()
             isGC = repo.loadGC()
+            isE6 = repo.loadE6()
             isCL = repo.loadCL()
             feedMode = repo.loadFeedMode()
             isFullScreen = repo.loadFullScreen()

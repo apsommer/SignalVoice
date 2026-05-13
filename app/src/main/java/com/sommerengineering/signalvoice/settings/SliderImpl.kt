@@ -1,7 +1,9 @@
 package com.sommerengineering.signalvoice.settings
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.runtime.Composable
 import kotlin.math.roundToInt
 
@@ -25,7 +27,18 @@ fun SliderImpl(
                 onValueChangeFinished(position)
             },
             valueRange = 0.5f..2f,
-            steps = 14
+            steps = 14,
+            colors = SliderDefaults.colors(
+
+                // active
+                thumbColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.65f),
+                activeTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
+                activeTickColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.0f),
+
+                // inactive
+                inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                inactiveTickColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.0f)
+            )
         )
     }
 }

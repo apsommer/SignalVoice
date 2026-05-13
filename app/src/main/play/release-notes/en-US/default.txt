@@ -1,1 +1,1 @@
-Polish ux
+Configure user signals

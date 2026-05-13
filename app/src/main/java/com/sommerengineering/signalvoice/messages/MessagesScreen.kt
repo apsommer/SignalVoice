@@ -33,16 +33,16 @@ import com.sommerengineering.signalvoice.MainViewModel
 import com.sommerengineering.signalvoice.R
 import com.sommerengineering.signalvoice.message.GroupHeaderItem
 import com.sommerengineering.signalvoice.message.MessageItem
-import com.sommerengineering.signalvoice.session.Session.Authenticated
+import com.sommerengineering.signalvoice.session.Session.Guest
 import com.sommerengineering.signalvoice.settings.SettingsDrawer
 import com.sommerengineering.signalvoice.source.Message
 import com.sommerengineering.signalvoice.source.MessageGroup
 import com.sommerengineering.signalvoice.source.MessageOrigin
 import com.sommerengineering.signalvoice.source.resolveMessageOrigin
 import com.sommerengineering.signalvoice.speak.ForegroundSpeechService
+import com.sommerengineering.signalvoice.uitls.anonymousEmptyStateSubtitle
 import com.sommerengineering.signalvoice.uitls.emptyStateSubtitle
 import com.sommerengineering.signalvoice.uitls.emptyStateTitle
-import com.sommerengineering.signalvoice.uitls.guestEmptyStateSubtitle
 import com.sommerengineering.signalvoice.uitls.notificationsDisabledSubtitle
 import com.sommerengineering.signalvoice.uitls.notificationsDisabledTitle
 import kotlinx.coroutines.flow.first
@@ -73,10 +73,11 @@ fun MessagesScreen(
     val expandedGroups = remember(feedMode) { mutableStateMapOf<MessageOrigin, Boolean>() }
 
     // session
-    val session = viewModel.session
+    val session by viewModel.session.collectAsState()
 
     // start/stop speech service
     LaunchedEffect(Unit) {
+        viewModel.restoreListening()
         viewModel.isListening.collect { enabled ->
             if (enabled) ForegroundSpeechService.start(context)
             else ForegroundSpeechService.stop(context)
@@ -165,8 +166,8 @@ fun MessagesScreen(
                             iconRes = R.drawable.webhook,
                             title = emptyStateTitle,
                             subTitle =
-                                if (session is Authenticated) emptyStateSubtitle
-                                else guestEmptyStateSubtitle,
+                                if (session is Guest) anonymousEmptyStateSubtitle
+                                else emptyStateSubtitle,
                             onClick = onCustomSignalClick,
                             visible = isEmptyState,
                             onDismiss = { viewModel.updateEmptyState(false) }

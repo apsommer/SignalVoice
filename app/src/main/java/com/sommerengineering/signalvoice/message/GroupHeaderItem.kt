@@ -25,15 +25,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.sommerengineering.signalvoice.MainViewModel
 import com.sommerengineering.signalvoice.R
 import com.sommerengineering.signalvoice.source.MessageOrigin
+import com.sommerengineering.signalvoice.source.MessageOriginText
+import com.sommerengineering.signalvoice.uitls.descriptionAlpha
 import com.sommerengineering.signalvoice.uitls.dividerThickness
 import com.sommerengineering.signalvoice.uitls.rowAccentWidth
 import com.sommerengineering.signalvoice.uitls.rowHeight
@@ -92,24 +92,20 @@ fun GroupHeaderItem(
                 ) {
 
                     // display name
-                    val assetSpan = SpanStyle(
-                        fontWeight = FontWeight.Bold,
-                        color = style.text
-                    )
-                    AssetText(
+                    val assetSpan = MaterialTheme.typography.titleMedium.toSpanStyle()
+                    MessageOriginText(
                         annotatedText = buildAnnotatedString {
                             withStyle(assetSpan) { append(displayName) }
                         },
                         isLocked = isLocked
                     )
 
-                    Spacer(Modifier.height(4.dp))
-
                     // description
                     Text(
+                        modifier = Modifier.padding(top = 4.dp),
                         text = description,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(0.6f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(descriptionAlpha),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )

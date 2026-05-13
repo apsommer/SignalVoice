@@ -1,12 +1,9 @@
 package com.sommerengineering.signalvoice
 
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
 import com.google.firebase.messaging.FirebaseMessaging
 import com.sommerengineering.signalvoice.firebase.FirebaseDatabaseImpl
 import com.sommerengineering.signalvoice.messages.FeedMode
 import com.sommerengineering.signalvoice.room.RoomImpl
-import com.sommerengineering.signalvoice.session.Session
 import com.sommerengineering.signalvoice.session.SessionManager
 import com.sommerengineering.signalvoice.source.Message
 import com.sommerengineering.signalvoice.source.MessageOrigin
@@ -15,6 +12,7 @@ import com.sommerengineering.signalvoice.speak.TextToSpeechImpl
 import com.sommerengineering.signalvoice.uitls.btcStream
 import com.sommerengineering.signalvoice.uitls.clStream
 import com.sommerengineering.signalvoice.uitls.defaultVoice
+import com.sommerengineering.signalvoice.uitls.e6Stream
 import com.sommerengineering.signalvoice.uitls.esStream
 import com.sommerengineering.signalvoice.uitls.gcStream
 import com.sommerengineering.signalvoice.uitls.nqStream
@@ -23,8 +21,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -68,6 +68,10 @@ class MainRepository @Inject constructor(
         if (loadGC()) roomDb.replaceStreamMessages(
             gcStream,
             firebaseDb.fetchStreamMessages(gcStream)
+        )
+        if (loadE6()) roomDb.replaceStreamMessages(
+            e6Stream,
+            firebaseDb.fetchStreamMessages(e6Stream)
         )
         if (loadCL()) roomDb.replaceStreamMessages(
             clStream,
@@ -117,13 +121,21 @@ class MainRepository @Inject constructor(
     private val _isListening = MutableStateFlow(true)
     val isListening = _isListening.asStateFlow()
 
-    fun setListening(enabled: Boolean) {
+    fun setListening(
+        enabled: Boolean,
+        isPersist: Boolean = true
+    ) {
         tts.isMute = !enabled
-        if (!enabled && tts.isSpeaking()) { // stop any current speech
-            tts.stop()
-        }
+        if (!enabled && tts.isSpeaking()) tts.stop() // stop any current speech
         _isListening.value = enabled
-        appScope.launch { prefs.write(LISTENING, enabled) }
+        if (isPersist) appScope.launch { prefs.write(LISTENING, enabled) }
+    }
+
+    suspend fun restoreListening() {
+        setListening(
+            enabled = prefs.read(LISTENING) ?: true,
+            isPersist = false
+        )
     }
 
     suspend fun speakMessage(message: Message) {
@@ -209,6 +221,15 @@ class MainRepository @Inject constructor(
         appScope.launch { prefs.write(GC, enabled) }
     }
 
+    // stream E6
+    suspend fun loadE6() =
+        prefs.read(E6) ?: true
+
+    fun updateE6(enabled: Boolean) {
+        syncStream(e6Stream, enabled)
+        appScope.launch { prefs.write(E6, enabled) }
+    }
+
     // stream CL
     suspend fun loadCL() =
         prefs.read(CL) ?: true
@@ -265,7 +286,11 @@ class MainRepository @Inject constructor(
     }
 
     fun signOut() {
-        Firebase.auth.signOut()
+        setListening(
+            enabled = false,
+            isPersist = false
+        )
+        sessionManager.signOut()
         appScope.launch {
             roomDb.removeUserMessages()
         }
@@ -309,12 +334,13 @@ class MainRepository @Inject constructor(
     }
 
     // firebase database (token)
-    var newToken: String? = null
+    private var cachedToken: String? = null
     fun onNewToken(token: String) {
-        newToken = token
+        cachedToken = token
+        reconcileToken(token)
     }
 
-    fun writeNewToken(token: String) {
+    private fun reconcileToken(token: String) {
         appScope.launch {
             FirebaseMessaging.getInstance().apply {
                 if (loadZN()) subscribeToTopic(znStream) else unsubscribeFromTopic(znStream)
@@ -322,12 +348,12 @@ class MainRepository @Inject constructor(
                 if (loadBTC()) subscribeToTopic(btcStream) else unsubscribeFromTopic(btcStream)
                 if (loadES()) subscribeToTopic(esStream) else unsubscribeFromTopic(esStream)
                 if (loadGC()) subscribeToTopic(gcStream) else unsubscribeFromTopic(gcStream)
+                if (loadE6()) subscribeToTopic(e6Stream) else unsubscribeFromTopic(e6Stream)
                 if (loadCL()) subscribeToTopic(clStream) else unsubscribeFromTopic(clStream)
             }
         }
         firebaseDb.writeToken(token)
     }
-
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -335,17 +361,17 @@ class MainRepository @Inject constructor(
 
         // observe session state
         appScope.launch {
-            sessionManager.session.collect {
-                val uid = (it as? Session.Authenticated)?.uid
-                firebaseDb.setUid(uid) // set uid from flow emission to avoid race
-                if (it is Session.Authenticated) {
-                    hydrateUserMessages() // cold start hydration of user messages
+            sessionManager.session
+                .map { sessionManager.uid }
+                .distinctUntilChanged()
+                .collect { uid ->
+
+                    firebaseDb.setUid(uid)
+                    hydrateUserMessages()
+
+                    // write new token, if needed
+                    cachedToken?.let(::reconcileToken)
                 }
-                newToken?.let { token ->
-                    writeNewToken(token) // write new token, if needed
-                    newToken = null
-                }
-            }
         }
 
         // initialize tts engine

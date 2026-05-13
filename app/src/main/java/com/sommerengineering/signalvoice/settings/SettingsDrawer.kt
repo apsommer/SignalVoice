@@ -3,6 +3,7 @@ package com.sommerengineering.signalvoice.settings
 import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -10,18 +11,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
@@ -31,21 +35,22 @@ import androidx.compose.ui.unit.dp
 import com.sommerengineering.signalvoice.BuildConfig
 import com.sommerengineering.signalvoice.MainViewModel
 import com.sommerengineering.signalvoice.R
-import com.sommerengineering.signalvoice.session.Session.Authenticated
+import com.sommerengineering.signalvoice.session.Session.Guest
 import com.sommerengineering.signalvoice.source.MessageOrigin
 import com.sommerengineering.signalvoice.source.btcAsset
 import com.sommerengineering.signalvoice.source.clAsset
+import com.sommerengineering.signalvoice.source.e6Asset
 import com.sommerengineering.signalvoice.source.esAsset
 import com.sommerengineering.signalvoice.source.gcAsset
 import com.sommerengineering.signalvoice.source.nqAsset
 import com.sommerengineering.signalvoice.source.znAsset
+import com.sommerengineering.signalvoice.uitls.anonymousCustomDescription
 import com.sommerengineering.signalvoice.uitls.customDescription
 import com.sommerengineering.signalvoice.uitls.customDividerTitle
 import com.sommerengineering.signalvoice.uitls.customTitle
 import com.sommerengineering.signalvoice.uitls.descriptionAlpha
 import com.sommerengineering.signalvoice.uitls.edgePadding
 import com.sommerengineering.signalvoice.uitls.generalDividerTitle
-import com.sommerengineering.signalvoice.uitls.guestCustomDescription
 import com.sommerengineering.signalvoice.uitls.manageSubscriptionDescription
 import com.sommerengineering.signalvoice.uitls.manageSubscriptionTitle
 import com.sommerengineering.signalvoice.uitls.pitchChangeUtterance
@@ -75,7 +80,7 @@ fun SettingsDrawer(
 
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
-    val session = viewModel.session
+    val session by viewModel.session.collectAsState()
 
     val speed = viewModel.speed
     val pitch = viewModel.pitch
@@ -88,6 +93,7 @@ fun SettingsDrawer(
     val isBTC = viewModel.isBTC
     val isES = viewModel.isES
     val isGC = viewModel.isGC
+    val isE6 = viewModel.isE6
     val isCL = viewModel.isCL
 
     val isFullScreen = viewModel.isFullScreen
@@ -95,16 +101,19 @@ fun SettingsDrawer(
 
     var isShowVoiceDialog by remember { mutableStateOf(false) }
 
+    // measure width of speed slider for proper alignment of pitch slider
+    var labelWidth by remember { mutableStateOf(0.dp) }
+
     Box {
 
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxHeight()
                 .background(MaterialTheme.colorScheme.background)
                 .padding(
                     top =
-                        if (isFullScreen) appBarHeight + edgePadding / 2
-                        else 0.dp + edgePadding / 2
+                        if (isFullScreen) appBarHeight
+                        else 0.dp
                 )
         ) {
 
@@ -120,14 +129,6 @@ fun SettingsDrawer(
                     title = voiceTitle,
                     description = voiceDescription,
                     onClick = { isShowVoiceDialog = true }) {
-
-                    IconButton(
-                        onClick = { isShowVoiceDialog = true }) {
-                        Icon(
-                            painter = painterResource(R.drawable.more),
-                            contentDescription = null
-                        )
-                    }
 
                     if (isShowVoiceDialog) {
                         VoiceDialog(
@@ -148,7 +149,9 @@ fun SettingsDrawer(
                 SliderItem(
                     iconRes = R.drawable.speed,
                     title = speedTitle,
-                    description = speedDescription
+                    description = speedDescription,
+                    labelWidth = labelWidth,
+                    onLabelWidthChanged = { labelWidth = it }
                 ) {
 
                     SliderImpl(
@@ -165,7 +168,9 @@ fun SettingsDrawer(
                 SliderItem(
                     iconRes = R.drawable.pitch,
                     title = pitchTitle,
-                    description = pitchDescription
+                    description = pitchDescription,
+                    labelWidth = labelWidth,
+                    onLabelWidthChanged = { labelWidth = it }
                 ) {
 
                     SliderImpl(
@@ -258,6 +263,17 @@ fun SettingsDrawer(
                 )
             }
 
+            // stream E6
+            item {
+                StreamSwitchItem(
+                    origin = MessageOrigin.BroadcastStream(e6Asset),
+                    enabled = isE6,
+                    updateStream = { viewModel.updateE6(it) },
+                    isLocked = viewModel.isLocked(e6Asset),
+                    onLockedClick = { viewModel.launchPaywall() }
+                )
+            }
+
             // stream CL
             item {
                 StreamSwitchItem(
@@ -280,8 +296,8 @@ fun SettingsDrawer(
                     iconRes = R.drawable.webhook,
                     title = customTitle,
                     description =
-                        if (session is Authenticated) customDescription
-                        else guestCustomDescription,
+                        if (session is Guest) anonymousCustomDescription
+                        else customDescription,
                     onClick = onCustomSignalClick
                 ) {
                     Icon(
@@ -318,7 +334,20 @@ fun SettingsDrawer(
 
                     Switch(
                         checked = isFullScreen,
-                        onCheckedChange = { viewModel.updateFullScreen(it) })
+                        onCheckedChange = { viewModel.updateFullScreen(it) },
+                        colors = SwitchDefaults.colors(
+
+                            // active
+                            checkedThumbColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.75f),
+                            checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.22f),
+                            checkedBorderColor = Color.Transparent,
+
+                            // inactive
+                            uncheckedThumbColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                            uncheckedTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.16f),
+                            uncheckedBorderColor = Color.Transparent
+                        )
+                    )
                 }
             }
 
@@ -345,7 +374,7 @@ fun SettingsDrawer(
             item {
                 Text(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
                         .padding(start = edgePadding, end = edgePadding, bottom = edgePadding),
                     text = "v" + BuildConfig.VERSION_NAME,
                     textAlign = TextAlign.End,
@@ -361,7 +390,7 @@ fun SettingsDrawer(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(appBarHeight)
-                    .background(MaterialTheme.colorScheme.surface)
+                    .background(MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp))
             )
         }
     }

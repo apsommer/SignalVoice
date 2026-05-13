@@ -16,24 +16,29 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.sommerengineering.signalvoice.uitls.descriptionAlpha
-import com.sommerengineering.signalvoice.uitls.rowIconPadding
-import com.sommerengineering.signalvoice.uitls.settingsIconSize
 import com.sommerengineering.signalvoice.uitls.rowHeight
 import com.sommerengineering.signalvoice.uitls.rowHorizontalPadding
-import com.sommerengineering.signalvoice.uitls.speedTitle
+import com.sommerengineering.signalvoice.uitls.rowIconPadding
+import com.sommerengineering.signalvoice.uitls.settingsIconSize
 
 @Composable
 fun SliderItem(
     iconRes: Int,
     title: String,
     description: String,
+    labelWidth: Dp,
+    onLabelWidthChanged: (Dp) -> Unit,
     content: @Composable () -> Unit
 ) {
+
+    val density = LocalDensity.current
 
     Surface {
         Column {
@@ -49,6 +54,15 @@ fun SliderItem(
             ) {
 
                 Row(
+                    modifier = Modifier
+                        .then(
+                            if (labelWidth > 0.dp) Modifier.width(labelWidth)
+                            else Modifier
+                        )
+                        .onSizeChanged {
+                            val widthDp = with(density) { it.width.toDp() }
+                            if (widthDp > labelWidth) onLabelWidthChanged(widthDp)
+                        },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
@@ -61,20 +75,11 @@ fun SliderItem(
 
                     Column {
 
-                        Box {
-
-                            // invisible "Speed" title aligns start position of sequential sliders
-                            Text(
-                                text = speedTitle,
-                                style = MaterialTheme.typography.titleMedium,
-                                color = Color.Transparent
-                            )
-
-                            Text(
-                                text = title,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        }
+                        // title
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.titleMedium,
+                        )
 
                         // description
                         Text(
@@ -90,7 +95,11 @@ fun SliderItem(
 
                 Spacer(Modifier.width(rowIconPadding))
 
-                content()
+                Box(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    content()
+                }
             }
         }
     }

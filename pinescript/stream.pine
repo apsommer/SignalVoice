@@ -10,49 +10,54 @@ indicator(
 
 isZN = str.contains(syminfo.tickerid, "CBOT:ZN1!")
 isNQ = str.contains(syminfo.tickerid, "CME_MINI:NQ1!")
-isES = str.contains(syminfo.tickerid, "CME_MINI:ES1!")
 isBTC = str.contains(syminfo.tickerid, "BINANCE:BTCUSDT")
+isES = str.contains(syminfo.tickerid, "CME_MINI:ES1!")
+isE6 = str.contains(syminfo.tickerid, "CME:6E1!")
+isCL = str.contains(syminfo.tickerid, "NYMEX:CL1!")
 
 // CONSTANTS
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // momentum
-VELOCITY_BARS = isZN ? 14 : isNQ ? 8 : isBTC ? 12 : isES ? 10 : na
-VELOCITY_BASELINE_BARS = isZN ? 220 : isNQ ? 120 : isBTC ? 160 : isES ? 140 : na
-SMOOTH_BARS = isZN ? 12 : isNQ ? 6 : isBTC ? 10 : isES ? 8 : na
+VELOCITY_BARS = isZN ? 14 : isNQ ? 8 : isBTC ? 12 : isES ? 10 : isE6 ? 11 : isCL ? 9 : na
+VELOCITY_BASELINE_BARS = isZN ? 220 : isNQ ? 120 : isBTC ? 160 : isES ? 140 : isE6 ? 180 : isCL ? 110 : na
+SMOOTH_BARS = isZN ? 12 : isNQ ? 6 : isBTC ? 10 : isES ? 8 : isE6 ? 8 : isCL ? 6 : na
+
+// opening gap
+OPEN_GAP_MAGNITUDE_POINTS = isZN ? 0.125 : isNQ ? 35 : isBTC ? 600 : isES ? 30 : isE6 ? 0.0040 : isCL ? 1.50 : na
 
 // cascade
-CASCADE_STRUCTURE_BARS = isZN ? 8 : isNQ ? 6 : isBTC ? 8 : isES ? 6 : na
-CASCADE_LARGE_BAR_RATIO = isZN ? 3.2 : isNQ ? 4.0 : isBTC ? 4.5 : isES ? 4.2 : na
-CASCADE_SWEEP_RATIO = isZN ? 0.30 : isNQ ? 0.35 : isBTC ? 0.45 : isES ? 0.33 : na
-CASCADE_CONTINUATION_BARS = isZN ? 20 : isNQ ? 15 : isBTC ? 20 : isES ? 15 : na
+CASCADE_STRUCTURE_BARS = isZN ? 8 : isNQ ? 6 : isBTC ? 8 : isES ? 6 : isE6 ? 7 : isCL ? 5 : na
+CASCADE_LARGE_BAR_RATIO = isZN ? 3.2 : isNQ ? 4.0 : isBTC ? 4.0 : isES ? 4.2 : isE6 ? 3.6 : isCL ? 4 : na
+CASCADE_SWEEP_RATIO = isZN ? 0.30 : isNQ ? 0.35 : isBTC ? 0.45 : isES ? 0.33 : isE6 ? 0.32 : isCL ? 0.42 : na
+CASCADE_CONTINUATION_BARS = isZN ? 20 : isNQ ? 15 : isBTC ? 20 : isES ? 15 : isE6 ? 18 : isCL ? 12 : na
 
 // expansion
-ACCELERATION_BARS = isZN ? 8 : isNQ ? 5 : isBTC ? 8 : isES ? 7 : na
-EXPANSION_STRUCTURE_LOOKBACK = isZN ? 24 : isNQ ? 18 : isBTC ? 22 : isES ? 16 : na
-ACCELERATION_PERCENT = isZN ? 12.0 : isNQ ? 16.0 : isBTC ? 14.0 : isES ? 20.0 : na
-EXPANSION_LEVEL_PERCENT = isZN ? 85 : isNQ ? 105 : isBTC ? 100 : isES ? 108 : na
+ACCELERATION_BARS = isZN ? 8 : isNQ ? 5 : isBTC ? 8 : isES ? 7 : isE6 ? 6 : isCL ? 5 : na
+EXPANSION_STRUCTURE_LOOKBACK = isZN ? 24 : isNQ ? 18 : isBTC ? 19 : isES ? 16 : isE6 ? 20 : isCL ? 14 : na
+ACCELERATION_PERCENT = isZN ? 12.0 : isNQ ? 16.0 : isBTC ? 13.0 : isES ? 20.0 : isE6 ? 13.0 : isCL ? 15 : na
+EXPANSION_LEVEL_PERCENT = isZN ? 85 : isNQ ? 105 : isBTC ? 90 : isES ? 108 : isE6 ? 92 : isCL ? 120 : na
 
 // exhaustion
-EXHAUSTION_LEVEL_PERCENT = isZN ? 60 : isNQ ? 48 : isBTC ? 55 : isES ? 52 : na
-TREND_MATURE_BARS = isZN ? 26 : isNQ ? 18 : isBTC ? 22 : isES ? 18 : na
-EXHAUSTION_LOOKBACK = isZN ? 26 : isNQ ? 20 : isBTC ? 24 : isES ? 18 : na
-EXHAUSTION_REVERSAL_BARS = isZN ? 8 : isNQ ? 6 : isBTC ? 8 : isES ? 7 : na
+EXHAUSTION_LEVEL_PERCENT = isZN ? 60 : isNQ ? 48 : isBTC ? 55 : isES ? 52 : isE6 ? 58 : isCL ? 48 : na
+TREND_MATURE_BARS = isZN ? 26 : isNQ ? 18 : isBTC ? 22 : isES ? 18 : isE6 ? 22 : isCL ? 14 : na
+EXHAUSTION_LOOKBACK = isZN ? 26 : isNQ ? 20 : isBTC ? 24 : isES ? 18 : isE6 ? 22 : isCL ? 16 : na
+EXHAUSTION_REVERSAL_BARS = isZN ? 8 : isNQ ? 6 : isBTC ? 8 : isES ? 7 : isE6 ? 7 : isCL ? 5 : na
 
 // range
-RANGE_BARS = isZN ? 90 : isNQ ? 60 : isBTC ? 90 : isES ? 120 : na
-RANGE_MAGNITUDE_POINTS = isZN ? 0.125 : isNQ ? 20 : isBTC ? 200 : isES ? 18 : na
+RANGE_BARS = isZN ? 90 : isNQ ? 60 : isBTC ? 90 : isES ? 120 : isE6 ? 135 : isCL ? 90 : na
+RANGE_MAGNITUDE_POINTS = isZN ? 0.125 : isNQ ? 20 : isBTC ? 200 : isES ? 18 : isE6 ? 0.0010 : isCL ? 0.95 : na
 
 // acceptance
-ACCEPTANCE_BARS = isZN ? 6 : isNQ ? 5 : isBTC ? 7 : isES ? 6 : na
+ACCEPTANCE_BARS = isZN ? 6 : isNQ ? 5 : isBTC ? 7 : isES ? 6 : isE6 ? 5 : isCL ? 4 : na
 
 // slow trend
-SLOW_TREND_BARS = isZN ? 120 : isNQ ? 70 : isBTC ? 90 : isES ? 90 : na
-SLOW_TREND_COOLDOWN_BARS = 60
-SMA_BARS = isZN ? 120 : isNQ ? 90 : isBTC ? 70 : isES ? 90 : na
-SLOPE_LOOKBACK = isZN ? 20 : isNQ ? 10 : isBTC ? 10 : isES ? 20 : na
-STRUCTURE_BARS = isZN ? 30 : isNQ ? 20 : isBTC ? 25 : isES ? 14 : na
-DISTANCE_THRESHOLD = isZN ? 0.0006 : isNQ ? 0.0015 : isBTC ? 0.0025 : isES ? 0.0008 : na
+SLOW_TREND_BARS = isZN ? 120 : isNQ ? 70 : isBTC ? 90 : isES ? 90 : isE6 ? 100 : isCL ? 100 : na
+SLOW_TREND_COOLDOWN_BARS = isCL ? 40 : isE6 ? 70 : 60
+SMA_BARS = isZN ? 120 : isNQ ? 90 : isBTC ? 70 : isES ? 90 : isE6 ? 110 : isCL ? 50 : na
+SLOPE_LOOKBACK = isZN ? 20 : isNQ ? 10 : isBTC ? 10 : isES ? 20 : isE6 ? 16 : isCL ? 8 : na
+STRUCTURE_BARS = isZN ? 30 : isNQ ? 20 : isBTC ? 25 : isES ? 14 : isE6 ? 22 : isCL ? 10 : na
+DISTANCE_THRESHOLD = isZN ? 0.0006 : isNQ ? 0.0015 : isBTC ? 0.0025 : isES ? 0.0008 : isE6 ? 0.0009 : isCL ? 0.0022 : na
 
 // FEATURES
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -129,6 +134,24 @@ velocitySma = velocitySmaRaw > 0 ? velocitySmaRaw : 1
 rawMomentumPercent = (velocity / velocitySma - 1.0) * 100.0
 momentum = ta.sma(rawMomentumPercent, SMOOTH_BARS)
 
+// OPEN GAP
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+marketOpeningTime = "1800-1801"
+isMarketOpening = not na(time(timeframe.period, marketOpeningTime, "America/New_York"))
+
+isOpenGapUp =
+     isMarketOpening
+     and high - close[1] > OPEN_GAP_MAGNITUDE_POINTS
+
+isOpenGapDown =
+     isMarketOpening
+     and close[1] - low > OPEN_GAP_MAGNITUDE_POINTS
+
+isOpenGap =
+     isOpenGapUp
+     or isOpenGapDown
+
 // CASCADE
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -170,8 +193,8 @@ isStopCascadeDown =
      and (not isUpCascadeCandidate or downSweep > upSweep)
 
 triggerStopCascade =
-     isStopCascadeUp
-     or isStopCascadeDown
+     not isOpenGap
+     and (isStopCascadeUp or isStopCascadeDown)
 
 // CONTINUATION CASCADE
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -470,17 +493,16 @@ isSlowEnvironment =
 sma = ta.sma(ta.sma(close[1], SMA_BARS), 10)
 slope = sma - sma[SLOPE_LOOKBACK]
 isSlopeUp = slope > 0
-isSlopeDown = sma[SLOPE_LOOKBACK] > sma
+isSlopeDown = 0 > slope
 
 // distance from SMA
-distanceUp = (high - sma) / sma
-distanceDown = (sma - low) / sma
-isAboveSma = distanceUp > DISTANCE_THRESHOLD
-isBelowSma = distanceDown > DISTANCE_THRESHOLD
+distance = math.abs(close - sma) / sma
+isAboveSma = close > sma and distance > DISTANCE_THRESHOLD
+isBelowSma = sma > close and distance > DISTANCE_THRESHOLD
 
 // structure (entry filter only)
-isStructureUp = low > ta.lowest(low[1], STRUCTURE_BARS)
-isStructureDown = ta.highest(high[1], STRUCTURE_BARS) > high
+isStructureUp = close > ta.lowest(close[1], STRUCTURE_BARS)
+isStructureDown = ta.highest(close[1], STRUCTURE_BARS) > close
 
 // cooldown
 barsSinceSlowTrend = bar_index - lastSlowTrendBar
@@ -490,7 +512,7 @@ isSlowTrendCooledDown =
 
 // raw triggers
 triggerSlowTrendUpRaw =
-     isSlowEnvironment and not isSlowEnvironment[1]
+     isSlowEnvironment // and not isSlowEnvironment[1]
      and isSlopeUp
      and isAboveSma
      and isStructureUp
@@ -610,14 +632,14 @@ if triggerRangeBreakoutEvent or (not isRangeActive and isRangeActive[1])
         bgcolor = color.new(color.teal, 88))
 
 plotshape(
-    isRangeBreakoutUp,
+    triggerRangeBreakoutEvent and rangeBreakoutDirectionUp,
     title="range exit up",
     location=location.abovebar,
     style=shape.circle,
     color=color.blue,
     size=size.tiny)
 plotshape(
-    isRangeBreakoutDown,
+    triggerRangeBreakoutEvent and not rangeBreakoutDirectionUp,
     title="range exit down",
     location=location.belowbar,
     style=shape.circle,
@@ -669,6 +691,8 @@ assetName =
      isNQ ? "Nasdaq (NQ)" :
      isBTC ? "Bitcoin (BTC)" :
      isES ? "S&P 500 (ES)" :
+     isE6 ? "Euro FX (6E)" :
+     isCL ? "Crude Oil (CL)" :
      "Untagged signal\n" + syminfo.description + " (" + syminfo.ticker + ")"
 
 assetNameColor =
@@ -676,6 +700,8 @@ assetNameColor =
      isNQ ? color.rgb(105, 39, 176) :
      isBTC ? color.orange :
      isES ? color.blue :
+     isE6 ? color.purple :
+     isCL ? color.gray :
      color.red
 
 var table assetTable = table.new(position.top_right, 1, 1)
@@ -708,16 +734,20 @@ formattedPrice = str.tostring(close, format.mintick)
 prevClose = request.security(syminfo.tickerid, "D", close[1])
 percentChange = (close - prevClose) / prevClose * 100.0
 formattedPercent =
-     percentChange == 0 ? "0.00%" :
+     math.abs(percentChange) < 0.005 ? "0%" :
      percentChange > 0 ? "+" + str.tostring(math.abs(percentChange), "0.00") + "%" :
      "-" + str.tostring(math.abs(percentChange), "0.00") + "%"
+formattedMagnitude = formattedPrice + " • " + formattedPercent
 
 // cascade move (points)
-cascadeMove = math.round(math.abs(high - low)) // round to nearest point
-formattedPoints = str.tostring(cascadeMove) + " points"
+
+cascadeTicks = math.round(math.abs(high - low) / syminfo.mintick) // round to nearest tick
+cascadePoints = math.round(math.abs(high - low)) // round to nearest point
+formattedCascadeTicks = str.tostring(cascadeTicks) + " ticks"
+formattedCascadePoints = str.tostring(cascadePoints) + " points"
 
 // range duration
-rangeDuration = bar_index - rangeStartBar - RANGE_BARS
+rangeDuration = bar_index - (rangeStartBar - RANGE_BARS)
 
 // MESSAGE
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -725,53 +755,56 @@ rangeDuration = bar_index - rangeStartBar - RANGE_BARS
 getZNmessage() =>
     string message = na
 
-    // ticks (ZN-native)
-    cascadeTicks = math.round(math.abs(high - low) / syminfo.mintick)
-    formattedTicks = str.tostring(cascadeTicks) + " ticks"
+    if isOpenGap
+        message :=
+             "Gap • " +
+             (isOpenGapUp ? "Opening yield contraction • " : "Opening yield expansion • ") +
+             formattedCascadeTicks
 
     if triggerStopCascade and not (isContinuationCascadeUp or isContinuationCascadeDown)
         message :=
              "Flow • " +
              (isStopCascadeUp ? "Rapid yield contraction • " : "Rapid yield expansion • ") +
-             formattedTicks
+             formattedCascadeTicks
 
     else if triggerContinuationCascade
         message :=
              "Flow • " +
              (isContinuationCascadeUp ? "Continuation yield contraction • " : "Continuation yield expansion • ") +
-             formattedTicks
+             formattedCascadeTicks
 
     else if triggerExpansionEvent
         message :=
-             "Repricing • " +
+             "Reprice • " +
              (isUp ? "Yields dropping • " : "Yields rising • ") +
-             formattedPercent
+             formattedMagnitude
 
     else if triggerExhaustionEvent
         message :=
              "Fatigue • " +
-             (expansionDirection ? "Selling pressure fading" : "Buying pressure fading")
+             (expansionDirection ? "Selling pressure fading • " : "Buying pressure fading • ") +
+             formattedMagnitude
 
     else if triggerRangeBreakoutEvent
         message :=
              "Range break • " +
-             str.tostring(rangeDuration) + "m • " +
-             (eventDirectionUp ? "Upside" : "Downside")
+             (eventDirectionUp ? "Upside auction • " : "Downside auction • ") +
+             formattedMagnitude
 
     else if isAcceptanceTriggerUp
-        message := "Acceptance • Lower yields holding • " + formattedPrice
+        message := "Acceptance • Lower yields holding • " + formattedMagnitude
 
     else if isAcceptanceTriggerDown
-        message := "Acceptance • Higher yields holding • " + formattedPrice
+        message := "Acceptance • Higher yields holding • " + formattedMagnitude
 
     else if isRejectionTriggerUp or isRejectionTriggerDown
-        message := "Failure • Return to range"
+        message := "Failure • Return to balance • " + formattedMagnitude
 
     else if triggerSlowTrendUpEvent
-        message := "Drift • Yields easing"
+        message := "Drift • Yields easing • " + formattedMagnitude
 
     else if triggerSlowTrendDownEvent
-        message := "Drift • Yields rising"
+        message := "Drift • Yields rising • " + formattedMagnitude
 
     else
         message := na
@@ -781,53 +814,61 @@ getZNmessage() =>
 getNQmessage() =>
     string message = na
 
+    if isOpenGap
+        message :=
+             "Gap • " +
+             (isOpenGapUp ? "Bullish opening imbalance • " : "Bearish opening imbalance • ") +
+             formattedCascadePoints
+
     if triggerStopCascade and not (isContinuationCascadeUp or isContinuationCascadeDown)
         message :=
              "Cascade • " +
              (isStopCascadeUp ? "Bullish short liquidation • " : "Bearish long liquidation • ") +
-             formattedPoints
+             formattedCascadePoints
 
     else if triggerContinuationCascade
         message :=
              "Cascade • " +
              (isContinuationCascadeUp ? "Bullish continuation • " : "Bearish continuation • ") +
-             formattedPoints
+             formattedCascadePoints
 
     else if triggerExpansionEvent
         message :=
              "Expansion • " +
-             (isUp ? "Bullish " : "Bearish ") +
-             (isContinuationExpansionTrigger ? "continuation • " : "initiative • ") +
-             formattedPercent
+             (isUp
+                 ? (isContinuationExpansionTrigger ? "Bullish continuation • " : "Bullish initiative • ")
+                 : (isContinuationExpansionTrigger ? "Bearish continuation • " : "Bearish initiative • ")) +
+             formattedMagnitude
 
     else if triggerExhaustionEvent
         message :=
              "Exhaustion • " +
-             (expansionDirection ? "Bullish expansion weakening" : "Bearish expansion weakening")
+             (expansionDirection ? "Bullish momentum weakening • " : "Bearish momentum weakening • ") +
+             formattedMagnitude
 
     else if triggerRangeBreakoutEvent
         message :=
              "Range break • " +
-             str.tostring(rangeDuration) + "m • " +
-             (eventDirectionUp ? "Bullish" : "Bearish")
+             (eventDirectionUp ? "Bullish expansion • " : "Bearish expansion • ") +
+             formattedMagnitude
 
     else if isAcceptanceTriggerUp
-        message := "Acceptance • Bullish breakout holding • " + formattedPrice
+        message := "Acceptance • Bullish breakout holding • " + formattedMagnitude
 
     else if isAcceptanceTriggerDown
-        message := "Acceptance • Bearish breakout holding • " + formattedPrice
+        message := "Acceptance • Bearish breakout holding • " + formattedMagnitude
 
     else if isRejectionTriggerUp
-        message := "Rejection • Bullish breakout failed"
+        message := "Rejection • Bullish breakout failed • " + formattedMagnitude
 
     else if isRejectionTriggerDown
-        message := "Rejection • Bearish breakout failed"
+        message := "Rejection • Bearish breakout failed • " + formattedMagnitude
 
     else if triggerSlowTrendUpEvent
-        message := "Trend • Bullish drift"
+        message := "Trend • Bullish drift • " + formattedMagnitude
 
     else if triggerSlowTrendDownEvent
-        message := "Trend • Bearish drift"
+        message := "Trend • Bearish drift • " + formattedMagnitude
 
     else
         message := na
@@ -837,46 +878,53 @@ getNQmessage() =>
 getBTCmessage() =>
     string message = na
 
+    if isOpenGap
+        message :=
+             "Gap • " +
+             (isOpenGapUp ? "Bullish opening repricing • " : "Bearish opening repricing • ") +
+             formattedCascadePoints
+
     if triggerStopCascade
         message :=
              "Liquidation • " +
              (isStopCascadeUp ? "Short squeeze • " : "Long flush • ") +
-             formattedPoints
+             formattedCascadePoints
 
     else if triggerExpansionEvent
         message :=
              "Impulse • " +
              (isUp ? "Bullish momentum • " : "Bearish momentum • ") +
-             formattedPercent
+             formattedMagnitude
 
     else if triggerExhaustionEvent
         message :=
              "Cooldown • " +
-             (expansionDirection ? "Bullish momentum fading" : "Bearish momentum fading")
+             (expansionDirection ? "Bullish momentum fading • " : "Bearish momentum fading • ") +
+             formattedMagnitude
 
     else if triggerRangeBreakoutEvent
         message :=
-             "Compression break • " +
-             str.tostring(rangeDuration) + "m • " +
-             (eventDirectionUp ? "Bullish" : "Bearish")
+             "Compression • " +
+             (eventDirectionUp ? "Bullish expansion • " : "Bearish expansion • ") +
+             formattedMagnitude
 
     else if isAcceptanceTriggerUp
-        message := "Holding • " + formattedPrice
+        message := "Acceptance • Bullish holding • " + formattedMagnitude
 
     else if isAcceptanceTriggerDown
-        message := "Holding • " + formattedPrice
+        message := "Acceptance • Bearish holding • " + formattedMagnitude
 
     else if isRejectionTriggerUp
-        message := "Failure • Bearish reversal"
+        message := "Failure • Bullish breakout failed • " + formattedMagnitude
 
     else if isRejectionTriggerDown
-        message := "Failure • Bullish reversal"
+        message := "Failure • Bearish breakout failed • " + formattedMagnitude
 
     else if triggerSlowTrendUpEvent
-        message := "Drift • Price rising • " + formattedPrice
+        message := "Drift • Price rising • " + formattedMagnitude
 
     else if triggerSlowTrendDownEvent
-        message := "Drift • Price falling • " + formattedPrice
+        message := "Drift • Price falling • " + formattedMagnitude
 
     else
         message := na
@@ -886,43 +934,171 @@ getBTCmessage() =>
 getESmessage() =>
     string message = na
 
+    if isOpenGap
+        message :=
+             "Gap • " +
+             (isOpenGapUp ? "Upside opening imbalance • " : "Downside opening imbalance • ") +
+             formattedCascadePoints
+
     if triggerStopCascade
         message :=
              "Sweep • " +
-             (isStopCascadeUp ? "Upside • " : "Downside • ") +
-             formattedPoints
+             (isStopCascadeUp ? "Upside liquidation • " : "Downside liquidation • ") +
+             formattedCascadePoints
 
     else if triggerExpansionEvent
         message :=
              "Drive • " +
              (isUp ? "Upside momentum • " : "Downside momentum • ") +
-             formattedPercent
+             formattedMagnitude
 
     else if triggerExhaustionEvent
         message :=
              "Fade • " +
-             (expansionDirection ? "Upside weakening" : "Downside weakening")
+             (expansionDirection ? "Upside weakening • " : "Downside weakening • ") +
+             formattedMagnitude
 
     else if triggerRangeBreakoutEvent
         message :=
              "Structure break • " +
-             str.tostring(rangeDuration) + "m • " +
-             (eventDirectionUp ? "Upside" : "Downside")
+             (eventDirectionUp ? "Upside acceptance • " : "Downside acceptance • ") +
+             formattedMagnitude
 
     else if isAcceptanceTriggerUp
-        message := "Acceptance • Upside holding • " + formattedPrice
+        message := "Acceptance • Upside holding • " + formattedMagnitude
 
     else if isAcceptanceTriggerDown
-        message := "Acceptance • Downside holding • " + formattedPrice
+        message := "Acceptance • Downside holding • " + formattedMagnitude
 
     else if isRejectionTriggerUp or isRejectionTriggerDown
-        message := "Failure • Return to range"
+        message := "Failure • Return to range • " + formattedMagnitude
 
     else if triggerSlowTrendUpEvent
-        message := "Bias • Upside"
+        message := "Bias • Upside drift • " + formattedMagnitude
 
     else if triggerSlowTrendDownEvent
-        message := "Bias • Downside"
+        message := "Bias • Downside drift • " + formattedMagnitude
+
+    else
+        message := na
+
+    message
+
+getE6message() =>
+    string message = na
+
+    if isOpenGap
+        message :=
+             "Gap • " +
+             (isOpenGapUp ? "Euro opening repricing • " : "Dollar opening repricing • ") +
+             formattedCascadeTicks
+
+    if triggerStopCascade and not (isContinuationCascadeUp or isContinuationCascadeDown)
+        message :=
+             "Flow • " +
+             (isStopCascadeUp ? "Aggressive euro repricing • " : "Aggressive dollar repricing • ") +
+             formattedCascadeTicks
+
+    else if triggerContinuationCascade
+        message :=
+             "Flow • " +
+             (isContinuationCascadeUp ? "Euro continuation buying • " : "Dollar continuation buying • ") +
+             formattedCascadeTicks
+
+    else if triggerExpansionEvent
+        message :=
+             "Reprice • " +
+             (isUp ? "Euro strength expanding • " : "Dollar strength expanding • ") +
+             formattedMagnitude
+
+    else if triggerExhaustionEvent
+        message :=
+             "Fatigue • " +
+             (expansionDirection ? "Euro buying fading • " : "Dollar buying fading • ") +
+             formattedMagnitude
+
+    else if triggerRangeBreakoutEvent
+        message :=
+             "Range break • " +
+             (eventDirectionUp ? "Upside currency auction • " : "Downside currency auction • ") +
+             formattedMagnitude
+
+    else if isAcceptanceTriggerUp
+        message := "Acceptance • Euro strength holding • " + formattedMagnitude
+
+    else if isAcceptanceTriggerDown
+        message := "Acceptance • Dollar strength holding • " + formattedMagnitude
+
+    else if isRejectionTriggerUp
+        message := "Failure • Euro breakout rejected • " + formattedMagnitude
+
+    else if isRejectionTriggerDown
+        message := "Failure • Dollar breakout rejected • " + formattedMagnitude
+
+    else if triggerSlowTrendUpEvent
+        message := "Drift • Euro grinding higher • " + formattedMagnitude
+
+    else if triggerSlowTrendDownEvent
+        message := "Drift • Dollar grinding higher • " + formattedMagnitude
+
+    else
+        message := na
+
+    message
+
+getCLmessage() =>
+    string message = na
+
+    if isOpenGap
+        message :=
+             "Gap • " +
+             (isOpenGapUp ? "Upside opening shock • " : "Downside opening shock • ") +
+             formattedCascadeTicks
+
+    if triggerStopCascade and not (isContinuationCascadeUp or isContinuationCascadeDown)
+        message :=
+             "Cascade • " +
+             (isStopCascadeUp ? "Short squeeze • " : "Long liquidation • ") +
+             formattedCascadeTicks
+
+    else if triggerContinuationCascade
+        message :=
+             "Cascade • " +
+             (isContinuationCascadeUp ? "Upside continuation • " : "Downside continuation • ") +
+             formattedCascadeTicks
+
+    else if triggerExpansionEvent
+        message :=
+             "Repricing • " +
+             (isUp ? "Upside inventory shock • " : "Downside inventory shock • ") +
+             formattedMagnitude
+
+    else if triggerExhaustionEvent
+        message :=
+             "Exhaustion • " +
+             (expansionDirection ? "Upside impulse fading • " : "Downside impulse fading • ") +
+             formattedMagnitude
+
+    else if triggerRangeBreakoutEvent
+        message :=
+             "Compression • " +
+             (eventDirectionUp ? "Upside release • " : "Downside release • ") +
+             formattedMagnitude
+
+    else if isAcceptanceTriggerUp
+        message := "Acceptance • Upside holding • " + formattedMagnitude
+
+    else if isAcceptanceTriggerDown
+        message := "Acceptance • Downside holding • " + formattedMagnitude
+
+    else if isRejectionTriggerUp or isRejectionTriggerDown
+        message := "Failure • Return to balance • " + formattedMagnitude
+
+    else if triggerSlowTrendUpEvent
+        message := "Inventory • Bullish pressure • " + formattedMagnitude
+
+    else if triggerSlowTrendDownEvent
+        message := "Inventory • Bearish pressure • " + formattedMagnitude
 
     else
         message := na
@@ -934,7 +1110,9 @@ newMessage :=
      isZN ? getZNmessage() :
      isNQ ? getNQmessage() :
      isBTC ? getBTCmessage() :
-     isES ? getESmessage() : na
+     isES ? getESmessage() :
+     isE6 ? getE6message() :
+     isCL ? getCLmessage() : na
 
 if not na(newMessage)
     alertMessage := newMessage
@@ -953,9 +1131,9 @@ shouldFireAlert =
      or isRejectionTriggerUp
      or isRejectionTriggerDown
 
-// cascades fire on bar close to capture full magnitude, special case
-isCascadeAlert = triggerStopCascade or triggerContinuationCascade
+// cascades and opening gap fire on bar close to capture full magnitude, special case
+isCloseEvaluatedAlert = triggerStopCascade or triggerContinuationCascade or isOpenGap
 
 // send alert to webhook
-if shouldFireAlert and not na(alertMessage) and (barstate.isconfirmed or not isCascadeAlert)
+if shouldFireAlert and not na(alertMessage) and (barstate.isconfirmed or not isCloseEvaluatedAlert)
     alert(alertMessage, alert.freq_once_per_bar)

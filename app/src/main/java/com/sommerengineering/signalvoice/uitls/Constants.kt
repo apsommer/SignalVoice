@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import com.google.firebase.Firebase
+import com.google.firebase.auth.OAuthProvider
 import com.google.firebase.crashlytics.crashlytics
 import com.sommerengineering.signalvoice.BuildConfig
 import com.sommerengineering.signalvoice.R
@@ -27,12 +28,9 @@ const val messageItemExpansionTimeMillis = 140
 // room
 const val roomDatabaseName = "messages.db"
 
-// firebase database
+// firebase
 const val databaseUrl = "https://signalvoice-api-default-rtdb.firebaseio.com/"
 const val webhookBaseUrl = "https://api.signalvoice.app/signal?uid="
-const val streamsNode = "streams"
-const val usersNode = "users"
-const val tokensNode = "tokens"
 
 // notifications
 const val channelId = "42"
@@ -41,6 +39,7 @@ const val channelDescription = "Real-time trading alerts"
 const val channelGroupId = "42"
 const val channelGroupName = "Alerts"
 const val notificationId = 42
+const val notificationTitle = "Listening for market signals"
 
 // firebase keys
 const val streamKey = "stream"
@@ -55,6 +54,7 @@ const val nqStream = "NQ"
 const val esStream = "ES"
 const val btcStream = "BTC"
 const val gcStream = "GC"
+const val e6Stream = "E6"
 const val clStream = "CL"
 
 // user signals
@@ -90,7 +90,7 @@ const val premiumDividerTitle = "PREMIUM"
 const val customDividerTitle = "CUSTOM"
 const val customTitle = "Custom signal"
 const val customDescription = "Webhook alerts"
-const val guestCustomDescription = "Sign in to set up webhooks"
+const val anonymousCustomDescription = "Sign in to set up webhooks"
 const val screenTitle = "Screen"
 const val screenFullDescription = "Full screen"
 const val screenWindowedDescription = "Show system bars"
@@ -103,7 +103,7 @@ const val signOutDescription = "End session"
 // cards
 const val emptyStateTitle = "Custom signal"
 const val emptyStateSubtitle = "Set up your webhook to receive alerts →"
-const val guestEmptyStateSubtitle = "Sign in to set up webhook →"
+const val anonymousEmptyStateSubtitle = "Sign in to set up webhook →"
 const val notificationsDisabledTitle = "Signals are paused"
 const val notificationsDisabledSubtitle = "Enable notifications for real-time voice alerts"
 
@@ -121,7 +121,7 @@ fun appBlue() = colorResource(R.color.app_blue)
 fun appGreen() = colorResource(R.color.app_green)
 
 // item style
-val rowHeight = 62.dp
+val rowHeight = 68.dp
 val assetIconSize = 32.dp
 val settingsIconSize = 24.dp
 val rowHorizontalPadding = 16.dp
@@ -154,7 +154,8 @@ const val doneText = "Done"
 const val enableText = "Enable"
 
 // login
-const val gitHubProviderId = "github.com"
+val gitHubProvider = OAuthProvider.newBuilder("github.com").build()
+const val anonymousSignInTitle = "Continue as guest"
 
 // tts
 const val defaultVoice = "en-gb-x-gbd-local"  // british, male
