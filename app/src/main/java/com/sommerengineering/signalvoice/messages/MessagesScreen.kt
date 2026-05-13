@@ -164,8 +164,8 @@ fun MessagesScreen(
                             iconRes = R.drawable.webhook,
                             title = emptyStateTitle,
                             subTitle =
-                                if (session.isAnonymous) emptyStateSubtitle
-                                else anonymousEmptyStateSubtitle,
+                                if (session.isAnonymous) anonymousEmptyStateSubtitle
+                                else emptyStateSubtitle,
                             onClick = onCustomSignalClick,
                             visible = isEmptyState,
                             onDismiss = { viewModel.updateEmptyState(false) }

@@ -39,22 +39,22 @@ fun MainNavigation(
         if (isOnboardingComplete) MessagesRoute
         else AppOnboardingRoute
 
-    // anonymous navigation
+    // custom signal click handler
     val session by viewModel.session.collectAsState()
     val onCustomSignalClick: () -> Unit = {
 
-        // webhook onboarding
+        // anonymous: login screen
         if (session.isAnonymous) {
-            controller.navigate(SetupOnboardingRoute)
-        }
-
-        // login screen
-        else {
             controller.navigate(LoginRoute) {
                 popUpTo(controller.graph.startDestinationId) {
                     inclusive = true
                 }
             }
+        }
+
+        // webhook onboarding
+        else {
+            controller.navigate(SetupOnboardingRoute)
         }
     }
 
