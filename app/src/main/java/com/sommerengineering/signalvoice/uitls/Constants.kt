@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import com.google.firebase.Firebase
+import com.google.firebase.auth.OAuthProvider
 import com.google.firebase.crashlytics.crashlytics
 import com.sommerengineering.signalvoice.BuildConfig
 import com.sommerengineering.signalvoice.R
@@ -153,7 +154,7 @@ const val doneText = "Done"
 const val enableText = "Enable"
 
 // login
-const val gitHubProviderId = "github.com"
+val gitHubProvider = OAuthProvider.newBuilder("github.com").build()
 const val anonymousSignInTitle = "Continue as guest"
 
 // tts

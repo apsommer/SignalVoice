@@ -13,7 +13,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sommerengineering.signalvoice.login.GitHubAuthenticator
 import com.sommerengineering.signalvoice.login.GoogleAuthenticator
 import com.sommerengineering.signalvoice.messages.FeedMode
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationState.RECEIVED
@@ -25,6 +24,7 @@ import com.sommerengineering.signalvoice.source.Message
 import com.sommerengineering.signalvoice.source.MessageOrigin
 import com.sommerengineering.signalvoice.source.resolveMessageOrigin
 import com.sommerengineering.signalvoice.uitls.RomanNumerals
+import com.sommerengineering.signalvoice.uitls.gitHubProvider
 import com.sommerengineering.signalvoice.uitls.screenFullDescription
 import com.sommerengineering.signalvoice.uitls.screenWindowedDescription
 import com.sommerengineering.signalvoice.uitls.webhookBaseUrl
@@ -45,7 +45,6 @@ class MainViewModel @Inject constructor(
     private val sessionManager: SessionManager,
     private val repo: MainRepository,
     private val googleAuthenticator: GoogleAuthenticator,
-    private val gitHubAuthenticator: GitHubAuthenticator,
 ) : ViewModel() {
 
     // session
@@ -283,10 +282,9 @@ class MainViewModel @Inject constructor(
         onAuthentication: () -> Unit
     ) = viewModelScope.launch {
 
-        val provider = gitHubAuthenticator.provider
         val isSuccess = sessionManager.signInWithProvider(
             context = context,
-            provider = provider
+            provider = gitHubProvider
         )
         if (isSuccess) {
             onAuthentication()
