@@ -77,6 +77,7 @@ fun MessagesScreen(
 
     // start/stop speech service
     LaunchedEffect(Unit) {
+        viewModel.restoreListening()
         viewModel.isListening.collect { enabled ->
             if (enabled) ForegroundSpeechService.start(context)
             else ForegroundSpeechService.stop(context)

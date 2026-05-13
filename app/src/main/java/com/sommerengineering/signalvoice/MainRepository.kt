@@ -121,13 +121,21 @@ class MainRepository @Inject constructor(
     private val _isListening = MutableStateFlow(true)
     val isListening = _isListening.asStateFlow()
 
-    fun setListening(enabled: Boolean) {
+    fun setListening(
+        enabled: Boolean,
+        isPersist: Boolean = true
+    ) {
         tts.isMute = !enabled
-        if (!enabled && tts.isSpeaking()) { // stop any current speech
-            tts.stop()
-        }
+        if (!enabled && tts.isSpeaking()) tts.stop() // stop any current speech
         _isListening.value = enabled
-        appScope.launch { prefs.write(LISTENING, enabled) }
+        if (isPersist) appScope.launch { prefs.write(LISTENING, enabled) }
+    }
+
+    suspend fun restoreListening() {
+        setListening(
+            enabled = prefs.read(LISTENING) ?: true,
+            isPersist = false
+        )
     }
 
     suspend fun speakMessage(message: Message) {
@@ -278,6 +286,10 @@ class MainRepository @Inject constructor(
     }
 
     fun signOut() {
+        setListening(
+            enabled = false,
+            isPersist = false
+        )
         sessionManager.signOut()
         appScope.launch {
             roomDb.removeUserMessages()

@@ -137,6 +137,8 @@ class MainViewModel @Inject constructor(
         repo.setListening(!isListening.value)
     }
 
+    suspend fun restoreListening() = repo.restoreListening()
+
     fun speakUtterance(utterance: String) =
         viewModelScope.launch {
             repo.speakPreview(utterance)
