@@ -7,8 +7,6 @@ import com.sommerengineering.signalvoice.PREMIUM
 import com.sommerengineering.signalvoice.PreferenceStore
 import com.sommerengineering.signalvoice.UID
 import com.sommerengineering.signalvoice.premium.BillingManager
-import com.sommerengineering.signalvoice.session.Session.Authenticated
-import com.sommerengineering.signalvoice.session.Session.Guest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,96 +24,59 @@ class SessionManager @Inject constructor(
 
     private val auth = FirebaseAuth.getInstance()
 
-    private val _session = MutableStateFlow<Session>(Guest)
+    private val _session = MutableStateFlow<Session?>(null)
     val session = _session.asStateFlow()
 
     private var entitlementJob: Job? = null
 
-    init {
-
-        // initialize session
-        val currentUid = auth.currentUser?.uid
-        onUid(currentUid)
-
-        // handle auth state changes
-        auth.addAuthStateListener { onAuth() }
-
-        // listen for purchase event
-        appScope.launch {
-            billingManager.purchaseEvents.collect {
-                val uid = uid ?: return@collect
-                updateSession(
-                    uid = uid,
-                    isPremium = true
-                )
-            }
-        }
-    }
-
-    val uid: String?
-        get() = when (val currentSession = _session.value) {
-            Guest -> null
-            is Authenticated -> currentSession.uid
-        }
+    val uid: String
+        get() = _session.value?.uid ?: error("Session not initialized")
 
     private fun onAuth() {
 
-        val newUid = auth.currentUser?.uid
+        val newUid = auth.currentUser?.uid ?: return
 
         // dedupe
-        val currentUid = uid
+        val currentUid = _session.value?.uid
         if (newUid == currentUid) return
 
-        onUid(newUid)
-    }
-
-    private fun onUid(uid: String?) {
-
-        entitlementJob?.cancel()
-
-        // guest, or logout
-        if (uid == null) {
-            _session.value = Guest
-            return
-        }
-
-        // authenticated
-        _session.value = Authenticated(
-            uid = uid,
+        // initialize user without premium
+        _session.value = Session(
+            uid = newUid,
             isPremium = false
         )
 
         // check premium entitlement
+        entitlementJob?.cancel()
         entitlementJob = appScope.launch {
 
-            // load entitlement from cache
-            var isPremium = loadPremium(uid)
-            updateSession(uid, isPremium)
+            // initialize entitlement from cache
+            var isPremium = loadPremium(newUid)
+            updateSession(newUid, isPremium)
 
             // fetch entitlement from network
             isPremium =
                 if (BuildConfig.DEBUG) true
                 else billingManager.isPremium()
-            updateSession(uid, isPremium)
+            updateSession(newUid, isPremium)
         }
     }
-    
+
     private fun updateSession(
         uid: String,
         isPremium: Boolean
     ) {
 
-        val current = _session.value
-
         // prevent race: validate session still active, and same user
-        if (current !is Authenticated) return
+        val current = _session.value ?: return
         if (current.uid != uid) return
 
+        // update entitlement
         _session.value = current.copy(
             isPremium = isPremium
         )
 
-        // persist entitlement
+        // persist entitlement to cache
         appScope.launch {
             updatePremium(uid, isPremium)
         }
@@ -137,14 +98,31 @@ class SessionManager @Inject constructor(
         isPremium: Boolean
     ) {
 
-        // retrieve cache
-        val storedUid = prefs.read(UID)
-        val storedPremium = prefs.read(PREMIUM) ?: false
-
-        // prevent unnecessary writes
-        if (uid == storedUid && isPremium == storedPremium) return
+        // dedupe
+        val storedPremium = loadPremium(uid)
+        if (isPremium == storedPremium) return
 
         prefs.write(UID, uid)
         prefs.write(PREMIUM, isPremium)
+    }
+
+    init {
+
+        // listen for purchase event
+        appScope.launch {
+            billingManager.purchaseEvents.collect {
+                updateSession(
+                    uid = uid,
+                    isPremium = true
+                )
+            }
+        }
+
+        // check for anonymous guest
+        val currentUid = auth.currentUser?.uid
+        if (currentUid == null) auth.signInAnonymously()
+
+        // listen for auth state changes
+        auth.addAuthStateListener { onAuth() }
     }
 }
