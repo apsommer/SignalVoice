@@ -18,6 +18,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,7 +35,6 @@ import androidx.compose.ui.unit.dp
 import com.sommerengineering.signalvoice.BuildConfig
 import com.sommerengineering.signalvoice.MainViewModel
 import com.sommerengineering.signalvoice.R
-import com.sommerengineering.signalvoice.session.Session.Authenticated
 import com.sommerengineering.signalvoice.source.MessageOrigin
 import com.sommerengineering.signalvoice.source.btcAsset
 import com.sommerengineering.signalvoice.source.clAsset
@@ -43,13 +43,13 @@ import com.sommerengineering.signalvoice.source.esAsset
 import com.sommerengineering.signalvoice.source.gcAsset
 import com.sommerengineering.signalvoice.source.nqAsset
 import com.sommerengineering.signalvoice.source.znAsset
+import com.sommerengineering.signalvoice.uitls.anonymousCustomDescription
 import com.sommerengineering.signalvoice.uitls.customDescription
 import com.sommerengineering.signalvoice.uitls.customDividerTitle
 import com.sommerengineering.signalvoice.uitls.customTitle
 import com.sommerengineering.signalvoice.uitls.descriptionAlpha
 import com.sommerengineering.signalvoice.uitls.edgePadding
 import com.sommerengineering.signalvoice.uitls.generalDividerTitle
-import com.sommerengineering.signalvoice.uitls.guestCustomDescription
 import com.sommerengineering.signalvoice.uitls.manageSubscriptionDescription
 import com.sommerengineering.signalvoice.uitls.manageSubscriptionTitle
 import com.sommerengineering.signalvoice.uitls.pitchChangeUtterance
@@ -79,7 +79,7 @@ fun SettingsDrawer(
 
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
-    val session = viewModel.session
+    val session by viewModel.session.collectAsState()
 
     val speed = viewModel.speed
     val pitch = viewModel.pitch
@@ -295,8 +295,8 @@ fun SettingsDrawer(
                     iconRes = R.drawable.webhook,
                     title = customTitle,
                     description =
-                        if (session is Authenticated) customDescription
-                        else guestCustomDescription,
+                        if (session.isAnonymous) anonymousCustomDescription
+                        else customDescription,
                     onClick = onCustomSignalClick
                 ) {
                     Icon(

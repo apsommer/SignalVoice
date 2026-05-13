@@ -24,25 +24,36 @@ class SessionManager @Inject constructor(
 
     private val auth = FirebaseAuth.getInstance()
 
-    private val _session = MutableStateFlow<Session?>(null)
+    private val _session = MutableStateFlow(
+        Session(
+            uid = "",
+            isAnonymous = true,
+            isPremium = false
+        )
+    )
     val session = _session.asStateFlow()
 
     private var entitlementJob: Job? = null
 
     val uid: String
-        get() = _session.value?.uid ?: error("Session not initialized")
+        get() = session.value.uid
+
+    val isPremium: Boolean
+        get() = session.value.isPremium
 
     private fun onAuth() {
 
-        val newUid = auth.currentUser?.uid ?: return
+        val currentUser = auth.currentUser
+        val newUid = currentUser?.uid ?: return
 
         // dedupe
-        val currentUid = _session.value?.uid
+        val currentUid = _session.value.uid
         if (newUid == currentUid) return
 
         // initialize user without premium
         _session.value = Session(
             uid = newUid,
+            isAnonymous = currentUser.isAnonymous,
             isPremium = false
         )
 
@@ -68,7 +79,7 @@ class SessionManager @Inject constructor(
     ) {
 
         // prevent race: validate session still active, and same user
-        val current = _session.value ?: return
+        val current = _session.value
         if (current.uid != uid) return
 
         // update entitlement
@@ -118,11 +129,11 @@ class SessionManager @Inject constructor(
             }
         }
 
-        // check for anonymous guest
-        val currentUid = auth.currentUser?.uid
-        if (currentUid == null) auth.signInAnonymously()
-
         // listen for auth state changes
         auth.addAuthStateListener { onAuth() }
+
+        // check for anonymous
+        val currentUid = auth.currentUser?.uid
+        if (currentUid == null) auth.signInAnonymously()
     }
 }

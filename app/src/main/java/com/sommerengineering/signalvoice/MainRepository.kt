@@ -6,7 +6,6 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.sommerengineering.signalvoice.firebase.FirebaseDatabaseImpl
 import com.sommerengineering.signalvoice.messages.FeedMode
 import com.sommerengineering.signalvoice.room.RoomImpl
-import com.sommerengineering.signalvoice.session.Session
 import com.sommerengineering.signalvoice.session.SessionManager
 import com.sommerengineering.signalvoice.source.Message
 import com.sommerengineering.signalvoice.source.MessageOrigin
@@ -24,8 +23,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -323,12 +324,13 @@ class MainRepository @Inject constructor(
     }
 
     // firebase database (token)
-    var newToken: String? = null
+    private var cachedToken: String? = null
     fun onNewToken(token: String) {
-        newToken = token
+        cachedToken = token
+        reconcileToken(token)
     }
 
-    fun writeNewToken(token: String) {
+    private fun reconcileToken(token: String) {
         appScope.launch {
             FirebaseMessaging.getInstance().apply {
                 if (loadZN()) subscribeToTopic(znStream) else unsubscribeFromTopic(znStream)
@@ -341,8 +343,8 @@ class MainRepository @Inject constructor(
             }
         }
         firebaseDb.writeToken(token)
+        if (cachedToken == token) cachedToken = null
     }
-
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -350,17 +352,17 @@ class MainRepository @Inject constructor(
 
         // observe session state
         appScope.launch {
-            sessionManager.session.collect {
-                val uid = (it as? Session.Authenticated)?.uid
-                firebaseDb.setUid(uid) // set uid from flow emission to avoid race
-                if (it is Session.Authenticated) {
-                    hydrateUserMessages() // cold start hydration of user messages
+            sessionManager.session
+                .map { it.uid }
+                .distinctUntilChanged()
+                .collect { uid ->
+
+                    firebaseDb.setUid(uid)
+                    hydrateUserMessages()
+
+                    // write new token, if needed
+                    cachedToken?.let(::reconcileToken)
                 }
-                newToken?.let { token ->
-                    writeNewToken(token) // write new token, if needed
-                    newToken = null
-                }
-            }
         }
 
         // initialize tts engine

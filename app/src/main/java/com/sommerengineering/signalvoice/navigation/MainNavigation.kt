@@ -1,6 +1,8 @@
 package com.sommerengineering.signalvoice.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -10,7 +12,6 @@ import com.google.firebase.auth.auth
 import com.sommerengineering.signalvoice.MainViewModel
 import com.sommerengineering.signalvoice.login.LoginScreen
 import com.sommerengineering.signalvoice.messages.MessagesScreen
-import com.sommerengineering.signalvoice.session.Session
 import com.sommerengineering.signalvoice.uitls.AppOnboardingRoute
 import com.sommerengineering.signalvoice.uitls.LoginRoute
 import com.sommerengineering.signalvoice.uitls.MessagesRoute
@@ -38,16 +39,20 @@ fun MainNavigation(
         if (isOnboardingComplete) MessagesRoute
         else AppOnboardingRoute
 
-    // guest navigation
-    val session = viewModel.session
+    // anonymous navigation
+    val session by viewModel.session.collectAsState()
     val onCustomSignalClick: () -> Unit = {
-        when (session) {
-            is Session.Authenticated -> controller.navigate(SetupOnboardingRoute) // webhook onboarding
-            else -> {
-                controller.navigate(LoginRoute) { // login screen
-                    popUpTo(controller.graph.startDestinationId) {
-                        inclusive = true
-                    }
+
+        // webhook onboarding
+        if (session.isAnonymous) {
+            controller.navigate(SetupOnboardingRoute)
+        }
+
+        // login screen
+        else {
+            controller.navigate(LoginRoute) {
+                popUpTo(controller.graph.startDestinationId) {
+                    inclusive = true
                 }
             }
         }

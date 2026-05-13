@@ -21,7 +21,6 @@ import com.sommerengineering.signalvoice.messages.FeedMode
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationState.RECEIVED
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationState.WAITING
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationUiState
-import com.sommerengineering.signalvoice.session.Session
 import com.sommerengineering.signalvoice.session.SessionManager
 import com.sommerengineering.signalvoice.source.Asset
 import com.sommerengineering.signalvoice.source.Message
@@ -53,8 +52,7 @@ class MainViewModel @Inject constructor(
 ) : ViewModel() {
 
     // session
-    var session by mutableStateOf<Session>(Session.Guest)
-        private set
+    val session = sessionManager.session
 
     // premium (locked) todo collapse this overload
     fun isLocked(message: Message): Boolean {
@@ -69,7 +67,7 @@ class MainViewModel @Inject constructor(
 
     fun isLocked(asset: Asset): Boolean {
         val isPremiumAsset = asset.isPremium
-        val isPremiumUser = (session as? Session.Authenticated)?.isPremium == true
+        val isPremiumUser = sessionManager.isPremium
         return isPremiumAsset && !isPremiumUser
     }
 
@@ -83,7 +81,7 @@ class MainViewModel @Inject constructor(
     }
 
     val webhookUrl
-        get() = webhookBaseUrl + (session as Session.Authenticated).uid
+        get() = webhookBaseUrl + sessionManager.uid
 
     // room database
     val messages = repo.messages.stateIn(
@@ -406,13 +404,6 @@ class MainViewModel @Inject constructor(
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     init {
-
-        // observe session state
-        viewModelScope.launch {
-            sessionManager.session.collect {
-                session = it
-            }
-        }
 
         // load settings from preferences
         // block main thread is acceptable for datastore read ~3 ms each

@@ -21,9 +21,9 @@ class FirebaseDatabaseImpl @Inject constructor() {
     private val USERS = "users"
 
     private val db = Firebase.database(databaseUrl)
-    private var uid: String? = null
+    private var uid = ""
 
-    fun setUid(newUid: String?) {
+    fun setUid(newUid: String) {
         if (uid == newUid) return
         uid = newUid
     }
@@ -43,8 +43,9 @@ class FirebaseDatabaseImpl @Inject constructor() {
 
     suspend fun fetchUserMessages(): List<Message> {
 
-        // guest user has no messages
-        val currentUid = uid ?: return emptyList()
+        // anonymous user has no messages
+        val currentUid = uid
+        if (currentUid.isEmpty()) return emptyList()
 
         return suspendCancellableCoroutine { continuation ->
             db.getReference(SIGNALS)
@@ -82,13 +83,13 @@ class FirebaseDatabaseImpl @Inject constructor() {
 
         val currentUid = uid
 
-        // write token: uid? (guest or authenticated)
+        // write token: uid
         db.getReference(TOKENS)
             .child(newToken)
-            .setValue(currentUid ?: "guest")
+            .setValue(currentUid)
 
-        // write uid: token (authenticated)
-        if (currentUid == null) return
+        // write uid: token
+        if (currentUid.isEmpty()) return
         db.getReference(USERS)
             .child(currentUid)
             .setValue(newToken)

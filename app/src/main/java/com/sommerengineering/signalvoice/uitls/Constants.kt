@@ -89,7 +89,7 @@ const val premiumDividerTitle = "PREMIUM"
 const val customDividerTitle = "CUSTOM"
 const val customTitle = "Custom signal"
 const val customDescription = "Webhook alerts"
-const val guestCustomDescription = "Sign in to set up webhooks"
+const val anonymousCustomDescription = "Sign in to set up webhooks"
 const val screenTitle = "Screen"
 const val screenFullDescription = "Full screen"
 const val screenWindowedDescription = "Show system bars"
@@ -102,7 +102,7 @@ const val signOutDescription = "End session"
 // cards
 const val emptyStateTitle = "Custom signal"
 const val emptyStateSubtitle = "Set up your webhook to receive alerts →"
-const val guestEmptyStateSubtitle = "Sign in to set up webhook →"
+const val anonymousEmptyStateSubtitle = "Sign in to set up webhook →"
 const val notificationsDisabledTitle = "Signals are paused"
 const val notificationsDisabledSubtitle = "Enable notifications for real-time voice alerts"
 
@@ -154,6 +154,7 @@ const val enableText = "Enable"
 
 // login
 const val gitHubProviderId = "github.com"
+const val anonymousSignInTitle = "Continue as guest"
 
 // tts
 const val defaultVoice = "en-gb-x-gbd-local"  // british, male
