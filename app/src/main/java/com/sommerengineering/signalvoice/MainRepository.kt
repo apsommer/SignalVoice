@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.roundToInt
@@ -336,14 +337,8 @@ class MainRepository @Inject constructor(
         }
     }
 
-    // firebase database (token)
-    private var cachedToken: String? = null
-    fun onNewToken(token: String) {
-        cachedToken = token
-        reconcileToken(token)
-    }
-
-    private fun reconcileToken(token: String) {
+    // device token
+    fun reconcileToken(token: String) {
         appScope.launch {
             FirebaseMessaging.getInstance().apply {
                 if (loadZN()) subscribeToTopic(znStream) else unsubscribeFromTopic(znStream)
@@ -369,11 +364,14 @@ class MainRepository @Inject constructor(
                 .distinctUntilChanged()
                 .collect { uid ->
 
+                    // hydrate user messages
                     firebaseDb.setUid(uid)
                     hydrateUserMessages()
 
                     // write new token, if needed
-                    cachedToken?.let(::reconcileToken)
+                    reconcileToken(
+                        FirebaseMessaging.getInstance().token.await()
+                    )
                 }
         }
 

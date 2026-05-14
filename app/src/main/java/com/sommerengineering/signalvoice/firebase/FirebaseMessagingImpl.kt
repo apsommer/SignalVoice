@@ -49,5 +49,5 @@ class FirebaseServiceImpl : FirebaseMessagingService() {
     }
 
     override fun onNewToken(token: String) =
-        repo.onNewToken(token)
+        repo.reconcileToken(token)
 }
