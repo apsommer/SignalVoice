@@ -1,4 +1,4 @@
-package com.sommerengineering.signalvoice.session
+package com.sommerengineering.signalvoice.login
 
 import android.content.Context
 import androidx.activity.ComponentActivity
@@ -13,8 +13,6 @@ import com.sommerengineering.signalvoice.PREMIUM
 import com.sommerengineering.signalvoice.PreferenceStore
 import com.sommerengineering.signalvoice.UID
 import com.sommerengineering.signalvoice.premium.BillingManager
-import com.sommerengineering.signalvoice.session.Session.Authenticated
-import com.sommerengineering.signalvoice.session.Session.Guest
 import com.sommerengineering.signalvoice.uitls.logException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -35,7 +33,7 @@ class SessionManager @Inject constructor(
 
     private val auth = FirebaseAuth.getInstance()
 
-    private val _session = MutableStateFlow<Session>(Guest)
+    private val _session = MutableStateFlow<Session>(Session.Guest)
     val session = _session.asStateFlow()
 
     private var entitlementJob: Job? = null
@@ -46,7 +44,7 @@ class SessionManager @Inject constructor(
 
         // sign-out
         if (currentUser == null) {
-            _session.value = Guest
+            _session.value = Session.Guest
             return
         }
 
@@ -57,7 +55,7 @@ class SessionManager @Inject constructor(
         if (newUid == currentUid) return
 
         // initialize user without premium
-        _session.value = Authenticated(
+        _session.value = Session.Authenticated(
             uid = newUid,
             isPremium = false
         )
@@ -87,7 +85,7 @@ class SessionManager @Inject constructor(
         if (newUid != session.value.uid) return
 
         // update entitlement
-        val current = _session.value as? Authenticated ?: return
+        val current = _session.value as? Session.Authenticated ?: return
         _session.value = current.copy(
             isPremium = isPremium
         )

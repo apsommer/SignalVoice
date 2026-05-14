@@ -14,11 +14,11 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sommerengineering.signalvoice.login.GoogleAuthenticator
+import com.sommerengineering.signalvoice.login.SessionManager
 import com.sommerengineering.signalvoice.messages.FeedMode
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationState.RECEIVED
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationState.WAITING
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationUiState
-import com.sommerengineering.signalvoice.session.SessionManager
 import com.sommerengineering.signalvoice.source.Asset
 import com.sommerengineering.signalvoice.source.Message
 import com.sommerengineering.signalvoice.source.MessageOrigin

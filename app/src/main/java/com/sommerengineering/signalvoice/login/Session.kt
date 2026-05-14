@@ -1,4 +1,4 @@
-package com.sommerengineering.signalvoice.session
+package com.sommerengineering.signalvoice.login
 
 sealed class Session {
 
