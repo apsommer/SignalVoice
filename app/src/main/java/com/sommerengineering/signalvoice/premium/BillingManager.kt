@@ -101,6 +101,7 @@ class BillingManager @Inject constructor(
                     return@any isValid && isPurchased && isAcknowledged
                 }
 
+                logMessage("Billing manager response isPremium: $isPremium")
                 continuation.resume(isPremium)
             }
         }
