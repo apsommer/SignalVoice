@@ -40,12 +40,6 @@ class SessionManager @Inject constructor(
 
     private var entitlementJob: Job? = null
 
-    val uid: String
-        get() = (session.value as? Authenticated)?.uid ?: ""
-
-    val isPremium: Boolean
-        get() = (session.value as? Authenticated)?.isPremium ?: false
-
     private fun onAuth() {
 
         val currentUser = auth.currentUser
@@ -59,7 +53,7 @@ class SessionManager @Inject constructor(
         val newUid = currentUser.uid
 
         // dedupe
-        val currentUid = uid
+        val currentUid = session.value.uid
         if (newUid == currentUid) return
 
         // initialize user without premium
@@ -90,7 +84,7 @@ class SessionManager @Inject constructor(
     ) {
 
         // prevent race: validate session still active, and same user
-        if (newUid != uid) return
+        if (newUid != session.value.uid) return
 
         // update entitlement
         val current = _session.value as? Authenticated ?: return
@@ -178,7 +172,7 @@ class SessionManager @Inject constructor(
         appScope.launch {
             billingManager.purchaseEvents.collect {
                 updateSession(
-                    newUid = uid,
+                    newUid = session.value.uid,
                     isPremium = true
                 )
             }

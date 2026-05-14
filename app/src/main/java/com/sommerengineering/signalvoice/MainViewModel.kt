@@ -63,7 +63,7 @@ class MainViewModel @Inject constructor(
 
     fun isLocked(asset: Asset): Boolean {
         val isPremiumAsset = asset.isPremium
-        val isPremiumUser = sessionManager.isPremium
+        val isPremiumUser = session.value.isPremium
         return isPremiumAsset && !isPremiumUser
     }
 
@@ -77,7 +77,7 @@ class MainViewModel @Inject constructor(
     }
 
     val webhookUrl
-        get() = webhookBaseUrl + sessionManager.uid
+        get() = webhookBaseUrl + session.value.uid
 
     // room database
     val messages = repo.messages.stateIn(

@@ -41,6 +41,9 @@ class MainRepository @Inject constructor(
     private val prefs: PreferenceStore
 ) {
 
+    // session
+    val session = sessionManager.session
+
     // room database
     val messages = roomDb.messages
     fun addMessage(message: Message) =
@@ -361,8 +364,8 @@ class MainRepository @Inject constructor(
 
         // observe session state
         appScope.launch {
-            sessionManager.session
-                .map { sessionManager.uid }
+            session
+                .map { it.uid }
                 .distinctUntilChanged()
                 .collect { uid ->
 
