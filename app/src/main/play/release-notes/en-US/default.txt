@@ -1,1 +1,1 @@
-Purge stale messages
+Handle premium purchase in session
