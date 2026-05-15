@@ -110,11 +110,7 @@ fun SettingsDrawer(
             modifier = Modifier
                 .fillMaxHeight()
                 .background(MaterialTheme.colorScheme.background)
-                .padding(
-                    top =
-                        if (isFullScreen) appBarHeight
-                        else 0.dp
-                )
+                .padding(top = appBarHeight)
         ) {
 
             // divider
@@ -384,14 +380,12 @@ fun SettingsDrawer(
             }
         }
 
-        // prevent scroll into notch area when fullscreen
-        if (isFullScreen) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(appBarHeight)
-                    .background(MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp))
-            )
-        }
+        // decoration prevents scroll into notch area when fullscreen
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(appBarHeight)
+                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp))
+        )
     }
 }
