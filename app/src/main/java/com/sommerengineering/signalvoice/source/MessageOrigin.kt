@@ -10,6 +10,7 @@ sealed interface MessageOrigin {
     val signalDescription: String // settings description
     val order: Int
     val style: MessageItemStyle
+    val isPremium: Boolean
 
     data class BroadcastStream(val asset: Asset) : MessageOrigin {
         override val key = asset.origin
@@ -18,6 +19,7 @@ sealed interface MessageOrigin {
         override val signalDescription = asset.signalDescription
         override val order = asset.order
         override val style = asset.style
+        override val isPremium = asset.isPremium
     }
 
     data class UserSignal(val source: Source) : MessageOrigin {
@@ -27,6 +29,7 @@ sealed interface MessageOrigin {
         override val signalDescription = source.signalDescription
         override val order = source.order + 100 // always after assets
         override val style = source.style
+        override val isPremium = false
     }
 }
 

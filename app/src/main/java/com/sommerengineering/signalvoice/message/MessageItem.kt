@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,7 +34,8 @@ fun MessageItem(
     val origin = resolveMessageOrigin(message)
 
     // premium locked state
-    val isLocked = viewModel.isLocked(message)
+    val session by viewModel.session.collectAsState()
+    val isLocked = origin.isPremium && !session.isPremium
 
     // prepend origin display name in linear mode
     val displayText =

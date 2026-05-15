@@ -181,7 +181,6 @@ fun MessagesScreen(
                             itemsIndexed(
                                 items = messages,
                                 key = { _, it -> it.timestamp }) { index, message ->
-
                                 MessageItem(
                                     viewModel = viewModel,
                                     message = message,

@@ -206,10 +206,10 @@ fun SettingsDrawer(
             // stream ZN
             item {
                 StreamSwitchItem(
+                    viewModel = viewModel,
                     origin = MessageOrigin.BroadcastStream(znAsset),
                     enabled = isZN,
                     updateStream = { viewModel.updateZN(it) },
-                    isLocked = viewModel.isLocked(znAsset),
                     onLockedClick = { viewModel.launchPaywall() }
                 )
             }
@@ -217,10 +217,10 @@ fun SettingsDrawer(
             // stream NQ
             item {
                 StreamSwitchItem(
+                    viewModel = viewModel,
                     origin = MessageOrigin.BroadcastStream(nqAsset),
                     enabled = isNQ,
                     updateStream = { viewModel.updateNQ(it) },
-                    isLocked = viewModel.isLocked(nqAsset),
                     onLockedClick = { viewModel.launchPaywall() }
                 )
             }
@@ -228,10 +228,10 @@ fun SettingsDrawer(
             // stream BTC
             item {
                 StreamSwitchItem(
+                    viewModel = viewModel,
                     origin = MessageOrigin.BroadcastStream(btcAsset),
                     enabled = isBTC,
                     updateStream = { viewModel.updateBTC(it) },
-                    isLocked = viewModel.isLocked(btcAsset),
                     onLockedClick = { viewModel.launchPaywall() }
                 )
             }
@@ -244,10 +244,10 @@ fun SettingsDrawer(
             // stream ES
             item {
                 StreamSwitchItem(
+                    viewModel = viewModel,
                     origin = MessageOrigin.BroadcastStream(esAsset),
                     enabled = isES,
                     updateStream = { viewModel.updateES(it) },
-                    isLocked = viewModel.isLocked(esAsset),
                     onLockedClick = { viewModel.launchPaywall() }
                 )
             }
@@ -255,10 +255,10 @@ fun SettingsDrawer(
             // stream GC
             item {
                 StreamSwitchItem(
+                    viewModel = viewModel,
                     origin = MessageOrigin.BroadcastStream(gcAsset),
                     enabled = isGC,
                     updateStream = { viewModel.updateGC(it) },
-                    isLocked = viewModel.isLocked(gcAsset),
                     onLockedClick = { viewModel.launchPaywall() }
                 )
             }
@@ -266,10 +266,10 @@ fun SettingsDrawer(
             // stream E6
             item {
                 StreamSwitchItem(
+                    viewModel = viewModel,
                     origin = MessageOrigin.BroadcastStream(e6Asset),
                     enabled = isE6,
                     updateStream = { viewModel.updateE6(it) },
-                    isLocked = viewModel.isLocked(e6Asset),
                     onLockedClick = { viewModel.launchPaywall() }
                 )
             }
@@ -277,10 +277,10 @@ fun SettingsDrawer(
             // stream CL
             item {
                 StreamSwitchItem(
+                    viewModel = viewModel,
                     origin = MessageOrigin.BroadcastStream(clAsset),
                     enabled = isCL,
                     updateStream = { viewModel.updateCL(it) },
-                    isLocked = viewModel.isLocked(clAsset),
                     onLockedClick = { viewModel.launchPaywall() }
                 )
             }

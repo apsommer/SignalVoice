@@ -19,10 +19,7 @@ import com.sommerengineering.signalvoice.messages.FeedMode
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationState.RECEIVED
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationState.WAITING
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationUiState
-import com.sommerengineering.signalvoice.source.Asset
 import com.sommerengineering.signalvoice.source.Message
-import com.sommerengineering.signalvoice.source.MessageOrigin
-import com.sommerengineering.signalvoice.source.resolveMessageOrigin
 import com.sommerengineering.signalvoice.uitls.RomanNumerals
 import com.sommerengineering.signalvoice.uitls.gitHubProvider
 import com.sommerengineering.signalvoice.uitls.screenFullDescription
@@ -50,23 +47,7 @@ class MainViewModel @Inject constructor(
     // session
     val session = sessionManager.session
 
-    // premium (locked) todo collapse this overload
-    fun isLocked(message: Message): Boolean {
-        val origin = resolveMessageOrigin(message)
-        return isLocked(origin)
-    }
-
-    fun isLocked(origin: MessageOrigin): Boolean {
-        if (origin !is MessageOrigin.BroadcastStream) return false
-        return isLocked(origin.asset)
-    }
-
-    fun isLocked(asset: Asset): Boolean {
-        val isPremiumAsset = asset.isPremium
-        val isPremiumUser = session.value.isPremium
-        return isPremiumAsset && !isPremiumUser
-    }
-
+    // paywall: authenticated user attempts to access premium stream
     private val _shouldLaunchPaywall = MutableSharedFlow<Unit>()
     val shouldLaunchPaywall = _shouldLaunchPaywall.asSharedFlow()
 
