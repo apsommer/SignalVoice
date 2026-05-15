@@ -1,1 +1,1 @@
-Enable single device multiple users
+Purge stale messages
