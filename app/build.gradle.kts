@@ -31,6 +31,10 @@ java {
     }
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 kotlin {
     compilerOptions {
         jvmTarget = JvmTarget.fromTarget("17")
