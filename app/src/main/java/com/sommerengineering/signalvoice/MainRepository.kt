@@ -18,7 +18,6 @@ import com.sommerengineering.signalvoice.uitls.gcStream
 import com.sommerengineering.signalvoice.uitls.nqStream
 import com.sommerengineering.signalvoice.uitls.znStream
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -302,41 +301,6 @@ class MainRepository @Inject constructor(
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private suspend fun stabilizeVoices() {
-
-        var voiceCount = -1
-        var stablePasses = 0
-        var attempts = 0
-        val maxAttempts = 40
-        while (true) {
-
-            // query engine state
-            val voices = tts.voices
-            val currentVoiceCount = voices.size
-
-            // check size of voices and their attributes
-            val isSizeStable = currentVoiceCount > 0 && currentVoiceCount == voiceCount
-            val areVoicesStable = voices.all { it.name != null && it.locale != null }
-
-            if (isSizeStable && areVoicesStable) {
-                stablePasses++
-                if (stablePasses > 3) break // size and voices are stable, finish
-            } else {
-                stablePasses = 0
-            }
-
-            // fail-safe exit
-            // todo if this fail safe occurs tts engine is unusable, entire app will not function
-            //  surface this to user in the existing AllowNotificationBottomBar
-            attempts++
-            if (attempts > maxAttempts) break
-
-            // voices unstable, try again
-            voiceCount = currentVoiceCount
-            delay(50)
-        }
-    }
-
     // device token
     fun reconcileToken(token: String) {
         appScope.launch {
@@ -378,7 +342,6 @@ class MainRepository @Inject constructor(
         // initialize tts engine
         appScope.launch {
             isTtsInit.filter { it }.first() // ~10 millis
-            stabilizeVoices() // ~500 millis todo remove this, solved a non-existent problem
             initTtsSettings()
             _isTtsReady.update { true }
         }
