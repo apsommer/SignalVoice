@@ -1,3 +1,4 @@
+import os
 import time
 import logging
 
@@ -13,10 +14,21 @@ streams = frozenset({'ZN', 'NQ', 'BTC', 'ES', 'GC', 'E6', 'CL'})
 # initialize logs
 logger = logging.getLogger(__name__)
 
-# initialize admin sdk
-APP = initialize_app(
-    credential = credentials.Certificate('admin.json'), # todo credential only required for local environment, can be removed for cloud only production
-    options = {'databaseURL': 'https://signalvoice-api-default-rtdb.firebaseio.com/'})
+# initialize database target
+db_config = {
+    'databaseURL': 'https://signalvoice-api-default-rtdb.firebaseio.com/'
+}
+
+# production cloud runtime injects service account credentials
+if os.getenv('FUNCTION_TARGET'):
+    APP = initialize_app(options = db_config)
+    
+# local development needs explicit credentials
+else:
+    APP = initialize_app(
+        credential = credentials.Certificate('admin.json'),
+        options = db_config
+    )
 
 # user sources
 TRADINGVIEW = {'52.89.214.238', '34.212.75.30', '54.218.53.128', '52.32.178.7'}
