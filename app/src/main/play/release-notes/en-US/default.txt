@@ -1,1 +1,3 @@
-Update database schema
+• Official public release of SignalVoice
+• Real-time voice alerts across global markets
+• Improved stability, performance, and reliability
