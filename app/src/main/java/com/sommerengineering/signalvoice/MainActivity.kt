@@ -47,10 +47,12 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
 
     @Inject
+    lateinit var repo: MainRepository
+    @Inject
     lateinit var updateRepository: UpdateRepository
-
     @Inject
     lateinit var billingManager: BillingManager
+
     private val viewModel: MainViewModel by viewModels()
 
     val requestNotificationPermissionLauncher =
@@ -190,6 +192,14 @@ class MainActivity : ComponentActivity() {
                 billingManager.launchBillingFlow(this@MainActivity)
             }
         }
+    }
+
+    override fun onDestroy() {
+        repo.setListening(
+            enabled = false,
+            isPersist = false
+        )
+        super.onDestroy()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
