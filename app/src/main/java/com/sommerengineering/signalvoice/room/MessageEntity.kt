@@ -6,7 +6,7 @@ import com.sommerengineering.signalvoice.source.Message
 
 @Entity(tableName = "messages")
 data class MessageEntity(
-    @PrimaryKey val timestamp: String,
+    @PrimaryKey val timestamp: Long,
     val message: String,
     val stream: String?, // null for user signal
     val sourceIp: String? // null for stream broadcast

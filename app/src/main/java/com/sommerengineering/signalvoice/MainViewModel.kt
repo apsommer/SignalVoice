@@ -368,8 +368,7 @@ class MainViewModel @Inject constructor(
         val latestMessage =
             startTime?.let {
                 messages.firstOrNull {
-                    it.source != null &&
-                            it.timestamp.toLong() > startTime
+                    it.source != null && it.timestamp > startTime
                 }
             }
         if (latestMessage != null) {

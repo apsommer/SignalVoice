@@ -2,16 +2,16 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "478560c3bbcd37cf34884054ea359f78",
+    "identityHash": "227874c76b05a0c88161deee6f2a2d5e",
     "entities": [
       {
         "tableName": "messages",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`timestamp` TEXT NOT NULL, `message` TEXT NOT NULL, `stream` TEXT, `sourceIp` TEXT, PRIMARY KEY(`timestamp`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`timestamp` INTEGER NOT NULL, `message` TEXT NOT NULL, `stream` TEXT, `sourceIp` TEXT, PRIMARY KEY(`timestamp`))",
         "fields": [
           {
             "fieldPath": "timestamp",
             "columnName": "timestamp",
-            "affinity": "TEXT",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
@@ -41,7 +41,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '478560c3bbcd37cf34884054ea359f78')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '227874c76b05a0c88161deee6f2a2d5e')"
     ]
   }
 }

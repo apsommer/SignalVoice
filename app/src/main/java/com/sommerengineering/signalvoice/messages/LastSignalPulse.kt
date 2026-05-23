@@ -33,7 +33,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun LastSignalPulse(
     modifier: Modifier = Modifier,
-    timestamp: String
+    timestamp: Long
 ) {
 
     // update timestamp once per minute

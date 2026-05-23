@@ -64,7 +64,7 @@ class FirebaseDatabaseImpl @Inject constructor() {
     private fun DataSnapshot.toStreamMessage(stream: String): Message? {
 
         // validate attributes
-        val timestamp = key ?: return null
+        val timestamp = key?.toLongOrNull() ?: return null
         val message = child(messageKey).value as? String ?: return null
 
         return Message(timestamp, message, stream, null)
@@ -73,7 +73,7 @@ class FirebaseDatabaseImpl @Inject constructor() {
     private fun DataSnapshot.toUserMessage(): Message? {
 
         // validate attributes
-        val timestamp = key ?: return null
+        val timestamp = key?.toLongOrNull() ?: return null
         val message = child(messageKey).value as? String ?: return null
         val source = child(sourceKey).value as? String ?: return null
 

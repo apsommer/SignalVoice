@@ -18,7 +18,7 @@ fun onboardingMessage(): Message {
     val message = "Gold • Macro Tailwind • Soft Dollar • +0.36%"
 
     return Message(
-        timestamp = now.toString(),
+        timestamp = now,
         message = message,
         stream = gcStream,
         source = null
@@ -33,25 +33,25 @@ fun onboardingMessages(): List<Message> {
 
     return listOf(
         Message(
-            timestamp = now.toString(),
+            timestamp = now,
             message = "S&P 500 • Acceptance • Upside holding • 7125.25",
             stream = esStream,
             source = null
         ),
         Message(
-            timestamp = (now - staggerMillis).toString(),
+            timestamp = now - staggerMillis,
             message = "Nasdaq 100 • Cascade • Short covering • 157 points",
             stream = nqStream,
             source = null
         ),
         Message(
-            timestamp = (now - 2 * staggerMillis).toString(),
+            timestamp = now - 2 * staggerMillis,
             message = "Bitcoin • Impulse • Volatility expanding • -0.48%",
             stream = btcStream,
             source = null
         ),
         Message(
-            timestamp = (now - 3 * staggerMillis).toString(),
+            timestamp = now - 3 * staggerMillis,
             message = "10Y Treasury • Repricing • Yields moving higher • +0.12%",
             stream = znStream,
             source = null

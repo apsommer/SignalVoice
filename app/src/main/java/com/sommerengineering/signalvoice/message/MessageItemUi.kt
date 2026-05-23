@@ -31,7 +31,7 @@ import com.sommerengineering.signalvoice.uitls.rowVerticalPadding
 fun MessageItemUi(
     displayText: String,
     beautifulTimestamp: String,
-    timestamp: String,
+    timestamp: Long,
     backgroundColor: Color,
     onClick: () -> Unit,
     onLongPress: () -> Unit,

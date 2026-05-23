@@ -19,11 +19,10 @@ object TimestampFormatter {
     private fun zonedInstant(time: Long) = // capture instant in system timezone
         Instant.ofEpochMilli(time).atZone(ZoneId.systemDefault())
 
-    fun beautifyCompact(timestamp: String): String {
+    fun beautifyCompact(timestamp: Long): String {
 
-        val time = timestamp.toLong()
         val now = System.currentTimeMillis()
-        val diff = (now - time).coerceAtLeast(0) // rare server vs client clock skew
+        val diff = (now - timestamp).coerceAtLeast(0) // rare server vs client clock skew
 
         val hours = diff / hour
         val minutes = (diff / minute) % 60
@@ -37,10 +36,10 @@ object TimestampFormatter {
                     else -> "${hours}h"
                 }
 
-            else -> weekdayFormat().format(zonedInstant(time))
+            else -> weekdayFormat().format(zonedInstant(timestamp))
         }
     }
 
-    fun beautifyFull(timestamp: String) =
-        fullFormat().format(zonedInstant(timestamp.toLong()))
+    fun beautifyFull(timestamp: Long) =
+        fullFormat().format(zonedInstant(timestamp))
 }

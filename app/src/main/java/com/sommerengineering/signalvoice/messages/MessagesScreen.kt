@@ -226,7 +226,6 @@ fun MessagesScreen(
                         .fillMaxWidth()
                         .weight(1f),
                     timestamp = messages.firstOrNull()?.timestamp ?: System.currentTimeMillis()
-                        .toString()
                 )
             }
         }
