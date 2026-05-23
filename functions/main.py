@@ -22,7 +22,7 @@ db_config = {
 # production cloud runtime injects service account credentials
 if os.getenv('FUNCTION_TARGET'):
     APP = initialize_app(options = db_config)
-    
+
 # local development needs explicit credentials
 else:
     APP = initialize_app(

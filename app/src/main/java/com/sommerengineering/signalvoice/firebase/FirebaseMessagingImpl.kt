@@ -41,7 +41,7 @@ class FirebaseServiceImpl : FirebaseMessagingService() {
         if (uid != null && uid != currentUid) return null
 
         // validate payload
-        val timestamp = data[timestampKey] ?: return null
+        val timestamp = data[timestampKey]?.toLongOrNull() ?: return null
         val message = data[messageKey] ?: return null
         val source = data[sourceKey]
 

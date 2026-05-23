@@ -5,7 +5,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class Message(
-    val timestamp: String,
+    val timestamp: Long,
     val message: String,
     val stream: String?, // null for user signal
     val source: String? // null for stream broadcast
