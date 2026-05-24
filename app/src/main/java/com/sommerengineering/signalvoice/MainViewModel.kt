@@ -299,10 +299,12 @@ class MainViewModel @Inject constructor(
 
         // previous notification permission
         val wasEnabled = wasNotificationsEnabled
-        wasNotificationsEnabled = enabled
 
         // update state
+        wasNotificationsEnabled = enabled
         areNotificationsEnabled = enabled
+
+        analytics.logNotificationsEnabled(enabled)
 
         // always enforce off
         if (!enabled) {
@@ -386,7 +388,7 @@ class MainViewModel @Inject constructor(
         SharingStarted.WhileSubscribed(),
         VerificationUiState(WAITING)
     )
-    
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     init {
