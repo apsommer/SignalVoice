@@ -13,6 +13,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sommerengineering.signalvoice.firebase.EVENT_ONBOARDING_COMPLETE
+import com.sommerengineering.signalvoice.firebase.FirebaseAnalyticsImpl
 import com.sommerengineering.signalvoice.login.GoogleAuthenticator
 import com.sommerengineering.signalvoice.login.SessionManager
 import com.sommerengineering.signalvoice.messages.FeedMode
@@ -42,6 +44,7 @@ class MainViewModel @Inject constructor(
     private val sessionManager: SessionManager,
     private val repo: MainRepository,
     private val googleAuthenticator: GoogleAuthenticator,
+    private val analytics: FirebaseAnalyticsImpl
 ) : ViewModel() {
 
     // session
@@ -132,9 +135,10 @@ class MainViewModel @Inject constructor(
     var isOnboardingComplete by mutableStateOf(false)
         private set
 
-    fun updateOnboarding(enabled: Boolean) {
-        isOnboardingComplete = enabled
-        repo.updateOnboarding(enabled)
+    fun completeOnboarding() {
+        isOnboardingComplete = true
+        repo.completeOnboarding()
+        analytics.log(EVENT_ONBOARDING_COMPLETE)
     }
 
     var isEmptyState by mutableStateOf(true)
@@ -382,7 +386,7 @@ class MainViewModel @Inject constructor(
         SharingStarted.WhileSubscribed(),
         VerificationUiState(WAITING)
     )
-
+    
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     init {

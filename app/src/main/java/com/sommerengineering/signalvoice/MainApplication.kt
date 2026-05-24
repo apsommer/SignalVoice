@@ -20,9 +20,15 @@ class MainApplication : Application() {
             .setPersistenceEnabled(true)
 
         // disable analytics for debug builds
-        if (BuildConfig.DEBUG) {
-            FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(false)
-            Firebase.crashlytics.isCrashlyticsCollectionEnabled = false
-        }
+        val isAnalyticsEnabled = !BuildConfig.DEBUG
+
+        FirebaseAnalytics
+            .getInstance(this)
+            .setAnalyticsCollectionEnabled(isAnalyticsEnabled)
+
+        Firebase
+            .crashlytics
+            .isCrashlyticsCollectionEnabled = isAnalyticsEnabled
+
     }
 }

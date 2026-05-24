@@ -169,8 +169,8 @@ class MainRepository @Inject constructor(
     suspend fun loadOnboarding() =
         prefs.read(ONBOARDING) ?: false
 
-    fun updateOnboarding(enabled: Boolean) =
-        appScope.launch { prefs.write(ONBOARDING, enabled) }
+    fun completeOnboarding() =
+        appScope.launch { prefs.write(ONBOARDING, true) }
 
     // user signal empty state
     suspend fun loadEmptyState() =
