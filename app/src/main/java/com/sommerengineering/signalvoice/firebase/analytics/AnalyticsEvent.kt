@@ -14,10 +14,6 @@ sealed interface AnalyticsEvent {
         val isListening: Boolean
     ) : AnalyticsEvent
 
-    data class SpeechStarted(
-        val symbol: String
-    ) : AnalyticsEvent
-
     data class StreamJoined(
         val stream: String
     ) : AnalyticsEvent
