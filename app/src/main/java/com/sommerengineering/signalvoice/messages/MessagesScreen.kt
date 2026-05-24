@@ -40,9 +40,9 @@ import com.sommerengineering.signalvoice.source.MessageGroup
 import com.sommerengineering.signalvoice.source.MessageOrigin
 import com.sommerengineering.signalvoice.source.resolveMessageOrigin
 import com.sommerengineering.signalvoice.speak.ForegroundSpeechService
-import com.sommerengineering.signalvoice.uitls.anonymousEmptyStateSubtitle
 import com.sommerengineering.signalvoice.uitls.emptyStateSubtitle
 import com.sommerengineering.signalvoice.uitls.emptyStateTitle
+import com.sommerengineering.signalvoice.uitls.guestEmptyStateSubtitle
 import com.sommerengineering.signalvoice.uitls.notificationsDisabledSubtitle
 import com.sommerengineering.signalvoice.uitls.notificationsDisabledTitle
 import kotlinx.coroutines.flow.first
@@ -166,7 +166,7 @@ fun MessagesScreen(
                             iconRes = R.drawable.webhook,
                             title = emptyStateTitle,
                             subTitle =
-                                if (session is Guest) anonymousEmptyStateSubtitle
+                                if (session is Guest) guestEmptyStateSubtitle
                                 else emptyStateSubtitle,
                             onClick = onCustomSignalClick,
                             visible = isEmptyState,

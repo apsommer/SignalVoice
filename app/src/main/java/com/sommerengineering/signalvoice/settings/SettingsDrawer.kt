@@ -44,13 +44,13 @@ import com.sommerengineering.signalvoice.source.esAsset
 import com.sommerengineering.signalvoice.source.gcAsset
 import com.sommerengineering.signalvoice.source.nqAsset
 import com.sommerengineering.signalvoice.source.znAsset
-import com.sommerengineering.signalvoice.uitls.anonymousCustomDescription
 import com.sommerengineering.signalvoice.uitls.customDescription
 import com.sommerengineering.signalvoice.uitls.customDividerTitle
 import com.sommerengineering.signalvoice.uitls.customTitle
 import com.sommerengineering.signalvoice.uitls.descriptionAlpha
 import com.sommerengineering.signalvoice.uitls.edgePadding
 import com.sommerengineering.signalvoice.uitls.generalDividerTitle
+import com.sommerengineering.signalvoice.uitls.guestCustomDescription
 import com.sommerengineering.signalvoice.uitls.manageSubscriptionDescription
 import com.sommerengineering.signalvoice.uitls.manageSubscriptionTitle
 import com.sommerengineering.signalvoice.uitls.pitchChangeUtterance
@@ -295,7 +295,7 @@ fun SettingsDrawer(
                     iconRes = R.drawable.webhook,
                     title = customTitle,
                     description =
-                        if (session is Guest) anonymousCustomDescription
+                        if (session is Guest) guestCustomDescription
                         else customDescription,
                     onClick = onCustomSignalClick
                 ) {

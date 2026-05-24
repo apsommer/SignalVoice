@@ -21,7 +21,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.sommerengineering.signalvoice.MainViewModel
 import com.sommerengineering.signalvoice.R
-import com.sommerengineering.signalvoice.uitls.anonymousSignInTitle
+import com.sommerengineering.signalvoice.uitls.guestSignInTitle
 
 @Composable
 fun LoginScreen(
@@ -66,10 +66,10 @@ fun LoginScreen(
             iconRatio = 0.55f,
             onClick = { viewModel.signInWithGitHub(context, onAuthentication) })
 
-        // anonymous login
+        // guest login
         Spacer(Modifier.height(24.dp))
         Text(
-            text = anonymousSignInTitle,
+            text = guestSignInTitle,
             color = MaterialTheme.colorScheme.primary.copy(0.9f),
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier

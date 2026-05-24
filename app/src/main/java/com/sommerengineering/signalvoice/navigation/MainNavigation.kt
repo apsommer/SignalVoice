@@ -44,7 +44,7 @@ fun MainNavigation(
     val session by viewModel.session.collectAsState()
     val onCustomSignalClick: () -> Unit = {
 
-        // anonymous: login screen
+        // guest: login screen
         if (session is Guest) {
             controller.navigate(LoginRoute) {
                 popUpTo(controller.graph.startDestinationId) {

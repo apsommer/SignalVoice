@@ -33,7 +33,8 @@ const val databaseUrl = "https://signalvoice-api-default-rtdb.firebaseio.com/"
 const val webhookBaseUrl = "https://api.signalvoice.app/signal?uid="
 
 // support
-const val supportUrl = "mailto:support@signalvoice.app?subject=SignalVoice Support"
+const val supportUrl =
+    "mailto:support@signalvoice.app?subject=SignalVoice Support v${BuildConfig.VERSION_NAME}"
 
 // notifications
 const val channelId = "42"
@@ -93,7 +94,7 @@ const val premiumDividerTitle = "PREMIUM"
 const val customDividerTitle = "CUSTOM"
 const val customTitle = "Custom signal"
 const val customDescription = "Webhook alerts"
-const val anonymousCustomDescription = "Sign in to set up webhooks"
+const val guestCustomDescription = "Sign in to set up webhooks"
 const val screenTitle = "Screen"
 const val screenFullDescription = "Full screen"
 const val screenWindowedDescription = "Show system bars"
@@ -108,7 +109,7 @@ const val signOutDescription = "End session"
 // cards
 const val emptyStateTitle = "Custom signal"
 const val emptyStateSubtitle = "Set up your webhook to receive alerts →"
-const val anonymousEmptyStateSubtitle = "Sign in to set up webhook →"
+const val guestEmptyStateSubtitle = "Sign in to set up webhook →"
 const val notificationsDisabledTitle = "Signals are paused"
 const val notificationsDisabledSubtitle = "Enable notifications for real-time voice alerts"
 
@@ -160,7 +161,7 @@ const val enableText = "Enable"
 
 // login
 val gitHubProvider = OAuthProvider.newBuilder("github.com").build()
-const val anonymousSignInTitle = "Continue as guest"
+const val guestSignInTitle = "Continue as guest"
 
 // tts
 const val defaultVoice = "en-gb-x-gbd-local"  // british, male

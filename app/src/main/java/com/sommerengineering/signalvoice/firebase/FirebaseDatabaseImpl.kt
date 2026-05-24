@@ -44,7 +44,7 @@ class FirebaseDatabaseImpl @Inject constructor() {
 
     suspend fun fetchUserMessages(): List<Message> {
 
-        // anonymous user has no messages
+        // guest user has no messages
         val currentUid = uid
         if (currentUid.isEmpty()) return emptyList()
 
