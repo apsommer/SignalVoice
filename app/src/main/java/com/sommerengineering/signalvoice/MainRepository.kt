@@ -135,8 +135,9 @@ class MainRepository @Inject constructor(
     }
 
     suspend fun restoreListening() {
+        val wasListening = prefs.read(LISTENING) ?: true
         setListening(
-            enabled = prefs.read(LISTENING) ?: true,
+            enabled = wasListening,
             isPersist = false
         )
     }

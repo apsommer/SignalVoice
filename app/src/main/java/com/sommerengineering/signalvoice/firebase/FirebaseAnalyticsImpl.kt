@@ -9,13 +9,11 @@ import javax.inject.Singleton
 // events
 const val EVENT_APP_OPEN = "app_open"
 const val EVENT_ONBOARDING_COMPLETE = "onboarding_complete"
-const val EVENT_NOTIFICATIONS_ENABLED = "notification_permission"
-const val EVENT_LISTENING_STATE_CHANGED = "listening_state_changed"
+const val EVENT_NOTIFICATIONS_ENABLED = "notifications_enabled"
+const val EVENT_LISTENING_STATE_CHANGED = "listening_enabled"
 const val EVENT_STREAM_JOINED = "stream_joined"
 const val EVENT_SUBSCRIPTION_SCREEN_VIEWED = "subscription_screen_viewed"
 const val EVENT_SUBSCRIPTION_PURCHASED = "subscription_purchased"
-const val EVENT_FOREGROUND_SERVICE_STARTED = "foreground_service_started"
-const val EVENT_FOREGROUND_SERVICE_STOPPED = "foreground_service_stopped"
 
 // params
 const val PARAM_ENABLED = "is_granted"
@@ -43,14 +41,14 @@ class FirebaseAnalyticsImpl @Inject constructor() {
         )
     }
 
-    fun logListeningStateChanged(
-        isListening: Boolean
+    fun logListeningEnabled(
+        enabled: Boolean
     ) {
         analytics.logEvent(
             EVENT_LISTENING_STATE_CHANGED,
             bundleOf(
                 PARAM_IS_LISTENING,
-                isListening.toString()
+                enabled.toString()
             )
         )
     }

@@ -118,7 +118,9 @@ class MainViewModel @Inject constructor(
             launchSystemNotificationSettings(context)
             return
         }
-        repo.setListening(!isListening.value)
+        val enabled = !isListening.value
+        repo.setListening(enabled)
+        analytics.logListeningEnabled(enabled)
     }
 
     suspend fun restoreListening() = repo.restoreListening()
@@ -317,7 +319,7 @@ class MainViewModel @Inject constructor(
             repo.setListening(false)
             return
         }
-        
+
         // auto recover for transition off -> on
         if (!wasEnabled) repo.setListening(true)
     }
