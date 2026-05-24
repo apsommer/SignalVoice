@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.firebase.perf)
     id("kotlin-parcelize")
     id("com.github.triplet.play")
 }
@@ -139,8 +140,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.config)
+    implementation(libs.firebase.perf)
 
     ksp(libs.hilt.compiler)
     ksp(libs.kotlin.metadata)
