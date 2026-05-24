@@ -64,6 +64,9 @@ import com.sommerengineering.signalvoice.uitls.speedChangeUtterance
 import com.sommerengineering.signalvoice.uitls.speedTitle
 import com.sommerengineering.signalvoice.uitls.streamsDividerTitle
 import com.sommerengineering.signalvoice.uitls.subscriptionUrl
+import com.sommerengineering.signalvoice.uitls.supportDescription
+import com.sommerengineering.signalvoice.uitls.supportTitle
+import com.sommerengineering.signalvoice.uitls.supportUrl
 import com.sommerengineering.signalvoice.uitls.systemTtsDescription
 import com.sommerengineering.signalvoice.uitls.systemTtsInstallVoicesAction
 import com.sommerengineering.signalvoice.uitls.systemTtsTitle
@@ -354,6 +357,15 @@ fun SettingsDrawer(
                     title = manageSubscriptionTitle,
                     description = manageSubscriptionDescription,
                     onClick = { uriHandler.openUri(subscriptionUrl) })
+            }
+
+            // support
+            item {
+                LinkItem(
+                    iconRes = R.drawable.mail,
+                    title = supportTitle,
+                    description = supportDescription,
+                    onClick = { uriHandler.openUri(supportUrl) })
             }
 
             // sign-out

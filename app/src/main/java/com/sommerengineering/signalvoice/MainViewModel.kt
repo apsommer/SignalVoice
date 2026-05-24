@@ -13,7 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sommerengineering.signalvoice.firebase.FirebaseAnalyticsImpl
+import com.sommerengineering.signalvoice.firebase.FirebaseAnalyticsLogger
 import com.sommerengineering.signalvoice.login.GoogleAuthenticator
 import com.sommerengineering.signalvoice.login.SessionManager
 import com.sommerengineering.signalvoice.messages.FeedMode
@@ -50,7 +50,7 @@ class MainViewModel @Inject constructor(
     private val sessionManager: SessionManager,
     private val repo: MainRepository,
     private val googleAuthenticator: GoogleAuthenticator,
-    private val analytics: FirebaseAnalyticsImpl
+    private val analytics: FirebaseAnalyticsLogger
 ) : ViewModel() {
 
     // session

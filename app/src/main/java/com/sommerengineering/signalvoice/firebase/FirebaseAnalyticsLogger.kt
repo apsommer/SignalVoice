@@ -21,7 +21,7 @@ private const val PARAM_STREAM = "stream"
 private const val PARAM_PRODUCT_ID = "product_id"
 
 @Singleton
-class FirebaseAnalyticsImpl @Inject constructor() {
+class FirebaseAnalyticsLogger @Inject constructor() {
 
     private fun log(
         event: String,

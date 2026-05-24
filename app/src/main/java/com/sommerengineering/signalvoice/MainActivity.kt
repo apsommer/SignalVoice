@@ -26,7 +26,7 @@ import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.appupdate.AppUpdateOptions
 import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.UpdateAvailability
-import com.sommerengineering.signalvoice.firebase.FirebaseAnalyticsImpl
+import com.sommerengineering.signalvoice.firebase.FirebaseAnalyticsLogger
 import com.sommerengineering.signalvoice.navigation.MainNavigation
 import com.sommerengineering.signalvoice.premium.BillingManager
 import com.sommerengineering.signalvoice.theme.AppTheme
@@ -57,7 +57,7 @@ class MainActivity : ComponentActivity() {
     lateinit var billingManager: BillingManager
 
     @Inject
-    lateinit var analytics: FirebaseAnalyticsImpl
+    lateinit var analytics: FirebaseAnalyticsLogger
 
     private val viewModel: MainViewModel by viewModels()
 

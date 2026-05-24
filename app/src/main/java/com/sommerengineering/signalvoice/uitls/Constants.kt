@@ -11,7 +11,7 @@ import com.google.firebase.crashlytics.crashlytics
 import com.sommerengineering.signalvoice.BuildConfig
 import com.sommerengineering.signalvoice.R
 
-// logs
+// debug logs
 const val TAG = "~~~"
 fun logMessage(msg: String?) {
     Log.v(TAG, "$msg")
@@ -31,6 +31,9 @@ const val roomDatabaseName = "messages.db"
 // firebase
 const val databaseUrl = "https://signalvoice-api-default-rtdb.firebaseio.com/"
 const val webhookBaseUrl = "https://api.signalvoice.app/signal?uid="
+
+// support
+const val supportUrl = "mailto:support@signalvoice.app?subject=SignalVoice Support"
 
 // notifications
 const val channelId = "42"
@@ -97,6 +100,8 @@ const val screenWindowedDescription = "Show system bars"
 const val generalDividerTitle = "GENERAL"
 const val manageSubscriptionTitle = "Manage subscription"
 const val manageSubscriptionDescription = "Billing and plan"
+const val supportTitle = "Support"
+const val supportDescription = "Questions, feedback, or issues"
 const val signOutTitle = "Sign-out"
 const val signOutDescription = "End session"
 

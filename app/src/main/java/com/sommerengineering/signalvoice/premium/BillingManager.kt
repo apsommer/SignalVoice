@@ -13,7 +13,7 @@ import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
 import com.android.billingclient.api.queryProductDetails
 import com.sommerengineering.signalvoice.MainActivity
-import com.sommerengineering.signalvoice.firebase.FirebaseAnalyticsImpl
+import com.sommerengineering.signalvoice.firebase.FirebaseAnalyticsLogger
 import com.sommerengineering.signalvoice.uitls.logMessage
 import com.sommerengineering.signalvoice.uitls.productId
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -27,7 +27,7 @@ import kotlin.coroutines.resume
 @Singleton
 class BillingManager @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val analytics: FirebaseAnalyticsImpl
+    private val analytics: FirebaseAnalyticsLogger
 ) {
 
     private val client =
