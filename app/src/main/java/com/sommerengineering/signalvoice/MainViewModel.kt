@@ -304,17 +304,20 @@ class MainViewModel @Inject constructor(
         wasNotificationsEnabled = enabled
         areNotificationsEnabled = enabled
 
-        analytics.logNotificationsEnabled(enabled)
+        // ignore first initialization, resume into stored preference
+        if (wasEnabled == null) return
+
+        // log state changes
+        if (wasEnabled != enabled) {
+            analytics.logNotificationsEnabled(enabled)
+        }
 
         // always enforce off
         if (!enabled) {
             repo.setListening(false)
             return
         }
-
-        // first app launch, resume into stored preference
-        if (wasEnabled == null) return
-
+        
         // auto recover for transition off -> on
         if (!wasEnabled) repo.setListening(true)
     }
