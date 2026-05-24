@@ -26,7 +26,6 @@ import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.appupdate.AppUpdateOptions
 import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.UpdateAvailability
-import com.sommerengineering.signalvoice.firebase.EVENT_APP_OPEN
 import com.sommerengineering.signalvoice.firebase.FirebaseAnalyticsImpl
 import com.sommerengineering.signalvoice.navigation.MainNavigation
 import com.sommerengineering.signalvoice.premium.BillingManager
@@ -218,7 +217,7 @@ class MainActivity : ComponentActivity() {
         initNotificationChannel()
         checkUpdates()
         listenForPaywall()
-        analytics.log(EVENT_APP_OPEN)
+        analytics.logAppOpen()
 
         // launch compose tree
         setContent {

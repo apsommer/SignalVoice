@@ -6,78 +6,78 @@ import com.google.firebase.analytics.analytics
 import javax.inject.Inject
 import javax.inject.Singleton
 
-// events
-const val EVENT_APP_OPEN = "app_open"
-const val EVENT_ONBOARDING_COMPLETE = "onboarding_complete"
-const val EVENT_NOTIFICATIONS_ENABLED = "notifications_enabled"
-const val EVENT_LISTENING_STATE_CHANGED = "listening_enabled"
-const val EVENT_STREAM_JOINED = "stream_joined"
-const val EVENT_SUBSCRIPTION_SCREEN_VIEWED = "subscription_screen_viewed"
-const val EVENT_SUBSCRIPTION_PURCHASED = "subscription_purchased"
-
-// params
-const val PARAM_ENABLED = "is_granted"
-const val PARAM_IS_LISTENING = "is_listening"
-const val PARAM_STREAM = "stream"
-const val PARAM_PRODUCT_ID = "product_id"
-
 @Singleton
 class FirebaseAnalyticsImpl @Inject constructor() {
 
-    private val analytics = Firebase.analytics
+    // events
+    private val EVENT_APP_OPEN = "app_open"
+    private val EVENT_ONBOARDING_COMPLETE = "onboarding_complete"
+    private val EVENT_NOTIFICATIONS_CHANGED = "notifications_changed"
+    private val EVENT_LISTENING_CHANGED = "listening_changed"
+    private val EVENT_STREAM_CHANGED = "stream_changed"
+    private val EVENT_SUBSCRIPTION_VIEWED = "subscription_viewed"
+    private val EVENT_SUBSCRIPTION_PURCHASED = "subscription_purchased"
 
-    fun log(event: String) =
-        analytics.logEvent(event, null)
+    // params
+    private val PARAM_ENABLED = "is_enabled"
+    private val PARAM_STREAM = "stream"
+    private val PARAM_PRODUCT_ID = "product_id"
 
-    fun logNotificationsEnabled(
+    private fun log(
+        event: String,
+        params: Bundle? = null
+    ) =
+        Firebase.analytics.logEvent(event, params)
+
+    fun logAppOpen() = log(EVENT_APP_OPEN)
+
+    fun logOnboardingComplete() = log(EVENT_ONBOARDING_COMPLETE)
+
+    fun logNotificationsChanged(
         enabled: Boolean
-    ) {
-        analytics.logEvent(
-            EVENT_NOTIFICATIONS_ENABLED,
-            bundleOf(
-                PARAM_ENABLED,
-                enabled.toString()
-            )
-        )
-    }
+    ) = log(
+        EVENT_NOTIFICATIONS_CHANGED,
+        Bundle().apply {
+            putString(PARAM_ENABLED, enabled.toString())
+        }
+    )
 
-    fun logListeningEnabled(
+    fun logListeningChanged(
         enabled: Boolean
-    ) {
-        analytics.logEvent(
-            EVENT_LISTENING_STATE_CHANGED,
-            bundleOf(
-                PARAM_IS_LISTENING,
-                enabled.toString()
-            )
-        )
-    }
+    ) = log(
+        EVENT_LISTENING_CHANGED,
+        Bundle().apply {
+            putString(PARAM_ENABLED, enabled.toString())
+        }
+    )
 
-    fun logStreamJoined(
-        stream: String
-    ) {
-        analytics.logEvent(
-            EVENT_STREAM_JOINED,
-            bundleOf(
-                PARAM_STREAM,
-                stream
-            )
-        )
-    }
+    fun logStreamChanged(
+        stream: String,
+        enabled: Boolean
+    ) = log(
+        EVENT_STREAM_CHANGED,
+        Bundle().apply {
+            putString(PARAM_STREAM, stream)
+            putString(PARAM_ENABLED, enabled.toString())
+        }
+    )
+
+    fun logSubscriptionViewed(
+        productId: String
+    ) = log(
+        EVENT_SUBSCRIPTION_VIEWED,
+        Bundle().apply {
+            putString(PARAM_PRODUCT_ID, productId)
+        }
+    )
 
     fun logSubscriptionPurchased(
-        productId: String
-    ) {
-        analytics.logEvent(
-            EVENT_SUBSCRIPTION_PURCHASED,
-            bundleOf(
-                PARAM_PRODUCT_ID,
-                productId
-            )
-        )
-    }
-
-    private fun bundleOf(key: String, value: String) =
-        Bundle().apply { putString(key, value) }
+        product: String
+    ) = log(
+        EVENT_SUBSCRIPTION_PURCHASED,
+        Bundle().apply {
+            putString(PARAM_PRODUCT_ID, product)
+        }
+    )
 }
 

@@ -13,7 +13,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sommerengineering.signalvoice.firebase.EVENT_ONBOARDING_COMPLETE
 import com.sommerengineering.signalvoice.firebase.FirebaseAnalyticsImpl
 import com.sommerengineering.signalvoice.login.GoogleAuthenticator
 import com.sommerengineering.signalvoice.login.SessionManager
@@ -23,10 +22,17 @@ import com.sommerengineering.signalvoice.onboarding.webhook.VerificationState.WA
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationUiState
 import com.sommerengineering.signalvoice.source.Message
 import com.sommerengineering.signalvoice.uitls.RomanNumerals
+import com.sommerengineering.signalvoice.uitls.btcStream
+import com.sommerengineering.signalvoice.uitls.clStream
+import com.sommerengineering.signalvoice.uitls.e6Stream
+import com.sommerengineering.signalvoice.uitls.esStream
+import com.sommerengineering.signalvoice.uitls.gcStream
 import com.sommerengineering.signalvoice.uitls.gitHubProvider
+import com.sommerengineering.signalvoice.uitls.nqStream
 import com.sommerengineering.signalvoice.uitls.screenFullDescription
 import com.sommerengineering.signalvoice.uitls.screenWindowedDescription
 import com.sommerengineering.signalvoice.uitls.webhookBaseUrl
+import com.sommerengineering.signalvoice.uitls.znStream
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -120,7 +126,7 @@ class MainViewModel @Inject constructor(
         }
         val enabled = !isListening.value
         repo.setListening(enabled)
-        analytics.logListeningEnabled(enabled)
+        analytics.logListeningChanged(enabled)
     }
 
     suspend fun restoreListening() = repo.restoreListening()
@@ -140,7 +146,7 @@ class MainViewModel @Inject constructor(
     fun completeOnboarding() {
         isOnboardingComplete = true
         repo.completeOnboarding()
-        analytics.log(EVENT_ONBOARDING_COMPLETE)
+        analytics.logOnboardingComplete()
     }
 
     var isEmptyState by mutableStateOf(true)
@@ -158,6 +164,7 @@ class MainViewModel @Inject constructor(
     fun updateZN(enabled: Boolean) {
         isZN = enabled
         repo.updateZN(enabled)
+        analytics.logStreamChanged(znStream, enabled)
     }
 
     // stream NQ
@@ -167,15 +174,7 @@ class MainViewModel @Inject constructor(
     fun updateNQ(enabled: Boolean) {
         isNQ = enabled
         repo.updateNQ(enabled)
-    }
-
-    // stream ES
-    var isES by mutableStateOf(true)
-        private set
-
-    fun updateES(enabled: Boolean) {
-        isES = enabled
-        repo.updateES(enabled)
+        analytics.logStreamChanged(nqStream, enabled)
     }
 
     // stream BTC
@@ -185,6 +184,17 @@ class MainViewModel @Inject constructor(
     fun updateBTC(enabled: Boolean) {
         isBTC = enabled
         repo.updateBTC(enabled)
+        analytics.logStreamChanged(btcStream, enabled)
+    }
+
+    // stream ES
+    var isES by mutableStateOf(true)
+        private set
+
+    fun updateES(enabled: Boolean) {
+        isES = enabled
+        repo.updateES(enabled)
+        analytics.logStreamChanged(esStream, enabled)
     }
 
     // stream GC
@@ -194,6 +204,7 @@ class MainViewModel @Inject constructor(
     fun updateGC(enabled: Boolean) {
         isGC = enabled
         repo.updateGC(enabled)
+        analytics.logStreamChanged(gcStream, enabled)
     }
 
     // stream E6
@@ -203,6 +214,7 @@ class MainViewModel @Inject constructor(
     fun updateE6(enabled: Boolean) {
         isE6 = enabled
         repo.updateE6(enabled)
+        analytics.logStreamChanged(e6Stream, enabled)
     }
 
     // stream CL
@@ -212,6 +224,7 @@ class MainViewModel @Inject constructor(
     fun updateCL(enabled: Boolean) {
         isCL = enabled
         repo.updateCL(enabled)
+        analytics.logStreamChanged(clStream, enabled)
     }
 
     // feed mode: linear or grouped
@@ -311,7 +324,7 @@ class MainViewModel @Inject constructor(
 
         // log state changes
         if (wasEnabled != enabled) {
-            analytics.logNotificationsEnabled(enabled)
+            analytics.logNotificationsChanged(enabled)
         }
 
         // always enforce off
