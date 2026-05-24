@@ -6,22 +6,22 @@ import com.google.firebase.analytics.analytics
 import javax.inject.Inject
 import javax.inject.Singleton
 
+// events
+private const val EVENT_APP_OPEN = "app_open"
+private const val EVENT_ONBOARDING_COMPLETE = "onboarding_complete"
+private const val EVENT_NOTIFICATIONS_CHANGED = "notifications_changed"
+private const val EVENT_LISTENING_CHANGED = "listening_changed"
+private const val EVENT_STREAM_CHANGED = "stream_changed"
+private const val EVENT_SUBSCRIPTION_VIEWED = "subscription_viewed"
+private const val EVENT_SUBSCRIPTION_PURCHASED = "subscription_purchased"
+
+// params
+private const val PARAM_ENABLED = "is_enabled"
+private const val PARAM_STREAM = "stream"
+private const val PARAM_PRODUCT_ID = "product_id"
+
 @Singleton
 class FirebaseAnalyticsImpl @Inject constructor() {
-
-    // events
-    private val EVENT_APP_OPEN = "app_open"
-    private val EVENT_ONBOARDING_COMPLETE = "onboarding_complete"
-    private val EVENT_NOTIFICATIONS_CHANGED = "notifications_changed"
-    private val EVENT_LISTENING_CHANGED = "listening_changed"
-    private val EVENT_STREAM_CHANGED = "stream_changed"
-    private val EVENT_SUBSCRIPTION_VIEWED = "subscription_viewed"
-    private val EVENT_SUBSCRIPTION_PURCHASED = "subscription_purchased"
-
-    // params
-    private val PARAM_ENABLED = "is_enabled"
-    private val PARAM_STREAM = "stream"
-    private val PARAM_PRODUCT_ID = "product_id"
 
     private fun log(
         event: String,
@@ -38,7 +38,7 @@ class FirebaseAnalyticsImpl @Inject constructor() {
     ) = log(
         EVENT_NOTIFICATIONS_CHANGED,
         Bundle().apply {
-            putString(PARAM_ENABLED, enabled.toString())
+            putBoolean(PARAM_ENABLED, enabled)
         }
     )
 
@@ -47,7 +47,7 @@ class FirebaseAnalyticsImpl @Inject constructor() {
     ) = log(
         EVENT_LISTENING_CHANGED,
         Bundle().apply {
-            putString(PARAM_ENABLED, enabled.toString())
+            putBoolean(PARAM_ENABLED, enabled)
         }
     )
 
@@ -58,7 +58,7 @@ class FirebaseAnalyticsImpl @Inject constructor() {
         EVENT_STREAM_CHANGED,
         Bundle().apply {
             putString(PARAM_STREAM, stream)
-            putString(PARAM_ENABLED, enabled.toString())
+            putBoolean(PARAM_ENABLED, enabled)
         }
     )
 
@@ -72,11 +72,11 @@ class FirebaseAnalyticsImpl @Inject constructor() {
     )
 
     fun logSubscriptionPurchased(
-        product: String
+        productId: String
     ) = log(
         EVENT_SUBSCRIPTION_PURCHASED,
         Bundle().apply {
-            putString(PARAM_PRODUCT_ID, product)
+            putString(PARAM_PRODUCT_ID, productId)
         }
     )
 }
