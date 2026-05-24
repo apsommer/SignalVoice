@@ -1,1 +1,1 @@
-Validate crashlytics telemetry
+Initial public release.
