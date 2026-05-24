@@ -75,7 +75,8 @@ fun LoginScreen(
             modifier = Modifier
                 .offset(y = 4.dp)
                 .background(MaterialTheme.colorScheme.background) // keeps tap clean over scrim if needed
-                .clickable { onAuthentication() }
+//                .clickable { onAuthentication() }
+                .clickable { throw RuntimeException("Test Crashlytics crash") }
         )
     }
 }
