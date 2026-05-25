@@ -1,20 +1,34 @@
+import os
 import time
-from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
+import logging
 
 from firebase_admin import initialize_app, credentials, db, messaging
 from firebase_admin.exceptions import FirebaseError
 from firebase_admin.messaging import UnregisteredError
-from firebase_functions import https_fn
+from firebase_functions import https_fn, scheduler_fn
 
 ########################################################################################################################
 streams = frozenset({'ZN', 'NQ', 'BTC', 'ES', 'GC', 'E6', 'CL'})
 ########################################################################################################################
 
-# initialize admin sdk
-APP = initialize_app(
-    credential = credentials.Certificate('admin.json'), # todo credential only required for local environment, can be removed for cloud only production
-    options = {'databaseURL': 'https://signalvoice-api-default-rtdb.firebaseio.com/'})
+# initialize logs
+logger = logging.getLogger(__name__)
+
+# initialize database target
+db_config = {
+    'databaseURL': 'https://signalvoice-api-default-rtdb.firebaseio.com/'
+}
+
+# production cloud runtime injects service account credentials
+if os.getenv('FUNCTION_TARGET'):
+    APP = initialize_app(options = db_config)
+
+# local development needs explicit credentials
+else:
+    APP = initialize_app(
+        credential = credentials.Certificate('admin.json'),
+        options = db_config
+    )
 
 # user sources
 TRADINGVIEW = {'52.89.214.238', '34.212.75.30', '54.218.53.128', '52.32.178.7'}
@@ -25,16 +39,16 @@ BASE_CONFIG = messaging.AndroidConfig(
     priority = 'normal',  # 'normal' default, 'high' attempts to wake device in doze mode
     ttl = 0)  # ttl is 'time to live', 0 = 'now or never', '43200' = 12h, 86400 = 24h
 
-# time adjustments
-NYC = ZoneInfo('America/New_York')
-DAY_MILLIS = 86400000
-WEEK_MILLIS = 7 * DAY_MILLIS
-
 # database
 TOKENS = db.reference('tokens')
 USERS = db.reference('users')
 STREAMS = db.reference('streams')
 SIGNALS = db.reference('signals')
+
+# retained days for each source
+DAY_MILLIS = 86400000
+STREAM_RETAINED_DAYS = 2
+SIGNALS_RETAINED_DAYS = 7
 
 @https_fn.on_request()
 def signal(req: https_fn.Request) -> https_fn.Response:
@@ -93,92 +107,6 @@ def signal(req: https_fn.Request) -> https_fn.Response:
     # respond with simple generic message, should never happen
     return https_fn.Response('Thank you for using BarAudio! :)')
 
-def broadcast_to_stream(stream, timestamp, message):
-
-    # construct notification
-    broadcast = messaging.Message(
-        data = {
-            'stream': stream,
-            'timestamp': str(timestamp),
-            'message': message},
-        android = BASE_CONFIG,
-        topic = stream)
-
-    # broadcast to stream subscribers
-    try: messaging.send(broadcast)
-    except FirebaseError as error: print(f'Broadcast to stream: {stream}, error: {error}')
-
-def send_message_to_single_device(uid, device_token, timestamp, message, source):
-
-    # construct notification
-    notification = messaging.Message(
-        data = {
-            'uid': uid,
-            'timestamp': str(timestamp),
-            'message': message,
-            'source': source},
-        android = BASE_CONFIG,
-        token = device_token)
-
-    # send notification to single device
-    try: messaging.send(notification)
-    except UnregisteredError: # delete token if unregistered (google test accounts)
-        TOKENS.child(device_token).delete()
-        USERS.child(uid).delete()
-    except FirebaseError as error: print(f'Send to uid: {uid}, error: {error}')
-
-def write_stream_message_to_database(stream, timestamp, message):
-
-    node = STREAMS.child(stream)
-
-    # purge old message, if needed
-    purge_node(node, timestamp)
-
-    # write message
-    node.child(str(timestamp)).set({
-        'message': message })
-
-def write_user_message_to_database(uid, timestamp, message, source):
-
-    node = SIGNALS.child(uid)
-
-    # purge old message, if needed
-    purge_node(node, timestamp)
-
-    # write message
-    node.child(str(timestamp)).set({
-        'message': message,
-        'source': source })
-
-def purge_node(node, timestamp):
-
-    # calculate session start of last two trading days
-    current_session_start = get_session_start(timestamp)
-    previous_session_start = get_session_start(current_session_start - DAY_MILLIS)
-
-    # query old messages
-    old_messages = node.order_by_key().end_at(str(previous_session_start - 1)).get()
-    if not old_messages: return
-
-    # batch delete
-    old_messages = { key: None for key in old_messages.keys() }
-    node.update(old_messages)
-
-def get_session_start(timestamp: int) -> int:
-
-    # time of market close for this day, in NYC timezone
-    nyc_time = datetime.fromtimestamp(timestamp / 1000, NYC)
-    session_start = nyc_time.replace(hour = 18, minute = 0, second = 0, microsecond = 0)
-
-    # now is before close, trading session started yesterday
-    if session_start > nyc_time: session_start -= timedelta(days = 1)
-
-    # market is closed on weekends
-    weekday = session_start.weekday()
-    if weekday == 5: session_start -= timedelta(days = 2) # saturday -> thursday
-
-    return int(session_start.timestamp() * 1000) # convert to UTC
-
 def resolve_source_from_ip(source_ip: str) -> str:
 
     # catch empty ip list
@@ -197,6 +125,106 @@ def resolve_source_from_ip(source_ip: str) -> str:
 
     if ip in TRADINGVIEW: return 'tradingview'
     if ip == TRENDSPIDER: return 'trendspider'
-    # todo MT5
 
     return 'unknown'
+
+########################################################################################################################
+
+def broadcast_to_stream(stream, timestamp, message):
+
+    # construct notification
+    broadcast = messaging.Message(
+        data = {
+            'stream': stream,
+            'timestamp': str(timestamp),
+            'message': message},
+        android = BASE_CONFIG,
+        topic = stream)
+
+    # broadcast to stream subscribers
+    try: messaging.send(broadcast)
+    except FirebaseError: logger.exception(f'Broadcast to stream failed: {stream}')
+
+def send_message_to_single_device(uid, device_token, timestamp, message, source):
+
+    # construct notification
+    notification = messaging.Message(
+        data = {
+            'uid': uid,
+            'timestamp': str(timestamp),
+            'message': message,
+            'source': source},
+        android = BASE_CONFIG,
+        token = device_token)
+
+    # send notification to single device
+    try: messaging.send(notification)
+    except UnregisteredError:
+
+        # delete orphaned uid:token
+        current_token = USERS.child(uid).get()
+        if current_token == device_token:
+            TOKENS.child(device_token).delete()
+            USERS.child(uid).delete()
+
+    except FirebaseError: logger.exception(f'Send to uid failed: {uid}')
+
+########################################################################################################################
+
+def write_stream_message_to_database(stream, timestamp, message):
+    STREAMS.child(stream).child(str(timestamp)).set({
+        'message': message })
+
+def write_user_message_to_database(uid, timestamp, message, source):
+    SIGNALS.child(uid).child(str(timestamp)).set({
+        'message': message,
+        'source': source })
+
+########################################################################################################################
+
+@scheduler_fn.on_schedule(schedule = '1 17 * * 1-5', timezone = 'America/New_York') # run once per weekday at NYC 5:01 PM (market close)
+def purge_stale_messages(event: scheduler_fn.ScheduledEvent):
+
+    timestamp = time.time_ns() // 1_000_000
+
+    # calculate cutoff timestamp
+    stream_cutoff = timestamp - STREAM_RETAINED_DAYS * DAY_MILLIS
+    signals_cutoff = timestamp - SIGNALS_RETAINED_DAYS * DAY_MILLIS
+
+    purge_streams(stream_cutoff)
+    purge_signals(signals_cutoff)
+
+    logger.warning(f'stream_cutoff={stream_cutoff}')
+    logger.warning(f'signals_cutoff={signals_cutoff}')
+    logger.warning('purge_stale_messages completed')
+
+def purge_streams(timestamp):
+
+    for stream in streams:
+
+        node = STREAMS.child(stream)
+
+        # query old messages
+        old_messages = node.order_by_key().end_at(str(timestamp)).get()
+        if not old_messages: continue
+
+        # batch delete
+        old_messages = { key: None for key in old_messages.keys() }
+        node.update(old_messages)
+
+def purge_signals(timestamp):
+
+    users = SIGNALS.get(shallow = True)
+    if not users: return
+
+    for uid in users.keys():
+
+        node = SIGNALS.child(uid)
+
+        # query old messages
+        old_messages = node.order_by_key().end_at(str(timestamp)).get()
+        if not old_messages: continue
+
+        # batch delete
+        old_messages = { key: None for key in old_messages.keys() }
+        node.update(old_messages)

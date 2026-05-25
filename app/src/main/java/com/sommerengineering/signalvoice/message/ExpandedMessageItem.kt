@@ -16,7 +16,7 @@ import com.sommerengineering.signalvoice.uitls.TimestampFormatter
 fun ExpandedMessageItem(
     annotatedMessage: AnnotatedMessage,
     beautifulTimestamp: String,
-    timestamp: String,
+    timestamp: Long,
     isLocked: Boolean,
     modifier: Modifier = Modifier
 ) {

@@ -17,6 +17,17 @@ strategy(
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// CONSTANTS
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ZN_STRUCTURE_LOOKBACK = 4
+E6_STRUCTURE_LOOKBACK = 7
+GC_STRUCTURE_LOOKBACK = 5
+
+GC_EARLY_ALIGNMENT_MIN_BARS  = 2 // wait for stability
+GC_EARLY_ALIGNMENT_MAX_BARS = 11 // ensure move is early
+GC_TAKE_PROFIT_POINTS = 2000
+
 // DATA
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -27,13 +38,21 @@ GC_SYMBOL = "COMEX:GC1!"
 ticker = ticker.standard(syminfo.tickerid)
 isZN = str.contains(ticker, "ZN1!")
 isE6 = str.contains(ticker, "6E1!")
-isGC = str.contains(syminfo.tickerid, "GC1!")
+isGC = str.contains(syminfo.tickerid, "MGC1!")
+// isMGC = str.contains(syminfo.tickerid, "MGC1!")
 
-ZN_LOOKBACK = 85
-E6_LOOKBACK = 55
-GC_LOOKBACK = 35
-GC_EARLY_ALIGNMENT_MIN_BARS  = 1 // wait for stability
-GC_EARLY_ALIGNMENT_MAX_BARS = 10 // ensure move is early
+var isZNupTrend = false
+var isZNdownTrend = false
+var isE6upTrend = false
+var isE6downTrend = false
+var gcSupportiveBars = 0
+var gcHostileBars = 0
+varip isBarStable = false
+var isLongTradeActive = false
+var isShortTradeActive = false
+var entryPrice = close
+var exitPrice = close
+var profit = close
 
 // SESSION CONTROL
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -44,7 +63,7 @@ GC_EARLY_ALIGNMENT_MAX_BARS = 10 // ensure move is early
 // us: 0930-1600
 
 // session windows (entry allowed)
-inSessionTimes = "1815-0859" // "0915-1559"
+inSessionTimes = "1815-0859,0915-1659" // isMGC ? "1815-0859" : "1800-1700"
 isInSession = not na(time(timeframe.period, inSessionTimes, "America/New_York"))
 
 // session closing (exit)
@@ -54,72 +73,86 @@ isSessionClosing = not na(time(timeframe.period, sessionClosingTime, "America/Ne
 // ZN
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var bool isZNsupportive = false
-var bool isZNhostile = false
-
 znOpen = request.security(ZN_SYMBOL, timeframe.period, open)
 znVwap = request.security(ZN_SYMBOL, timeframe.period, ta.vwap(hlc3))
 
-znHigherHigh = request.security(ZN_SYMBOL, timeframe.period, high > ta.highest(high[1], ZN_LOOKBACK))
-znLowerLow = request.security(ZN_SYMBOL, timeframe.period, ta.lowest(low[1], ZN_LOOKBACK) > low)
+znBullishBreak = request.security(
+     ZN_SYMBOL,
+     timeframe.period,
+     high > ta.highest(high[1], ZN_STRUCTURE_LOOKBACK))
+
+znBearishBreak = request.security(
+     ZN_SYMBOL,
+     timeframe.period,
+     ta.lowest(low[1], ZN_STRUCTURE_LOOKBACK) > low)
+
+if znBullishBreak
+    isZNupTrend := true
+    isZNdownTrend := false
+
+if znBearishBreak
+    isZNupTrend := false
+    isZNdownTrend := true
 
 znAbove = znOpen > znVwap
 znBelow = znVwap > znOpen
 
-isZNsupportive :=
-     znHigherHigh and znAbove ? true :
-     znLowerLow and znBelow ? false :
-     znLowerLow and znAbove ? false :
-     znHigherHigh and znBelow ? false :
-     isZNsupportive[1]
+isZNsupportive =
+     isZNupTrend
+     and znAbove
 
-isZNhostile :=
-     znLowerLow  and znBelow ? true :
-     znHigherHigh and znAbove ? false :
-     znHigherHigh and znBelow ? false :
-     znLowerLow  and znAbove ? false :
-     isZNhostile[1]
+isZNhostile =
+     isZNdownTrend
+     and znBelow
 
-isZNneutral = not isZNsupportive and not isZNhostile
+isZNneutral =
+     not isZNsupportive
+     and not isZNhostile
 
 // 6E
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var bool isE6supportive = false
-var bool isE6hostile = false
-
 e6Open = request.security(E6_SYMBOL, timeframe.period, open)
 e6Vwap = request.security(E6_SYMBOL, timeframe.period, ta.vwap(hlc3))
 
-e6HigherHigh = request.security(E6_SYMBOL, timeframe.period, high > ta.highest(high[1], E6_LOOKBACK))
-e6LowerLow = request.security(E6_SYMBOL, timeframe.period, ta.lowest(low[1], E6_LOOKBACK) > low)
+e6BullishBreak = request.security(
+     E6_SYMBOL,
+     timeframe.period,
+     high > ta.highest(high[1], E6_STRUCTURE_LOOKBACK))
+
+e6BearishBreak = request.security(
+     E6_SYMBOL,
+     timeframe.period,
+     ta.lowest(low[1], E6_STRUCTURE_LOOKBACK) > low)
+
+if e6BullishBreak
+    isE6upTrend := true
+    isE6downTrend := false
+
+if e6BearishBreak
+    isE6upTrend := false
+    isE6downTrend := true
 
 e6Above = e6Open > e6Vwap
 e6Below = e6Vwap > e6Open
 
-isE6supportive :=
-     e6HigherHigh and e6Above ? true :
-     e6LowerLow  and e6Below ? false :
-     e6LowerLow  and e6Above ? false :
-     e6HigherHigh and e6Below ? false :
-     isE6supportive[1]
+isE6supportive =
+     isE6upTrend
+     and e6Above
 
-isE6hostile :=
-     e6LowerLow  and e6Below ? true :
-     e6HigherHigh and e6Above ? false :
-     e6HigherHigh and e6Below ? false :
-     e6LowerLow  and e6Above ? false :
-     isE6hostile[1]
+isE6hostile =
+     isE6downTrend
+     and e6Below
+
+isE6neutral =
+     not isE6supportive
+     and not isE6hostile
 
 // MACRO REGIME
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// stability
-macroSupportCount = math.sum(isZNsupportive and isE6supportive ? 1 : 0, 3)
-macroHostileCount = math.sum(isZNhostile and isE6hostile ? 1 : 0, 3)
-
-isMacroSupportive = macroSupportCount > 1
-isMacroHostile = macroHostileCount > 1
+isMacroSupportive = isZNsupportive and isE6supportive
+isMacroHostile = isZNhostile and isE6hostile
 isMacroNeutral = not isMacroSupportive and not isMacroHostile
 
 isLongMacroBroken = not isZNsupportive or not isE6supportive
@@ -128,16 +161,42 @@ isShortMacroBroken = not isZNhostile or not isE6hostile
 // GC LOGIC
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var int gcSupportiveBars = 0
-var int gcHostileBars = 0
-
-gcAvg = ta.sma(open, GC_LOOKBACK)
+gcOpen = open
 gcVwap = ta.vwap(hlc3)
-gcSlope = gcAvg - gcAvg[1]
 
-// trend
-isGCsupportive = open > gcAvg
-isGChostile = not isGCsupportive
+gcBullishBreak =
+     high > ta.highest(high[1], GC_STRUCTURE_LOOKBACK)
+
+gcBearishBreak =
+     ta.lowest(low[1], GC_STRUCTURE_LOOKBACK) > low
+
+var bool isGCupTrend = false
+var bool isGCdownTrend = false
+
+if gcBullishBreak
+    isGCupTrend := true
+    isGCdownTrend := false
+
+if gcBearishBreak
+    isGCupTrend := false
+    isGCdownTrend := true
+
+gcAbove = gcOpen > gcVwap
+gcBelow = gcVwap > gcOpen
+
+isGCsupportive =
+     // isGCupTrend
+     // and
+     gcAbove
+
+isGChostile =
+     // isGCdownTrend
+     // and
+     gcBelow
+
+isGCneutral =
+     not isGCsupportive
+     and not isGChostile
 
 // count trend bars
 gcSupportiveBars := isGCsupportive ? gcSupportiveBars[1] + 1 : 0
@@ -155,13 +214,6 @@ isGChostileEarly =
 
 // GC TRADE
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-varip bool isBarStable = false
-var bool isLongTradeActive = false
-var bool isShortTradeActive = false
-var float entryPrice = na
-var float exitPrice = na
-var float profit = na
 
 // calc_on_every_tick has ridiculous problem of pulling previous bar values into this bar just for the very first tick
 // creates ghost signals that are not accurate, bar is stable on second tick and later
@@ -195,22 +247,27 @@ isShortEntry =
      and isMacroHostile
      and isGChostileEarly
 
+var takeProfit = close
+
 if isLongEntry
     isLongTradeActive := true
     isShortTradeActive := false
     entryPrice := close
+    takeProfit := entryPrice + GC_TAKE_PROFIT_POINTS
 
 if isShortEntry
     isLongTradeActive := false
     isShortTradeActive := true
     entryPrice := close
+    takeProfit := entryPrice - GC_TAKE_PROFIT_POINTS
 
 // exit
 isLongExit =
      isBarStable
      and isLongTradeActive
      and (
-        isLongMacroBroken
+        isMacroHostile
+        or high > takeProfit
         or not isInSession
      )
 
@@ -218,7 +275,8 @@ isShortExit =
      isBarStable
      and isShortTradeActive
      and (
-        isShortMacroBroken
+        isMacroSupportive
+        or takeProfit > low
         or not isInSession
      )
 
@@ -271,8 +329,6 @@ bg_session_transparency = 50
 
 line_width = 2
 
-/////////////////////////////////////////////////
-
 // asset name (top right)
 assetName =
      isZN ? "10Y Treasury (ZN)" :
@@ -294,6 +350,8 @@ if barstate.islast
          text_size = size.normal,
          text_halign = text.align_right,
          bgcolor = na)
+
+/////////////////////////////////////////////////
 
 // bar color
 barColor =
@@ -346,7 +404,7 @@ plotshape(
 plot(isZN ? znVwap : na, color = color.new(session_color, line_transparency), linewidth = line_width)
 plot(isE6 ? e6Vwap : na , color = color.new(session_color, line_transparency), linewidth = line_width)
 plot(isGC ? gcVwap : na, color = color.new(session_color, line_transparency), linewidth = line_width)
-plot(isGC ? gcAvg : na , color = color.new(GC_color, line_transparency), linewidth = line_width)
+// plot(isGC ? gcAvg : na , color = color.new(GC_color, line_transparency), linewidth = line_width)
 
 // ALERT
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -442,7 +500,7 @@ if isGC and isLongExit
              "Macro alignment lost"
 
         alertMessage :=
-             "Weakness • Bullish alignment fading • " +
+             "Weakness • " +
              exitReason + " • " +
              formattedMagnitude
 
@@ -458,7 +516,7 @@ if isGC and isShortExit
              "Macro alignment lost"
 
         alertMessage :=
-             "Weakness • Bearish alignment fading • " +
+             "Weakness • " +
              exitReason + " • " +
              formattedMagnitude
 

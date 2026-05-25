@@ -31,18 +31,18 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import com.sommerengineering.signalvoice.MainViewModel
 import com.sommerengineering.signalvoice.R
+import com.sommerengineering.signalvoice.login.Session.Guest
 import com.sommerengineering.signalvoice.message.GroupHeaderItem
 import com.sommerengineering.signalvoice.message.MessageItem
-import com.sommerengineering.signalvoice.session.Session.Guest
 import com.sommerengineering.signalvoice.settings.SettingsDrawer
 import com.sommerengineering.signalvoice.source.Message
 import com.sommerengineering.signalvoice.source.MessageGroup
 import com.sommerengineering.signalvoice.source.MessageOrigin
 import com.sommerengineering.signalvoice.source.resolveMessageOrigin
 import com.sommerengineering.signalvoice.speak.ForegroundSpeechService
-import com.sommerengineering.signalvoice.uitls.anonymousEmptyStateSubtitle
 import com.sommerengineering.signalvoice.uitls.emptyStateSubtitle
 import com.sommerengineering.signalvoice.uitls.emptyStateTitle
+import com.sommerengineering.signalvoice.uitls.guestEmptyStateSubtitle
 import com.sommerengineering.signalvoice.uitls.notificationsDisabledSubtitle
 import com.sommerengineering.signalvoice.uitls.notificationsDisabledTitle
 import kotlinx.coroutines.flow.first
@@ -166,7 +166,7 @@ fun MessagesScreen(
                             iconRes = R.drawable.webhook,
                             title = emptyStateTitle,
                             subTitle =
-                                if (session is Guest) anonymousEmptyStateSubtitle
+                                if (session is Guest) guestEmptyStateSubtitle
                                 else emptyStateSubtitle,
                             onClick = onCustomSignalClick,
                             visible = isEmptyState,
@@ -181,7 +181,6 @@ fun MessagesScreen(
                             itemsIndexed(
                                 items = messages,
                                 key = { _, it -> it.timestamp }) { index, message ->
-
                                 MessageItem(
                                     viewModel = viewModel,
                                     message = message,
@@ -227,7 +226,6 @@ fun MessagesScreen(
                         .fillMaxWidth()
                         .weight(1f),
                     timestamp = messages.firstOrNull()?.timestamp ?: System.currentTimeMillis()
-                        .toString()
                 )
             }
         }

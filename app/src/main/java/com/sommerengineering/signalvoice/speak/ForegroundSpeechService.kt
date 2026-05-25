@@ -76,7 +76,7 @@ class ForegroundSpeechService : Service() {
 
                 // parse latest message
                 val message = messages.firstOrNull() ?: return@collect
-                val timestamp = message.timestamp.toLong()
+                val timestamp = message.timestamp
 
                 // ensure message is recent
                 if (lastTimestamp == null) {

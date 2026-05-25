@@ -3,22 +3,29 @@ package com.sommerengineering.signalvoice.settings
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import com.sommerengineering.signalvoice.MainViewModel
 import com.sommerengineering.signalvoice.source.MessageOrigin
 import com.sommerengineering.signalvoice.source.OriginIcon
 import com.sommerengineering.signalvoice.uitls.streamDescriptionAlpha
 
 @Composable
 fun StreamSwitchItem(
+    viewModel: MainViewModel,
     origin: MessageOrigin,
     enabled: Boolean,
     updateStream: (Boolean) -> Unit,
-    isLocked: Boolean,
     onLockedClick: () -> Unit,
 ) {
 
     val style = origin.style
+
+    // premium locked state
+    val session by viewModel.session.collectAsState()
+    val isLocked = origin.isPremium && !session.isPremium
 
     SwitchItem(
         icon = {

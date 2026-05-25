@@ -66,7 +66,7 @@ fun NavGraphBuilder.AppOnboardingNavigation(
         composable(OnboardingSendAlertsRoute) {
 
             val onNextClick = {
-                viewModel.updateOnboarding(true)
+                viewModel.completeOnboarding()
                 controller.navigate(MessagesRoute) {
                     popUpTo(MessagesRoute) { inclusive = true }
                 }

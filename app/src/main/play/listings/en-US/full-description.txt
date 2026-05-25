@@ -1,0 +1,41 @@
+SignalVoice delivers trading signals with voice alerts so you never miss a move.
+
+Built for active traders, SignalVoice streams event-driven signals across global markets, allowing you to stay aware without constantly watching charts.
+
+KEY FEATURES
+
+• Signal-driven alerts
+Receive structured, event-based signals as they occur. Designed to cut through noise and highlight meaningful market activity.
+
+• Voice-first delivery
+Signals are spoken out loud as they trigger, so you can stay informed even when you’re away from your screen.
+
+• Clean, focused interface
+Review signals in a fast, minimal feed built for quick interpretation and decision-making.
+
+• Multi-market coverage
+Track signals across markets with consistent behavior and logic.
+
+• Lightweight and responsive
+Optimized for speed, reliability, and low distraction.
+
+HOW IT WORKS
+
+SignalVoice monitors market conditions and identifies structured signal events based on price behavior. When a signal is triggered, it is delivered instantly to your device and can be spoken aloud through voice alerts.
+
+The app is designed to integrate into your existing workflow, giving you awareness without requiring constant screen time.
+
+WHO IT’S FOR
+
+• Active traders
+• Multi-market traders
+• Users who want hands-free awareness
+• Traders who value speed and simplicity
+
+IMPORTANT
+
+SignalVoice provides market signals for informational purposes only. It does not execute trades and does not provide personalized financial advice.
+
+---
+
+Stay in sync with the market — without being tied to your screen.

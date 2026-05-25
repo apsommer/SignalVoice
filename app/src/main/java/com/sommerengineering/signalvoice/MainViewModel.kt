@@ -13,21 +13,26 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sommerengineering.signalvoice.firebase.FirebaseAnalyticsLogger
 import com.sommerengineering.signalvoice.login.GoogleAuthenticator
+import com.sommerengineering.signalvoice.login.SessionManager
 import com.sommerengineering.signalvoice.messages.FeedMode
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationState.RECEIVED
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationState.WAITING
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationUiState
-import com.sommerengineering.signalvoice.session.SessionManager
-import com.sommerengineering.signalvoice.source.Asset
 import com.sommerengineering.signalvoice.source.Message
-import com.sommerengineering.signalvoice.source.MessageOrigin
-import com.sommerengineering.signalvoice.source.resolveMessageOrigin
 import com.sommerengineering.signalvoice.uitls.RomanNumerals
+import com.sommerengineering.signalvoice.uitls.btcStream
+import com.sommerengineering.signalvoice.uitls.clStream
+import com.sommerengineering.signalvoice.uitls.e6Stream
+import com.sommerengineering.signalvoice.uitls.esStream
+import com.sommerengineering.signalvoice.uitls.gcStream
 import com.sommerengineering.signalvoice.uitls.gitHubProvider
+import com.sommerengineering.signalvoice.uitls.nqStream
 import com.sommerengineering.signalvoice.uitls.screenFullDescription
 import com.sommerengineering.signalvoice.uitls.screenWindowedDescription
 import com.sommerengineering.signalvoice.uitls.webhookBaseUrl
+import com.sommerengineering.signalvoice.uitls.znStream
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -45,28 +50,13 @@ class MainViewModel @Inject constructor(
     private val sessionManager: SessionManager,
     private val repo: MainRepository,
     private val googleAuthenticator: GoogleAuthenticator,
+    private val analytics: FirebaseAnalyticsLogger
 ) : ViewModel() {
 
     // session
     val session = sessionManager.session
 
-    // premium (locked) todo collapse this overload
-    fun isLocked(message: Message): Boolean {
-        val origin = resolveMessageOrigin(message)
-        return isLocked(origin)
-    }
-
-    fun isLocked(origin: MessageOrigin): Boolean {
-        if (origin !is MessageOrigin.BroadcastStream) return false
-        return isLocked(origin.asset)
-    }
-
-    fun isLocked(asset: Asset): Boolean {
-        val isPremiumAsset = asset.isPremium
-        val isPremiumUser = sessionManager.isPremium
-        return isPremiumAsset && !isPremiumUser
-    }
-
+    // paywall: authenticated user attempts to access premium stream
     private val _shouldLaunchPaywall = MutableSharedFlow<Unit>()
     val shouldLaunchPaywall = _shouldLaunchPaywall.asSharedFlow()
 
@@ -77,7 +67,7 @@ class MainViewModel @Inject constructor(
     }
 
     val webhookUrl
-        get() = webhookBaseUrl + sessionManager.uid
+        get() = webhookBaseUrl + session.value.uid
 
     // room database
     val messages = repo.messages.stateIn(
@@ -134,7 +124,9 @@ class MainViewModel @Inject constructor(
             launchSystemNotificationSettings(context)
             return
         }
-        repo.setListening(!isListening.value)
+        val enabled = !isListening.value
+        repo.setListening(enabled)
+        analytics.logListeningChanged(enabled)
     }
 
     suspend fun restoreListening() = repo.restoreListening()
@@ -151,9 +143,10 @@ class MainViewModel @Inject constructor(
     var isOnboardingComplete by mutableStateOf(false)
         private set
 
-    fun updateOnboarding(enabled: Boolean) {
-        isOnboardingComplete = enabled
-        repo.updateOnboarding(enabled)
+    fun completeOnboarding() {
+        isOnboardingComplete = true
+        repo.completeOnboarding()
+        analytics.logOnboardingComplete()
     }
 
     var isEmptyState by mutableStateOf(true)
@@ -171,6 +164,7 @@ class MainViewModel @Inject constructor(
     fun updateZN(enabled: Boolean) {
         isZN = enabled
         repo.updateZN(enabled)
+        analytics.logStreamChanged(znStream, enabled)
     }
 
     // stream NQ
@@ -180,15 +174,7 @@ class MainViewModel @Inject constructor(
     fun updateNQ(enabled: Boolean) {
         isNQ = enabled
         repo.updateNQ(enabled)
-    }
-
-    // stream ES
-    var isES by mutableStateOf(true)
-        private set
-
-    fun updateES(enabled: Boolean) {
-        isES = enabled
-        repo.updateES(enabled)
+        analytics.logStreamChanged(nqStream, enabled)
     }
 
     // stream BTC
@@ -198,6 +184,17 @@ class MainViewModel @Inject constructor(
     fun updateBTC(enabled: Boolean) {
         isBTC = enabled
         repo.updateBTC(enabled)
+        analytics.logStreamChanged(btcStream, enabled)
+    }
+
+    // stream ES
+    var isES by mutableStateOf(true)
+        private set
+
+    fun updateES(enabled: Boolean) {
+        isES = enabled
+        repo.updateES(enabled)
+        analytics.logStreamChanged(esStream, enabled)
     }
 
     // stream GC
@@ -207,6 +204,7 @@ class MainViewModel @Inject constructor(
     fun updateGC(enabled: Boolean) {
         isGC = enabled
         repo.updateGC(enabled)
+        analytics.logStreamChanged(gcStream, enabled)
     }
 
     // stream E6
@@ -216,6 +214,7 @@ class MainViewModel @Inject constructor(
     fun updateE6(enabled: Boolean) {
         isE6 = enabled
         repo.updateE6(enabled)
+        analytics.logStreamChanged(e6Stream, enabled)
     }
 
     // stream CL
@@ -225,6 +224,7 @@ class MainViewModel @Inject constructor(
     fun updateCL(enabled: Boolean) {
         isCL = enabled
         repo.updateCL(enabled)
+        analytics.logStreamChanged(clStream, enabled)
     }
 
     // feed mode: linear or grouped
@@ -314,19 +314,24 @@ class MainViewModel @Inject constructor(
 
         // previous notification permission
         val wasEnabled = wasNotificationsEnabled
-        wasNotificationsEnabled = enabled
 
         // update state
+        wasNotificationsEnabled = enabled
         areNotificationsEnabled = enabled
+
+        // ignore first initialization, resume into stored preference
+        if (wasEnabled == null) return
+
+        // log state changes
+        if (wasEnabled != enabled) {
+            analytics.logNotificationsChanged(enabled)
+        }
 
         // always enforce off
         if (!enabled) {
             repo.setListening(false)
             return
         }
-
-        // first app launch, resume into stored preference
-        if (wasEnabled == null) return
 
         // auto recover for transition off -> on
         if (!wasEnabled) repo.setListening(true)
@@ -387,8 +392,7 @@ class MainViewModel @Inject constructor(
         val latestMessage =
             startTime?.let {
                 messages.firstOrNull {
-                    it.source != null &&
-                            it.timestamp.toLong() > startTime
+                    it.source != null && it.timestamp > startTime
                 }
             }
         if (latestMessage != null) {

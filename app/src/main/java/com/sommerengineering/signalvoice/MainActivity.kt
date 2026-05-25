@@ -26,6 +26,7 @@ import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.appupdate.AppUpdateOptions
 import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.UpdateAvailability
+import com.sommerengineering.signalvoice.firebase.FirebaseAnalyticsLogger
 import com.sommerengineering.signalvoice.navigation.MainNavigation
 import com.sommerengineering.signalvoice.premium.BillingManager
 import com.sommerengineering.signalvoice.theme.AppTheme
@@ -47,10 +48,17 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
 
     @Inject
+    lateinit var repo: MainRepository
+
+    @Inject
     lateinit var updateRepository: UpdateRepository
 
     @Inject
     lateinit var billingManager: BillingManager
+
+    @Inject
+    lateinit var analytics: FirebaseAnalyticsLogger
+
     private val viewModel: MainViewModel by viewModels()
 
     val requestNotificationPermissionLauncher =
@@ -192,6 +200,14 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onDestroy() {
+        repo.setListening(
+            enabled = false,
+            isPersist = false
+        )
+        super.onDestroy()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
 
         installSplashScreen()
@@ -201,6 +217,7 @@ class MainActivity : ComponentActivity() {
         initNotificationChannel()
         checkUpdates()
         listenForPaywall()
+        analytics.logAppOpen()
 
         // launch compose tree
         setContent {

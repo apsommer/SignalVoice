@@ -11,8 +11,8 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.sommerengineering.signalvoice.MainViewModel
 import com.sommerengineering.signalvoice.login.LoginScreen
+import com.sommerengineering.signalvoice.login.Session.Guest
 import com.sommerengineering.signalvoice.messages.MessagesScreen
-import com.sommerengineering.signalvoice.session.Session.Guest
 import com.sommerengineering.signalvoice.uitls.AppOnboardingRoute
 import com.sommerengineering.signalvoice.uitls.LoginRoute
 import com.sommerengineering.signalvoice.uitls.MessagesRoute
@@ -44,7 +44,7 @@ fun MainNavigation(
     val session by viewModel.session.collectAsState()
     val onCustomSignalClick: () -> Unit = {
 
-        // anonymous: login screen
+        // guest: login screen
         if (session is Guest) {
             controller.navigate(LoginRoute) {
                 popUpTo(controller.graph.startDestinationId) {

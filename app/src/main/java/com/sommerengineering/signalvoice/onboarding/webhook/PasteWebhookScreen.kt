@@ -36,7 +36,7 @@ fun PasteWebhookScreen(
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f),
                     shape = RoundedCornerShape(8.dp)
                 ),
-            painter = painterResource(R.drawable.screenshot),
+            painter = painterResource(R.drawable.paste_webhook),
             contentDescription = null
         )
     }

@@ -13,6 +13,7 @@ import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
 import com.android.billingclient.api.queryProductDetails
 import com.sommerengineering.signalvoice.MainActivity
+import com.sommerengineering.signalvoice.firebase.FirebaseAnalyticsLogger
 import com.sommerengineering.signalvoice.uitls.logMessage
 import com.sommerengineering.signalvoice.uitls.productId
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -25,7 +26,8 @@ import kotlin.coroutines.resume
 
 @Singleton
 class BillingManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val analytics: FirebaseAnalyticsLogger
 ) {
 
     private val client =
@@ -101,6 +103,7 @@ class BillingManager @Inject constructor(
                     return@any isValid && isPurchased && isAcknowledged
                 }
 
+                logMessage("Billing manager response isPremium: $isPremium")
                 continuation.resume(isPremium)
             }
         }
@@ -146,7 +149,7 @@ class BillingManager @Inject constructor(
         // extract subscription offer
         val offer = product.subscriptionOfferDetails?.firstOrNull()
         if (offer == null) {
-            logMessage("No subscription offers found for product id: $productId")
+            logMessage("No subscription offers found for product id: ${product.productId}")
             return
         }
 
@@ -166,6 +169,8 @@ class BillingManager @Inject constructor(
                 )
                 .build()
         )
+
+        analytics.logSubscriptionViewed(product.productId)
     }
 
     private fun handlePurchase(
@@ -227,6 +232,7 @@ class BillingManager @Inject constructor(
 
             logMessage("Purchase acknowledged successfully, updating entitlement ...")
             _purchaseEvents.tryEmit(Unit)
+            analytics.logSubscriptionPurchased(purchase.products[0])
         }
     }
 }

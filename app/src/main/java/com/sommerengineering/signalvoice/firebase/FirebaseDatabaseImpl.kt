@@ -44,7 +44,7 @@ class FirebaseDatabaseImpl @Inject constructor() {
 
     suspend fun fetchUserMessages(): List<Message> {
 
-        // anonymous user has no messages
+        // guest user has no messages
         val currentUid = uid
         if (currentUid.isEmpty()) return emptyList()
 
@@ -64,7 +64,7 @@ class FirebaseDatabaseImpl @Inject constructor() {
     private fun DataSnapshot.toStreamMessage(stream: String): Message? {
 
         // validate attributes
-        val timestamp = key ?: return null
+        val timestamp = key?.toLongOrNull() ?: return null
         val message = child(messageKey).value as? String ?: return null
 
         return Message(timestamp, message, stream, null)
@@ -73,7 +73,7 @@ class FirebaseDatabaseImpl @Inject constructor() {
     private fun DataSnapshot.toUserMessage(): Message? {
 
         // validate attributes
-        val timestamp = key ?: return null
+        val timestamp = key?.toLongOrNull() ?: return null
         val message = child(messageKey).value as? String ?: return null
         val source = child(sourceKey).value as? String ?: return null
 
@@ -85,7 +85,7 @@ class FirebaseDatabaseImpl @Inject constructor() {
         val currentUid = uid
 
         // write token: uid
-        logMessage("writeToken: newToken=$newToken, currentUid=$currentUid")
+        logMessage("writeToken: newToken=${newToken.take(10)}, currentUid=${currentUid.take(10)}")
         db.getReference(TOKENS)
             .child(newToken)
             .setValue(currentUid)

@@ -70,7 +70,7 @@ class TextToSpeechImpl @Inject constructor(
     fun stop() = _textToSpeech.stop()
 
     suspend fun speakQueued(
-        timestamp: String,
+        timestamp: Long,
         message: String
     ) = suspendCancellableCoroutine { continuation ->
 
@@ -84,7 +84,7 @@ class TextToSpeechImpl @Inject constructor(
             override fun onStop(id: String?, interrupted: Boolean) = finishCoroutine(id)
             override fun onError(id: String?) = finishCoroutine(id)
             private fun finishCoroutine(id: String?) {
-                if (id != timestamp || !continuation.isActive) return
+                if (id != timestamp.toString() || !continuation.isActive) return
                 continuation.resume(Unit)
             }
         }
@@ -96,7 +96,7 @@ class TextToSpeechImpl @Inject constructor(
             SpeechParser.normalizeMessage(message),
             TextToSpeech.QUEUE_ADD,
             bundleOf(volumeKey to _volume),
-            timestamp
+            timestamp.toString()
         )
     }
 

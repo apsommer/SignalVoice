@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.sommerengineering.signalvoice.BuildConfig
 import com.sommerengineering.signalvoice.MainViewModel
 import com.sommerengineering.signalvoice.R
-import com.sommerengineering.signalvoice.session.Session.Guest
+import com.sommerengineering.signalvoice.login.Session.Guest
 import com.sommerengineering.signalvoice.source.MessageOrigin
 import com.sommerengineering.signalvoice.source.btcAsset
 import com.sommerengineering.signalvoice.source.clAsset
@@ -44,13 +44,13 @@ import com.sommerengineering.signalvoice.source.esAsset
 import com.sommerengineering.signalvoice.source.gcAsset
 import com.sommerengineering.signalvoice.source.nqAsset
 import com.sommerengineering.signalvoice.source.znAsset
-import com.sommerengineering.signalvoice.uitls.anonymousCustomDescription
 import com.sommerengineering.signalvoice.uitls.customDescription
 import com.sommerengineering.signalvoice.uitls.customDividerTitle
 import com.sommerengineering.signalvoice.uitls.customTitle
 import com.sommerengineering.signalvoice.uitls.descriptionAlpha
 import com.sommerengineering.signalvoice.uitls.edgePadding
 import com.sommerengineering.signalvoice.uitls.generalDividerTitle
+import com.sommerengineering.signalvoice.uitls.guestCustomDescription
 import com.sommerengineering.signalvoice.uitls.manageSubscriptionDescription
 import com.sommerengineering.signalvoice.uitls.manageSubscriptionTitle
 import com.sommerengineering.signalvoice.uitls.pitchChangeUtterance
@@ -64,6 +64,9 @@ import com.sommerengineering.signalvoice.uitls.speedChangeUtterance
 import com.sommerengineering.signalvoice.uitls.speedTitle
 import com.sommerengineering.signalvoice.uitls.streamsDividerTitle
 import com.sommerengineering.signalvoice.uitls.subscriptionUrl
+import com.sommerengineering.signalvoice.uitls.supportDescription
+import com.sommerengineering.signalvoice.uitls.supportTitle
+import com.sommerengineering.signalvoice.uitls.supportUrl
 import com.sommerengineering.signalvoice.uitls.systemTtsDescription
 import com.sommerengineering.signalvoice.uitls.systemTtsInstallVoicesAction
 import com.sommerengineering.signalvoice.uitls.systemTtsTitle
@@ -110,11 +113,7 @@ fun SettingsDrawer(
             modifier = Modifier
                 .fillMaxHeight()
                 .background(MaterialTheme.colorScheme.background)
-                .padding(
-                    top =
-                        if (isFullScreen) appBarHeight
-                        else 0.dp
-                )
+                .padding(top = appBarHeight)
         ) {
 
             // divider
@@ -206,10 +205,10 @@ fun SettingsDrawer(
             // stream ZN
             item {
                 StreamSwitchItem(
+                    viewModel = viewModel,
                     origin = MessageOrigin.BroadcastStream(znAsset),
                     enabled = isZN,
                     updateStream = { viewModel.updateZN(it) },
-                    isLocked = viewModel.isLocked(znAsset),
                     onLockedClick = { viewModel.launchPaywall() }
                 )
             }
@@ -217,10 +216,10 @@ fun SettingsDrawer(
             // stream NQ
             item {
                 StreamSwitchItem(
+                    viewModel = viewModel,
                     origin = MessageOrigin.BroadcastStream(nqAsset),
                     enabled = isNQ,
                     updateStream = { viewModel.updateNQ(it) },
-                    isLocked = viewModel.isLocked(nqAsset),
                     onLockedClick = { viewModel.launchPaywall() }
                 )
             }
@@ -228,10 +227,10 @@ fun SettingsDrawer(
             // stream BTC
             item {
                 StreamSwitchItem(
+                    viewModel = viewModel,
                     origin = MessageOrigin.BroadcastStream(btcAsset),
                     enabled = isBTC,
                     updateStream = { viewModel.updateBTC(it) },
-                    isLocked = viewModel.isLocked(btcAsset),
                     onLockedClick = { viewModel.launchPaywall() }
                 )
             }
@@ -244,10 +243,10 @@ fun SettingsDrawer(
             // stream ES
             item {
                 StreamSwitchItem(
+                    viewModel = viewModel,
                     origin = MessageOrigin.BroadcastStream(esAsset),
                     enabled = isES,
                     updateStream = { viewModel.updateES(it) },
-                    isLocked = viewModel.isLocked(esAsset),
                     onLockedClick = { viewModel.launchPaywall() }
                 )
             }
@@ -255,10 +254,10 @@ fun SettingsDrawer(
             // stream GC
             item {
                 StreamSwitchItem(
+                    viewModel = viewModel,
                     origin = MessageOrigin.BroadcastStream(gcAsset),
                     enabled = isGC,
                     updateStream = { viewModel.updateGC(it) },
-                    isLocked = viewModel.isLocked(gcAsset),
                     onLockedClick = { viewModel.launchPaywall() }
                 )
             }
@@ -266,10 +265,10 @@ fun SettingsDrawer(
             // stream E6
             item {
                 StreamSwitchItem(
+                    viewModel = viewModel,
                     origin = MessageOrigin.BroadcastStream(e6Asset),
                     enabled = isE6,
                     updateStream = { viewModel.updateE6(it) },
-                    isLocked = viewModel.isLocked(e6Asset),
                     onLockedClick = { viewModel.launchPaywall() }
                 )
             }
@@ -277,10 +276,10 @@ fun SettingsDrawer(
             // stream CL
             item {
                 StreamSwitchItem(
+                    viewModel = viewModel,
                     origin = MessageOrigin.BroadcastStream(clAsset),
                     enabled = isCL,
                     updateStream = { viewModel.updateCL(it) },
-                    isLocked = viewModel.isLocked(clAsset),
                     onLockedClick = { viewModel.launchPaywall() }
                 )
             }
@@ -296,7 +295,7 @@ fun SettingsDrawer(
                     iconRes = R.drawable.webhook,
                     title = customTitle,
                     description =
-                        if (session is Guest) anonymousCustomDescription
+                        if (session is Guest) guestCustomDescription
                         else customDescription,
                     onClick = onCustomSignalClick
                 ) {
@@ -360,6 +359,15 @@ fun SettingsDrawer(
                     onClick = { uriHandler.openUri(subscriptionUrl) })
             }
 
+            // support
+            item {
+                LinkItem(
+                    iconRes = R.drawable.mail,
+                    title = supportTitle,
+                    description = supportDescription,
+                    onClick = { uriHandler.openUri(supportUrl) })
+            }
+
             // sign-out
             item {
                 LinkItem(
@@ -384,14 +392,12 @@ fun SettingsDrawer(
             }
         }
 
-        // prevent scroll into notch area when fullscreen
-        if (isFullScreen) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(appBarHeight)
-                    .background(MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp))
-            )
-        }
+        // decoration prevents scroll into notch area when fullscreen
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(appBarHeight)
+                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp))
+        )
     }
 }

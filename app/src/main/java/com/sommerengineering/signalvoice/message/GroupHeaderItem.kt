@@ -19,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,7 +58,8 @@ fun GroupHeaderItem(
     val style = origin.style
 
     // premium locked state
-    val isLocked = viewModel.isLocked(origin)
+    val session by viewModel.session.collectAsState()
+    val isLocked = origin.isPremium && !session.isPremium
 
     Column {
 

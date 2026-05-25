@@ -2,9 +2,9 @@ package com.sommerengineering.signalvoice
 
 import com.google.firebase.messaging.FirebaseMessaging
 import com.sommerengineering.signalvoice.firebase.FirebaseDatabaseImpl
+import com.sommerengineering.signalvoice.login.SessionManager
 import com.sommerengineering.signalvoice.messages.FeedMode
 import com.sommerengineering.signalvoice.room.RoomImpl
-import com.sommerengineering.signalvoice.session.SessionManager
 import com.sommerengineering.signalvoice.source.Message
 import com.sommerengineering.signalvoice.source.MessageOrigin
 import com.sommerengineering.signalvoice.source.resolveMessageOrigin
@@ -18,7 +18,6 @@ import com.sommerengineering.signalvoice.uitls.gcStream
 import com.sommerengineering.signalvoice.uitls.nqStream
 import com.sommerengineering.signalvoice.uitls.znStream
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -27,6 +26,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.roundToInt
@@ -40,6 +40,9 @@ class MainRepository @Inject constructor(
     private val firebaseDb: FirebaseDatabaseImpl,
     private val prefs: PreferenceStore
 ) {
+
+    // session
+    val session = sessionManager.session
 
     // room database
     val messages = roomDb.messages
@@ -132,8 +135,9 @@ class MainRepository @Inject constructor(
     }
 
     suspend fun restoreListening() {
+        val wasListening = prefs.read(LISTENING) ?: true
         setListening(
-            enabled = prefs.read(LISTENING) ?: true,
+            enabled = wasListening,
             isPersist = false
         )
     }
@@ -166,8 +170,8 @@ class MainRepository @Inject constructor(
     suspend fun loadOnboarding() =
         prefs.read(ONBOARDING) ?: false
 
-    fun updateOnboarding(enabled: Boolean) =
-        appScope.launch { prefs.write(ONBOARDING, enabled) }
+    fun completeOnboarding() =
+        appScope.launch { prefs.write(ONBOARDING, true) }
 
     // user signal empty state
     suspend fun loadEmptyState() =
@@ -298,49 +302,8 @@ class MainRepository @Inject constructor(
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private suspend fun stabilizeVoices() {
-
-        var voiceCount = -1
-        var stablePasses = 0
-        var attempts = 0
-        val maxAttempts = 40
-        while (true) {
-
-            // query engine state
-            val voices = tts.voices
-            val currentVoiceCount = voices.size
-
-            // check size of voices and their attributes
-            val isSizeStable = currentVoiceCount > 0 && currentVoiceCount == voiceCount
-            val areVoicesStable = voices.all { it.name != null && it.locale != null }
-
-            if (isSizeStable && areVoicesStable) {
-                stablePasses++
-                if (stablePasses > 3) break // size and voices are stable, finish
-            } else {
-                stablePasses = 0
-            }
-
-            // fail-safe exit
-            // todo if this fail safe occurs tts engine is unusable, entire app will not function
-            //  surface this to user in the existing AllowNotificationBottomBar
-            attempts++
-            if (attempts > maxAttempts) break
-
-            // voices unstable, try again
-            voiceCount = currentVoiceCount
-            delay(50)
-        }
-    }
-
-    // firebase database (token)
-    private var cachedToken: String? = null
-    fun onNewToken(token: String) {
-        cachedToken = token
-        reconcileToken(token)
-    }
-
-    private fun reconcileToken(token: String) {
+    // device token
+    fun reconcileToken(token: String) {
         appScope.launch {
             FirebaseMessaging.getInstance().apply {
                 if (loadZN()) subscribeToTopic(znStream) else unsubscribeFromTopic(znStream)
@@ -361,23 +324,25 @@ class MainRepository @Inject constructor(
 
         // observe session state
         appScope.launch {
-            sessionManager.session
-                .map { sessionManager.uid }
+            session
+                .map { it.uid }
                 .distinctUntilChanged()
                 .collect { uid ->
 
+                    // hydrate user messages
                     firebaseDb.setUid(uid)
                     hydrateUserMessages()
 
                     // write new token, if needed
-                    cachedToken?.let(::reconcileToken)
+                    reconcileToken(
+                        FirebaseMessaging.getInstance().token.await()
+                    )
                 }
         }
 
         // initialize tts engine
         appScope.launch {
             isTtsInit.filter { it }.first() // ~10 millis
-            stabilizeVoices() // ~500 millis todo remove this, solved a non-existent problem
             initTtsSettings()
             _isTtsReady.update { true }
         }
