@@ -182,8 +182,7 @@ def write_user_message_to_database(uid, timestamp, message, source):
 
 ########################################################################################################################
 
-# @scheduler_fn.on_schedule(schedule = '1 17 * * 1-5', timezone = 'America/New_York') # run once per weekday at NYC 5:01 PM (market close)
-@scheduler_fn.on_schedule(schedule = '*/5 * * * *', timezone = 'America/New_York') # run once per weekday at NYC 5:01 PM (market close)
+@scheduler_fn.on_schedule(schedule = '1 17 * * 1-5', timezone = 'America/New_York') # run once per weekday at NYC 5:01 PM (market close)
 def purge_stale_messages(event: scheduler_fn.ScheduledEvent):
 
     timestamp = time.time_ns() // 1_000_000
