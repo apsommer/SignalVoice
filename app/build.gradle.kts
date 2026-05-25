@@ -61,8 +61,8 @@ configure<ApplicationExtension> {
         applicationId = "com.sommerengineering.signalvoice"
         minSdk = 28
         targetSdk = 36
-        versionCode = 39 // increment for each release
-        versionName = "1.39" // major.minor.date.letter
+        versionCode = 40 // increment for each release
+        versionName = "1.40" // major.minor.date.letter
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
