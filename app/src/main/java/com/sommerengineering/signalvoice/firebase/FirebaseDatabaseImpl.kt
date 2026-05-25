@@ -85,7 +85,7 @@ class FirebaseDatabaseImpl @Inject constructor() {
         val currentUid = uid
 
         // write token: uid
-        logMessage("writeToken: newToken=$newToken, currentUid=$currentUid")
+        logMessage("writeToken: newToken=${newToken.take(10)}, currentUid=${currentUid.take(10)}")
         db.getReference(TOKENS)
             .child(newToken)
             .setValue(currentUid)
