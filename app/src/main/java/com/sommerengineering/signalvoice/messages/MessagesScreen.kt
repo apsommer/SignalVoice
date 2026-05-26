@@ -84,24 +84,12 @@ fun MessagesScreen(
         }
     }
 
-    // scroll to latest: user at top of list or inline card appears
+    // scroll to latest on new message or card appearance
     LaunchedEffect(messages.size, areNotificationsEnabled, isEmptyState) {
 
-        val isCardVisible = !areNotificationsEnabled || isEmptyState
-        val isUserNearTop = listState.firstVisibleItemIndex <= 1
-
-        // wait for any ongoing scroll to finish
+        // wait for any internal compose scroll to finish
         snapshotFlow { listState.isScrollInProgress }.first { !it }
-
-        // new message arrives
-        if (!isCardVisible && isUserNearTop) {
-            listState.scrollToItem(0)
-        }
-
-        // card appears
-        if (isCardVisible && listState.firstVisibleItemIndex > 0) {
-            listState.animateScrollToItem(0)
-        }
+        listState.animateScrollToItem(0)
     }
 
     // measure appbar height for settings drawer
