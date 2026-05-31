@@ -4,6 +4,7 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.sommerengineering.signalvoice.firebase.FirebaseDatabaseImpl
 import com.sommerengineering.signalvoice.messages.FeedMode
 import com.sommerengineering.signalvoice.room.RoomImpl
+import com.sommerengineering.signalvoice.session.ConnectionMonitor
 import com.sommerengineering.signalvoice.session.SessionManager
 import com.sommerengineering.signalvoice.source.Message
 import com.sommerengineering.signalvoice.source.MessageOrigin
@@ -26,7 +27,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.roundToInt
@@ -34,6 +34,7 @@ import kotlin.math.roundToInt
 @Singleton
 class MainRepository @Inject constructor(
     @ApplicationScope private val appScope: CoroutineScope,
+    private val connectionMonitor: ConnectionMonitor,
     private val sessionManager: SessionManager,
     private val tts: TextToSpeechImpl,
     private val roomDb: RoomImpl,
@@ -301,7 +302,7 @@ class MainRepository @Inject constructor(
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    
+
     // device token
     fun reconcileToken(token: String) {
         appScope.launch {
@@ -333,10 +334,14 @@ class MainRepository @Inject constructor(
                     firebaseDb.setUid(uid)
                     hydrateUserMessages()
 
-                    // write new token, if needed
-                    reconcileToken(
-                        FirebaseMessaging.getInstance().token.await()
-                    )
+                    // fetch token and write, if needed
+                    FirebaseMessaging.getInstance().token
+                        .addOnSuccessListener {
+                            reconcileToken(it)
+                        }
+                        .addOnFailureListener {
+                            connectionMonitor.setPlayServicesUnavailable()
+                        }
                 }
         }
 

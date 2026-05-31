@@ -28,13 +28,15 @@ class ConnectionMonitor @Inject constructor(
             _connectionState.value = Connected
         }
 
-        override fun onUnavailable() {
+        override fun onLost(network: Network) {
             _connectionState.value = InternetUnavailable
         }
     }
 
     fun setPlayServicesUnavailable() {
-        _connectionState.value = PlayServicesUnavailable
+        if (connectionState.value is Connected) {
+            _connectionState.value = PlayServicesUnavailable
+        }
     }
 
     init {
