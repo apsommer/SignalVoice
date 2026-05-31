@@ -32,7 +32,6 @@ import com.sommerengineering.signalvoice.firebase.FirebaseAnalyticsLogger
 import com.sommerengineering.signalvoice.navigation.MainNavigation
 import com.sommerengineering.signalvoice.premium.BillingManager
 import com.sommerengineering.signalvoice.session.ConnectionBottomBar
-import com.sommerengineering.signalvoice.session.ConnectionMonitor
 import com.sommerengineering.signalvoice.theme.AppTheme
 import com.sommerengineering.signalvoice.uitls.channelDescription
 import com.sommerengineering.signalvoice.uitls.channelGroupId
@@ -50,9 +49,6 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    @Inject
-    lateinit var connectionMonitor: ConnectionMonitor
 
     @Inject
     lateinit var repo: MainRepository
