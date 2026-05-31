@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
@@ -29,6 +31,8 @@ import com.google.android.play.core.install.model.UpdateAvailability
 import com.sommerengineering.signalvoice.firebase.FirebaseAnalyticsLogger
 import com.sommerengineering.signalvoice.navigation.MainNavigation
 import com.sommerengineering.signalvoice.premium.BillingManager
+import com.sommerengineering.signalvoice.session.ConnectionBottomBar
+import com.sommerengineering.signalvoice.session.ConnectionMonitor
 import com.sommerengineering.signalvoice.theme.AppTheme
 import com.sommerengineering.signalvoice.uitls.channelDescription
 import com.sommerengineering.signalvoice.uitls.channelGroupId
@@ -46,6 +50,9 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var connectionMonitor: ConnectionMonitor
 
     @Inject
     lateinit var repo: MainRepository
@@ -241,8 +248,14 @@ fun App(
         if (viewModel.isFullScreen) WindowInsets(0)
         else WindowInsets.safeDrawing
 
+    // show banner on loss of internet connection
+    val connectionState by viewModel.connectionState.collectAsState()
+
     AppTheme {
-        Scaffold(contentWindowInsets = insets) { insetsPadding ->
+        Scaffold(
+            contentWindowInsets = insets,
+            bottomBar = { ConnectionBottomBar(connectionState) }
+        ) { insetsPadding ->
             Box(Modifier.padding(insetsPadding)) {
                 MainNavigation(viewModel)
             }

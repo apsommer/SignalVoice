@@ -19,6 +19,7 @@ import com.sommerengineering.signalvoice.messages.FeedMode
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationState.RECEIVED
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationState.WAITING
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationUiState
+import com.sommerengineering.signalvoice.session.ConnectionMonitor
 import com.sommerengineering.signalvoice.session.SessionManager
 import com.sommerengineering.signalvoice.source.Message
 import com.sommerengineering.signalvoice.uitls.RomanNumerals
@@ -47,6 +48,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
+    private val connectionMonitor: ConnectionMonitor,
     private val sessionManager: SessionManager,
     private val repo: MainRepository,
     private val googleAuthenticator: GoogleAuthenticator,
@@ -54,6 +56,7 @@ class MainViewModel @Inject constructor(
 ) : ViewModel() {
 
     // session
+    val connectionState = connectionMonitor.connectionState
     val session = sessionManager.session
 
     // paywall: authenticated user attempts to access premium stream
