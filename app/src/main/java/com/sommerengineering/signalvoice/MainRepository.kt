@@ -33,7 +33,7 @@ import kotlin.math.roundToInt
 
 @Singleton
 class MainRepository @Inject constructor(
-    @ApplicationScope val appScope: CoroutineScope,
+    @ApplicationScope private val appScope: CoroutineScope,
     private val sessionManager: SessionManager,
     private val tts: TextToSpeechImpl,
     private val roomDb: RoomImpl,
@@ -301,7 +301,7 @@ class MainRepository @Inject constructor(
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-
+    
     // device token
     fun reconcileToken(token: String) {
         appScope.launch {
