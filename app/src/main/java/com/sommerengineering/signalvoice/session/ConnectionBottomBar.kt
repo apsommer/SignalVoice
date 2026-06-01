@@ -14,9 +14,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.sommerengineering.signalvoice.session.ConnectionState.Connected
+import com.sommerengineering.signalvoice.session.ConnectionState.InternetUnavailable
+import com.sommerengineering.signalvoice.session.ConnectionState.PlayServicesUnavailable
+import com.sommerengineering.signalvoice.session.ConnectionState.TtsUnavailable
 
 private const val INTERNET_UNAVAILABLE = "Internet unavailable"
 private const val PLAY_SERVICES_UNAVAILABLE = "Cannot connect to real-time services"
+private const val TTS_UNAVAILABLE = "Text-to-speech unavailable"
 
 @Composable
 fun ConnectionBottomBar(
@@ -24,9 +29,10 @@ fun ConnectionBottomBar(
 ) {
 
     val text = when (connectionState) {
-        is ConnectionState.Connected -> null
-        is ConnectionState.InternetUnavailable -> INTERNET_UNAVAILABLE
-        is ConnectionState.PlayServicesUnavailable -> PLAY_SERVICES_UNAVAILABLE
+        Connected -> null
+        InternetUnavailable -> INTERNET_UNAVAILABLE
+        PlayServicesUnavailable -> PLAY_SERVICES_UNAVAILABLE
+        TtsUnavailable -> TTS_UNAVAILABLE
     }
 
     AnimatedVisibility(

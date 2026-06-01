@@ -20,7 +20,7 @@ class ConnectionMonitor @Inject constructor(
     private val connectivityManager =
         context.getSystemService(ConnectivityManager::class.java)
 
-    private val _connectionState = MutableStateFlow<ConnectionState>(Connected)
+    private val _connectionState = MutableStateFlow(Connected)
     val connectionState = _connectionState.asStateFlow()
 
     private val callback = object : ConnectivityManager.NetworkCallback() {
@@ -34,7 +34,7 @@ class ConnectionMonitor @Inject constructor(
     }
 
     fun setPlayServicesUnavailable() {
-        if (connectionState.value is Connected) {
+        if (connectionState.value == Connected) {
             _connectionState.value = PlayServicesUnavailable
         }
     }
