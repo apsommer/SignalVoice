@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.Scaffold
@@ -244,14 +245,23 @@ fun App(
         if (viewModel.isFullScreen) WindowInsets(0)
         else WindowInsets.safeDrawing
 
-    // show banner on loss of internet connection
+    // show banner on loss of app critical states: internet, play services, tts, ...
     val connectionState by viewModel.connectionState.collectAsState()
+    val bottomBarModifier =
+        if (viewModel.isFullScreen) Modifier
+        else Modifier.navigationBarsPadding()
 
     AppTheme {
         Scaffold(
             contentWindowInsets = insets,
-            bottomBar = { ConnectionBottomBar(connectionState) }
+            bottomBar = {
+                ConnectionBottomBar(
+                    connectionState = connectionState,
+                    modifier = bottomBarModifier
+                )
+            }
         ) { insetsPadding ->
+
             Box(Modifier.padding(insetsPadding)) {
                 MainNavigation(viewModel)
             }

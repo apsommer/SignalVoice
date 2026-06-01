@@ -115,6 +115,7 @@ fun MessagesScreen(
     ) {
 
         Scaffold(
+            contentWindowInsets = WindowInsets(0),
             topBar = {
                 Box(
                     modifier = Modifier.onSizeChanged { appbarHeightPx = it.height }

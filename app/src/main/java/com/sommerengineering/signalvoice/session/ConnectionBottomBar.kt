@@ -25,7 +25,8 @@ private const val TTS_UNAVAILABLE = "Install or enable a text-to-speech engine"
 
 @Composable
 fun ConnectionBottomBar(
-    connectionState: ConnectionState
+    connectionState: ConnectionState,
+    modifier: Modifier = Modifier
 ) {
 
     val text = when (connectionState) {
@@ -49,7 +50,7 @@ fun ConnectionBottomBar(
 
             Text(
                 text = text ?: "",
-                modifier = Modifier.padding(
+                modifier = modifier.padding(
                     horizontal = 16.dp,
                     vertical = 10.dp
                 ),
