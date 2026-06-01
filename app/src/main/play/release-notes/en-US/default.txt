@@ -1,1 +1,1 @@
-Initial public release
+Improved compatibility with Samsung and modified devices
