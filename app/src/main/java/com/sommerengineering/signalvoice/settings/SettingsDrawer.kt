@@ -1,7 +1,6 @@
 package com.sommerengineering.signalvoice.settings
 
 import android.content.Intent
-import android.speech.tts.TextToSpeech
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -57,7 +56,6 @@ private const val voiceTitle = "Voice"
 private const val speedTitle = "Speed"
 private const val pitchTitle = "Pitch"
 private const val systemTtsTitle = "System settings"
-private const val systemTtsInstallVoicesAction = TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA
 private const val streamsDividerTitle = "STREAMS"
 private const val premiumDividerTitle = "PREMIUM"
 private const val customDividerTitle = "CUSTOM"
@@ -85,6 +83,7 @@ fun SettingsDrawer(
     // voice
     val hasTts = viewModel.hasTts
     val systemTtsDescription = viewModel.systemTtsDescription
+    val systemTtsAction = viewModel.systemTtsAction
     val voiceDescription = viewModel.voiceDescription
     var isShowVoiceDialog by remember { mutableStateOf(false) }
     var labelWidth by remember { mutableStateOf(0.dp) } // measure width of sliders for alignment
@@ -193,7 +192,7 @@ fun SettingsDrawer(
                     onClick = {
                         with(context) {
                             startActivity(
-                                Intent(systemTtsInstallVoicesAction)
+                                Intent(systemTtsAction)
                                     .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             )
                         }

@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Context.CLIPBOARD_SERVICE
 import android.content.Intent
 import android.provider.Settings
+import android.speech.tts.TextToSpeech
 import android.speech.tts.Voice
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -48,6 +49,8 @@ import javax.inject.Inject
 
 private const val systemTtsAvailableDescription = "Install additional voices"
 private const val systemTtsUnavailableDescription = "Install or enable a text-to-speech engine"
+private const val systemTtsAvailableAction = TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA
+private const val systemTtsUnavailableAction = "com.android.settings.TTS_SETTINGS"
 private const val authenticatedCustomDescription = "Webhook alerts"
 private const val guestCustomDescription = "Sign in to set up webhooks"
 private const val screenFullDescription = "Full screen"
@@ -103,6 +106,10 @@ class MainViewModel @Inject constructor(
         get() =
             if (hasTts) systemTtsAvailableDescription
             else systemTtsUnavailableDescription
+    val systemTtsAction
+        get() =
+            if (hasTts) systemTtsAvailableAction
+            else systemTtsUnavailableAction
 
     // voice
     var voices by mutableStateOf<List<Voice>>(emptyList())
