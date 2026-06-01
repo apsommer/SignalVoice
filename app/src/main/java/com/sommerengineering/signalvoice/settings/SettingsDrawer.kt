@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.sommerengineering.signalvoice.BuildConfig
 import com.sommerengineering.signalvoice.MainViewModel
 import com.sommerengineering.signalvoice.R
+import com.sommerengineering.signalvoice.session.ConnectionState
 import com.sommerengineering.signalvoice.session.Session.Guest
 import com.sommerengineering.signalvoice.source.MessageOrigin
 import com.sommerengineering.signalvoice.source.btcAsset
@@ -70,6 +71,7 @@ import com.sommerengineering.signalvoice.uitls.supportUrl
 import com.sommerengineering.signalvoice.uitls.systemTtsDescription
 import com.sommerengineering.signalvoice.uitls.systemTtsInstallVoicesAction
 import com.sommerengineering.signalvoice.uitls.systemTtsTitle
+import com.sommerengineering.signalvoice.uitls.systemTtsUnavailableDescription
 import com.sommerengineering.signalvoice.uitls.voiceDividerTitle
 import com.sommerengineering.signalvoice.uitls.voiceTitle
 
@@ -85,12 +87,18 @@ fun SettingsDrawer(
     val uriHandler = LocalUriHandler.current
     val session by viewModel.session.collectAsState()
 
+    // voice
+    val connectionState by viewModel.connectionState.collectAsState()
+    val hasTts = connectionState != ConnectionState.TtsUnavailable
+    var labelWidth by remember { mutableStateOf(0.dp) } // measure width of sliders for alignment
+    var isShowVoiceDialog by remember { mutableStateOf(false) }
     val speed = viewModel.speed
     val pitch = viewModel.pitch
     val voiceDescription = viewModel.voiceDescription
     val speedDescription = viewModel.speedDescription
     val pitchDescription = viewModel.pitchDescription
 
+    // streams
     val isZN = viewModel.isZN
     val isNQ = viewModel.isNQ
     val isBTC = viewModel.isBTC
@@ -101,11 +109,6 @@ fun SettingsDrawer(
 
     val isFullScreen = viewModel.isFullScreen
     val fullScreenDescription = viewModel.fullScreenDescription
-
-    var isShowVoiceDialog by remember { mutableStateOf(false) }
-
-    // measure width of speed slider for proper alignment of pitch slider
-    var labelWidth by remember { mutableStateOf(0.dp) }
 
     Box {
 
@@ -121,63 +124,66 @@ fun SettingsDrawer(
                 DividerItem(voiceDividerTitle)
             }
 
-            // voice
-            item {
-                DialogItem(
-                    iconRes = R.drawable.voice,
-                    title = voiceTitle,
-                    description = voiceDescription,
-                    onClick = { isShowVoiceDialog = true }) {
+            if (hasTts) {
 
-                    if (isShowVoiceDialog) {
-                        VoiceDialog(
-                            viewModel = viewModel,
-                            onItemSelected = {
-                                viewModel.setVoice(it)
-                                isShowVoiceDialog = false
-                            },
-                            onDismiss = {
-                                isShowVoiceDialog = false
+                // voice
+                item {
+                    DialogItem(
+                        iconRes = R.drawable.voice,
+                        title = voiceTitle,
+                        description = voiceDescription,
+                        onClick = { isShowVoiceDialog = true }) {
+
+                        if (isShowVoiceDialog) {
+                            VoiceDialog(
+                                viewModel = viewModel,
+                                onItemSelected = {
+                                    viewModel.setVoice(it)
+                                    isShowVoiceDialog = false
+                                },
+                                onDismiss = {
+                                    isShowVoiceDialog = false
+                                })
+                        }
+                    }
+                }
+
+                // speed
+                item {
+                    SliderItem(
+                        iconRes = R.drawable.speed,
+                        title = speedTitle,
+                        description = speedDescription,
+                        labelWidth = labelWidth,
+                        onLabelWidthChanged = { labelWidth = it }
+                    ) {
+
+                        SliderImpl(
+                            initPosition = speed,
+                            onValueChanged = { viewModel.updateSpeed(it) },
+                            onValueChangeFinished = {
+                                viewModel.speakUtterance(speedChangeUtterance + it)
                             })
                     }
                 }
-            }
 
-            // speed
-            item {
-                SliderItem(
-                    iconRes = R.drawable.speed,
-                    title = speedTitle,
-                    description = speedDescription,
-                    labelWidth = labelWidth,
-                    onLabelWidthChanged = { labelWidth = it }
-                ) {
+                // pitch
+                item {
+                    SliderItem(
+                        iconRes = R.drawable.pitch,
+                        title = pitchTitle,
+                        description = pitchDescription,
+                        labelWidth = labelWidth,
+                        onLabelWidthChanged = { labelWidth = it }
+                    ) {
 
-                    SliderImpl(
-                        initPosition = speed,
-                        onValueChanged = { viewModel.updateSpeed(it) },
-                        onValueChangeFinished = {
-                            viewModel.speakUtterance(speedChangeUtterance + it)
-                        })
-                }
-            }
-
-            // pitch
-            item {
-                SliderItem(
-                    iconRes = R.drawable.pitch,
-                    title = pitchTitle,
-                    description = pitchDescription,
-                    labelWidth = labelWidth,
-                    onLabelWidthChanged = { labelWidth = it }
-                ) {
-
-                    SliderImpl(
-                        initPosition = pitch,
-                        onValueChanged = { viewModel.updatePitch(it) },
-                        onValueChangeFinished = {
-                            viewModel.speakUtterance(pitchChangeUtterance + it)
-                        })
+                        SliderImpl(
+                            initPosition = pitch,
+                            onValueChanged = { viewModel.updatePitch(it) },
+                            onValueChangeFinished = {
+                                viewModel.speakUtterance(pitchChangeUtterance + it)
+                            })
+                    }
                 }
             }
 
@@ -186,7 +192,9 @@ fun SettingsDrawer(
                 LinkItem(
                     iconRes = R.drawable.settings,
                     title = systemTtsTitle,
-                    description = systemTtsDescription,
+                    description =
+                        if (hasTts) systemTtsDescription
+                        else systemTtsUnavailableDescription,
                     onClick = {
                         with(context) {
                             startActivity(

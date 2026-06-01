@@ -88,6 +88,7 @@ const val speedTitle = "Speed"
 const val pitchTitle = "Pitch"
 const val systemTtsTitle = "System settings"
 const val systemTtsDescription = "Install additional voices"
+const val systemTtsUnavailableDescription = "Install or enable a text-to-speech engine"
 const val systemTtsInstallVoicesAction = TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA
 const val streamsDividerTitle = "STREAMS"
 const val premiumDividerTitle = "PREMIUM"

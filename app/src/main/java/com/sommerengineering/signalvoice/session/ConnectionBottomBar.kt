@@ -21,8 +21,7 @@ import com.sommerengineering.signalvoice.session.ConnectionState.TtsUnavailable
 
 private const val INTERNET_UNAVAILABLE = "Internet unavailable"
 private const val PLAY_SERVICES_UNAVAILABLE = "Cannot connect to real-time services"
-private const val TTS_UNAVAILABLE =
-    "Speech services unavailable\n" + "Install or enable a text-to-speech engine"
+private const val TTS_UNAVAILABLE = "Install or enable a text-to-speech engine"
 
 @Composable
 fun ConnectionBottomBar(
