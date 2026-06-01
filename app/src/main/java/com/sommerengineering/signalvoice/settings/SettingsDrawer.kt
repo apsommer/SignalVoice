@@ -1,6 +1,7 @@
 package com.sommerengineering.signalvoice.settings
 
 import android.content.Intent
+import android.speech.tts.TextToSpeech
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -18,7 +19,6 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,8 +35,6 @@ import androidx.compose.ui.unit.dp
 import com.sommerengineering.signalvoice.BuildConfig
 import com.sommerengineering.signalvoice.MainViewModel
 import com.sommerengineering.signalvoice.R
-import com.sommerengineering.signalvoice.session.ConnectionState
-import com.sommerengineering.signalvoice.session.Session.Guest
 import com.sommerengineering.signalvoice.source.MessageOrigin
 import com.sommerengineering.signalvoice.source.btcAsset
 import com.sommerengineering.signalvoice.source.clAsset
@@ -45,35 +43,33 @@ import com.sommerengineering.signalvoice.source.esAsset
 import com.sommerengineering.signalvoice.source.gcAsset
 import com.sommerengineering.signalvoice.source.nqAsset
 import com.sommerengineering.signalvoice.source.znAsset
-import com.sommerengineering.signalvoice.uitls.customDescription
-import com.sommerengineering.signalvoice.uitls.customDividerTitle
-import com.sommerengineering.signalvoice.uitls.customTitle
 import com.sommerengineering.signalvoice.uitls.descriptionAlpha
 import com.sommerengineering.signalvoice.uitls.edgePadding
-import com.sommerengineering.signalvoice.uitls.generalDividerTitle
-import com.sommerengineering.signalvoice.uitls.guestCustomDescription
-import com.sommerengineering.signalvoice.uitls.manageSubscriptionDescription
-import com.sommerengineering.signalvoice.uitls.manageSubscriptionTitle
 import com.sommerengineering.signalvoice.uitls.pitchChangeUtterance
-import com.sommerengineering.signalvoice.uitls.pitchTitle
-import com.sommerengineering.signalvoice.uitls.premiumDividerTitle
-import com.sommerengineering.signalvoice.uitls.screenTitle
 import com.sommerengineering.signalvoice.uitls.settingsIconSize
-import com.sommerengineering.signalvoice.uitls.signOutDescription
-import com.sommerengineering.signalvoice.uitls.signOutTitle
 import com.sommerengineering.signalvoice.uitls.speedChangeUtterance
-import com.sommerengineering.signalvoice.uitls.speedTitle
-import com.sommerengineering.signalvoice.uitls.streamsDividerTitle
 import com.sommerengineering.signalvoice.uitls.subscriptionUrl
-import com.sommerengineering.signalvoice.uitls.supportDescription
-import com.sommerengineering.signalvoice.uitls.supportTitle
 import com.sommerengineering.signalvoice.uitls.supportUrl
-import com.sommerengineering.signalvoice.uitls.systemTtsDescription
-import com.sommerengineering.signalvoice.uitls.systemTtsInstallVoicesAction
-import com.sommerengineering.signalvoice.uitls.systemTtsTitle
-import com.sommerengineering.signalvoice.uitls.systemTtsUnavailableDescription
-import com.sommerengineering.signalvoice.uitls.voiceDividerTitle
-import com.sommerengineering.signalvoice.uitls.voiceTitle
+
+// settings
+private const val voiceDividerTitle = "VOICE"
+private const val voiceTitle = "Voice"
+private const val speedTitle = "Speed"
+private const val pitchTitle = "Pitch"
+private const val systemTtsTitle = "System settings"
+private const val systemTtsInstallVoicesAction = TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA
+private const val streamsDividerTitle = "STREAMS"
+private const val premiumDividerTitle = "PREMIUM"
+private const val customDividerTitle = "CUSTOM"
+private const val customTitle = "Custom signal"
+private const val screenTitle = "Screen"
+private const val generalDividerTitle = "GENERAL"
+private const val manageSubscriptionTitle = "Manage subscription"
+private const val manageSubscriptionDescription = "Billing and plan"
+private const val supportTitle = "Support"
+private const val supportDescription = "Questions, feedback, or issues"
+private const val signOutTitle = "Sign-out"
+private const val signOutDescription = "End session"
 
 @Composable
 fun SettingsDrawer(
@@ -85,16 +81,15 @@ fun SettingsDrawer(
 
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
-    val session by viewModel.session.collectAsState()
 
     // voice
-    val connectionState by viewModel.connectionState.collectAsState()
-    val hasTts = connectionState != ConnectionState.TtsUnavailable
-    var labelWidth by remember { mutableStateOf(0.dp) } // measure width of sliders for alignment
+    val hasTts = viewModel.hasTts
+    val systemTtsDescription = viewModel.systemTtsDescription
+    val voiceDescription = viewModel.voiceDescription
     var isShowVoiceDialog by remember { mutableStateOf(false) }
+    var labelWidth by remember { mutableStateOf(0.dp) } // measure width of sliders for alignment
     val speed = viewModel.speed
     val pitch = viewModel.pitch
-    val voiceDescription = viewModel.voiceDescription
     val speedDescription = viewModel.speedDescription
     val pitchDescription = viewModel.pitchDescription
 
@@ -106,6 +101,8 @@ fun SettingsDrawer(
     val isGC = viewModel.isGC
     val isE6 = viewModel.isE6
     val isCL = viewModel.isCL
+
+    val customSignalDescription = viewModel.customSignalDescription
 
     val isFullScreen = viewModel.isFullScreen
     val fullScreenDescription = viewModel.fullScreenDescription
@@ -192,9 +189,7 @@ fun SettingsDrawer(
                 LinkItem(
                     iconRes = R.drawable.settings,
                     title = systemTtsTitle,
-                    description =
-                        if (hasTts) systemTtsDescription
-                        else systemTtsUnavailableDescription,
+                    description = systemTtsDescription,
                     onClick = {
                         with(context) {
                             startActivity(
@@ -302,9 +297,7 @@ fun SettingsDrawer(
                 DialogItem(
                     iconRes = R.drawable.webhook,
                     title = customTitle,
-                    description =
-                        if (session is Guest) guestCustomDescription
-                        else customDescription,
+                    description = customSignalDescription,
                     onClick = onCustomSignalClick
                 ) {
                     Icon(

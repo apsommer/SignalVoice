@@ -20,6 +20,8 @@ import com.sommerengineering.signalvoice.onboarding.webhook.VerificationState.RE
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationState.WAITING
 import com.sommerengineering.signalvoice.onboarding.webhook.VerificationUiState
 import com.sommerengineering.signalvoice.session.ConnectionMonitor
+import com.sommerengineering.signalvoice.session.ConnectionState
+import com.sommerengineering.signalvoice.session.Session
 import com.sommerengineering.signalvoice.session.SessionManager
 import com.sommerengineering.signalvoice.source.Message
 import com.sommerengineering.signalvoice.uitls.RomanNumerals
@@ -30,8 +32,6 @@ import com.sommerengineering.signalvoice.uitls.esStream
 import com.sommerengineering.signalvoice.uitls.gcStream
 import com.sommerengineering.signalvoice.uitls.gitHubProvider
 import com.sommerengineering.signalvoice.uitls.nqStream
-import com.sommerengineering.signalvoice.uitls.screenFullDescription
-import com.sommerengineering.signalvoice.uitls.screenWindowedDescription
 import com.sommerengineering.signalvoice.uitls.webhookBaseUrl
 import com.sommerengineering.signalvoice.uitls.znStream
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -45,6 +45,13 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
+
+private const val systemTtsAvailableDescription = "Install additional voices"
+private const val systemTtsUnavailableDescription = "Install or enable a text-to-speech engine"
+private const val authenticatedCustomDescription = "Webhook alerts"
+private const val guestCustomDescription = "Sign in to set up webhooks"
+private const val screenFullDescription = "Full screen"
+private const val screenWindowedDescription = "Show system bars"
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
@@ -79,6 +86,24 @@ class MainViewModel @Inject constructor(
         emptyList()
     )
 
+    // feed mode: linear or grouped
+    var feedMode by mutableStateOf(FeedMode.Linear)
+        private set
+
+    fun toggleFeedMode() {
+        val newFeedMode = if (feedMode == FeedMode.Linear) FeedMode.Grouped else FeedMode.Linear
+        feedMode = newFeedMode
+        repo.updateFeedMode(newFeedMode)
+    }
+
+    // tts engine
+    val hasTts
+        get() = connectionState.value != ConnectionState.TtsUnavailable
+    val systemTtsDescription
+        get() =
+            if (hasTts) systemTtsAvailableDescription
+            else systemTtsUnavailableDescription
+
     // voice
     var voices by mutableStateOf<List<Voice>>(emptyList())
         private set
@@ -99,25 +124,23 @@ class MainViewModel @Inject constructor(
     // speed
     var speed by mutableFloatStateOf(1f)
         private set
-    var speedDescription by mutableStateOf("")
-        private set
+    val speedDescription
+        get() = speed.toString()
 
     fun updateSpeed(value: Float) {
         speed = value
         repo.speed = value
-        speedDescription = repo.speed.toString()
     }
 
     // pitch
     var pitch by mutableFloatStateOf(1f)
         private set
-    var pitchDescription by mutableStateOf("")
-        private set
+    val pitchDescription
+        get() = pitch.toString()
 
     fun updatePitch(value: Float) {
         pitch = value
         repo.pitch = value
-        pitchDescription = repo.pitch.toString()
     }
 
     // listening
@@ -230,15 +253,11 @@ class MainViewModel @Inject constructor(
         analytics.logStreamChanged(clStream, enabled)
     }
 
-    // feed mode: linear or grouped
-    var feedMode by mutableStateOf(FeedMode.Linear)
-        private set
-
-    fun toggleFeedMode() {
-        val newFeedMode = if (feedMode == FeedMode.Linear) FeedMode.Grouped else FeedMode.Linear
-        feedMode = newFeedMode
-        repo.updateFeedMode(newFeedMode)
-    }
+    // custom signal
+    val customSignalDescription
+        get() =
+            if (session.value is Session.Guest) guestCustomDescription
+            else authenticatedCustomDescription
 
     // fullscreen
     var isFullScreen by mutableStateOf(false)
@@ -252,16 +271,10 @@ class MainViewModel @Inject constructor(
     }
 
     private fun refreshTtsSettingsUi() {
-
-        // add roman numerals to voice locale groups
         createBeautifulVoices()
-
-        // voices and voice exposed by tts engine after initialization
         speed = repo.speed
         pitch = repo.pitch
         voiceDescription = beautifyVoiceName(repo.voice.name)
-        speedDescription = repo.speed.toString()
-        pitchDescription = repo.pitch.toString()
     }
 
     fun signOut() =

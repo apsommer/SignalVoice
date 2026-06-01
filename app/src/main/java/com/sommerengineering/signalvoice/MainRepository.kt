@@ -287,7 +287,6 @@ class MainRepository @Inject constructor(
                     ?: voice
         tts.speed = prefs.read(SPEED) ?: 1f
         tts.pitch = prefs.read(PITCH) ?: 1f
-        setListening(prefs.read(LISTENING) ?: true)
     }
 
     fun signOut() {
@@ -343,6 +342,14 @@ class MainRepository @Inject constructor(
                             connectionMonitor.setPlayServicesUnavailable()
                         }
                 }
+        }
+
+        // initialize listening
+        appScope.launch {
+            setListening(
+                enabled = prefs.read(LISTENING) ?: true,
+                isPersist = false
+            )
         }
 
         // initialize tts engine

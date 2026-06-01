@@ -1,6 +1,5 @@
 package com.sommerengineering.signalvoice.uitls
 
-import android.speech.tts.TextToSpeech
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.colorResource
@@ -80,32 +79,6 @@ const val SetupOnboardingSignalArmedRoute = "SetupOnboardingSignalArmed"
 const val productId = "premium" // match play store config
 const val subscriptionUrl = "https://play.google.com/store/account/subscriptions?sku=" +
         productId + "&package=" + BuildConfig.APPLICATION_ID
-
-// settings
-const val voiceDividerTitle = "VOICE"
-const val voiceTitle = "Voice"
-const val speedTitle = "Speed"
-const val pitchTitle = "Pitch"
-const val systemTtsTitle = "System settings"
-const val systemTtsDescription = "Install additional voices"
-const val systemTtsUnavailableDescription = "Install or enable a text-to-speech engine"
-const val systemTtsInstallVoicesAction = TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA
-const val streamsDividerTitle = "STREAMS"
-const val premiumDividerTitle = "PREMIUM"
-const val customDividerTitle = "CUSTOM"
-const val customTitle = "Custom signal"
-const val customDescription = "Webhook alerts"
-const val guestCustomDescription = "Sign in to set up webhooks"
-const val screenTitle = "Screen"
-const val screenFullDescription = "Full screen"
-const val screenWindowedDescription = "Show system bars"
-const val generalDividerTitle = "GENERAL"
-const val manageSubscriptionTitle = "Manage subscription"
-const val manageSubscriptionDescription = "Billing and plan"
-const val supportTitle = "Support"
-const val supportDescription = "Questions, feedback, or issues"
-const val signOutTitle = "Sign-out"
-const val signOutDescription = "End session"
 
 // cards
 const val emptyStateTitle = "Custom signal"

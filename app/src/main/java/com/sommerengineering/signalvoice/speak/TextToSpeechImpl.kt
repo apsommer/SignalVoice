@@ -136,9 +136,6 @@ class TextToSpeechImpl @Inject constructor(
             return
         }
 
-        connectionMonitor.setTtsUnavailable()
-        return
-
         // update state
         _voice = defaultVoice
         _voices = availableVoices
