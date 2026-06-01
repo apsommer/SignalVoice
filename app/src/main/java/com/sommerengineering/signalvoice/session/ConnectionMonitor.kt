@@ -6,6 +6,7 @@ import android.net.Network
 import com.sommerengineering.signalvoice.session.ConnectionState.Connected
 import com.sommerengineering.signalvoice.session.ConnectionState.InternetUnavailable
 import com.sommerengineering.signalvoice.session.ConnectionState.PlayServicesUnavailable
+import com.sommerengineering.signalvoice.session.ConnectionState.TtsUnavailable
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,6 +38,10 @@ class ConnectionMonitor @Inject constructor(
         if (connectionState.value == Connected) {
             _connectionState.value = PlayServicesUnavailable
         }
+    }
+
+    fun setTtsUnavailable() {
+        _connectionState.value = TtsUnavailable
     }
 
     init {

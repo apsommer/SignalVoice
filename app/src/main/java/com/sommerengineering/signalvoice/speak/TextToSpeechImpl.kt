@@ -5,6 +5,7 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.speech.tts.Voice
 import androidx.core.os.bundleOf
+import com.sommerengineering.signalvoice.session.ConnectionMonitor
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,6 +20,7 @@ const val volumeKey = TextToSpeech.Engine.KEY_PARAM_VOLUME
 @Singleton
 class TextToSpeechImpl @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val connectionMonitor: ConnectionMonitor
 ) : TextToSpeech.OnInitListener {
 
     // system text to speech engine
@@ -109,9 +111,37 @@ class TextToSpeechImpl @Inject constructor(
         )
 
     override fun onInit(status: Int) {
-        if (status != TextToSpeech.SUCCESS) return
-        _voices = _textToSpeech.voices.toList()
+
+        // method is unstable across different OEM
+        // stabilize with multiple validity checks
+
+        // validate successful initialization
+        if (status != TextToSpeech.SUCCESS) {
+            connectionMonitor.setTtsUnavailable()
+            return
+        }
+
+        // validate engine voices
+        val availableVoices =
+            _textToSpeech.voices?.toList().orEmpty()
+        if (availableVoices.isEmpty()) {
+            connectionMonitor.setTtsUnavailable()
+            return
+        }
+
+        // validate default voice
+        val defaultVoice = _textToSpeech.defaultVoice
+        if (defaultVoice == null) {
+            connectionMonitor.setTtsUnavailable()
+            return
+        }
+
+        connectionMonitor.setTtsUnavailable()
+        return
+
+        // update state
+        _voice = defaultVoice
+        _voices = availableVoices
         _isInit.update { true }
     }
-
 }
