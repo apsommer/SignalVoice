@@ -1,1 +1,1 @@
-Validate forced update flow
+Improved app stability on startup for Samsung devices

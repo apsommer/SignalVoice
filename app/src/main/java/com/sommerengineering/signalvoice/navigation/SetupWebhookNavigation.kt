@@ -25,6 +25,8 @@ fun NavGraphBuilder.SetupWebhookNavigation(
         startDestination = SetupOnboardingCopyWebhookRoute
     ) {
 
+        val isFullScreen = viewModel.isFullScreen
+
         // copy webhook
         composable(SetupOnboardingCopyWebhookRoute) {
 
