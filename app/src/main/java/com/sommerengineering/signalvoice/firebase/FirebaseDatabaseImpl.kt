@@ -5,7 +5,6 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.database
 import com.sommerengineering.signalvoice.source.Message
 import com.sommerengineering.signalvoice.uitls.databaseUrl
-import com.sommerengineering.signalvoice.uitls.logMessage
 import com.sommerengineering.signalvoice.uitls.messageKey
 import com.sommerengineering.signalvoice.uitls.sourceKey
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -85,7 +84,6 @@ class FirebaseDatabaseImpl @Inject constructor() {
         val currentUid = uid
 
         // write token: uid
-        logMessage("writeToken: newToken=${newToken.take(10)}, currentUid=${currentUid.take(10)}")
         db.getReference(TOKENS)
             .child(newToken)
             .setValue(currentUid)
