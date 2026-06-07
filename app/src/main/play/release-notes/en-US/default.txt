@@ -1,1 +1,1 @@
-Improved compatibility with Samsung and modified devices
+Validate forced update flow
