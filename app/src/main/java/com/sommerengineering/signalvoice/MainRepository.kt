@@ -18,6 +18,7 @@ import com.sommerengineering.signalvoice.uitls.esStream
 import com.sommerengineering.signalvoice.uitls.gcStream
 import com.sommerengineering.signalvoice.uitls.nqStream
 import com.sommerengineering.signalvoice.uitls.znStream
+import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -38,7 +39,7 @@ class MainRepository @Inject constructor(
     private val sessionManager: SessionManager,
     private val tts: TextToSpeechImpl,
     private val roomDb: RoomImpl,
-    private val firebaseDb: FirebaseDatabaseImpl,
+    private val firebaseDatabaseImpl: Lazy<FirebaseDatabaseImpl>,
     private val prefs: PreferenceStore
 ) {
 
@@ -51,6 +52,7 @@ class MainRepository @Inject constructor(
         appScope.launch { roomDb.addMessage(message) }
 
     // firebase database
+    val firebaseDb = firebaseDatabaseImpl.get()
     suspend fun hydrateStreamMessages() {
 
         if (loadZN()) roomDb.replaceStreamMessages(
