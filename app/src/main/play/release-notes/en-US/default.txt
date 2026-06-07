@@ -1,1 +1,1 @@
-Improved app stability on startup for Samsung devices
+Improved compatibility with Samsung and modified devices
