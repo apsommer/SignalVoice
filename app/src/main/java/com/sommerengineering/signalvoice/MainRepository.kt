@@ -52,7 +52,7 @@ class MainRepository @Inject constructor(
         appScope.launch { roomDb.addMessage(message) }
 
     // firebase database
-    val firebaseDb = firebaseDatabaseImpl.get()
+    private val firebaseDb by lazy { firebaseDatabaseImpl.get() }
     suspend fun hydrateStreamMessages() {
 
         if (loadZN()) roomDb.replaceStreamMessages(
